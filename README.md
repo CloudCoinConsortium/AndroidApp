@@ -1,2 +1,5 @@
 # AndroidApp
-An Adroid App for CloudCoin Client
+
+CloudCoin Pocket Bank v. 2.0
+
+
