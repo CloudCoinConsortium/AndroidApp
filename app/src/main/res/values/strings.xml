@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="app_name">Cloud Coin Consortium</string>
+	<string name="app_name0">Pocket Bank</string>
+	<string name="app_name1">With RAIDA Authenticity Detection</string>
+	<string name="tadd">IMPORT</string>
+	<string name="tbank">BANK</string>
+	<string name="tbankinventory">Bank Inventory</string>
+	<string name="tspend">EXPORT</string>
+	<string name="loading">Loading</string>
+	<string name="importtag">Import Tag</string>
+	<string name="exporttag">Export Tag</string>
+	<string name="url">CloudCoinConsortium.com</string>
+
+	<string name="coin">Coin</string>
+	<string name="bank">Bank</string>
+
+	<string name="ok">OK</string>
+	<string name="total">Total</string>
+	<string name="sbank">Bank Inventory</string>
+	<string name="scounterfeit">Counterfeit</string>
+	<string name="sfractured">Fractured</string>
+	<string name="email">Email</string>
+
+
+	<string name="errmnt">Can not locate your Import directory. Make sure that your primary storage is properly installed into the device</string>
+	<string name="errimport">Error occured while doing search in your Import directory</string>
+	<string name="erremptyimport">There were no CloudCoins found in your income folder. Please put your CloudCoins (.jpg or .stack) files in your income folder and try again. Your Income folder can be found on your primary storage at:\n\n%1$s</string>
+
+	<string name="importwarn">Import will import all CloudCoin files from your Import folder. Please put all your CloudCoin files (.jpg and .stack) into the Import folder located on your primary storage at:\n\n%1$s\n\nWe are going to import %2$d file(s). Tap OK to continue</string>
+
+	<string name="movedtobank">Total Moved to Bank: %1$d Coins</string>
+	<string name="importresults">Result of Import</string>
+	<string name="importresultsauth">Authentic and moved to bank</string>
+	<string name="importresultstrash">Counterfeit or failed and moved to Trash</string>
+	<string name="trashnote">Please check your CloudCoin Trash\nof a note about what happened</string>
+	<string name="authstring">Authenticating %1$d of %2$d CloudCoin Files</string>
+	<string name="authfrackedstring">Fixing %1$d of %2$d Fracked Coins</string>
+
+	<string name="totaltoexport">Total to export: %1$d CloudCoins</string>
+	<string name="globalexporterror">Global error. Coins have not been exported</string>
+	<string name="exportok">Coins have been exported successfully\nYou can find them on your primary storage  at:\n%1$s</string>
+	<string name="exportfailed">Failed to export %1$d coins</string>
+	<string name="fixfracked">Fixing fracked coins</string>
+	<string name="errconnection">You may need to connecto to the Internet or use a router that does not block your outgoing requests</string>
+	<string name="serialnumber">Serial Number</string>
+	<string name="importresult">Import Result</string>
+	<string name="paymentreceived">Payment Received on</string>
+	<string name="totalreceived">Total CloudCoins received</string>
+	<string name="changefolder">Pick files</string>
+	<string name="select">Select</string>
+	<string name="currentdirectory">Current Directory</string>
+	<string name="cantread">Directory can not be read</string>
+	<string name="emptydir">No folders</string>
+	<string name="filespicked">Files Picked</string>
+	<string name="toomanyfiles">Too many files</string>
+	<string name="importfiles">We are going to import %1$d file(s)</string>
+	<string name="acc">Total Authentic CloudCoins: </string>
+	<string name="close">Close</string>
+	<string name="exportcoins">Export Coins</string>
+	<string name="importcoins">Import Coins</string>
+	<string name="tcib">Total Coins in Bank</string>
+	<string name="of">of</string>
+	<string name="optional">Optional</string>
+	<string name="export">Export</string>
+	<string name="importstr">Import</string>
+	<string name="exportresult">Result of Export</string>
+	<string name="nocoins">No coins selected</string>
+	<string name="sorryraida">Sorry, the RAIDA is unavailable</string>
+	<string name="selectfile">Select file</string>
+	<string name="cancel">Cancel</string>
+	<string name="awesome">Awesome</string>
+	<string name="tcimported">Total Coins moved to Bank</string>
+	<string name="fixing">We are fixing coins now. Please, try again later</string>
+	<string name="fixstart">Starting to fix %1$d CloudCoins</string>
+	<string name="fixed">Fixed %1$d of %2$d CloudCoins</string>
+	<string name="back">Back</string>
+	<string name="icoins">You have coins waiting to be imported</string>
+	<string name="suspectcoins">We found suspect coins in the Bank. We will validate them now</string>
+	<string name="warning">Warning!</string>
+	<string name="exportnotice">When you export your CloudCoins. They will be placed in the Export folder located at %1$s. If you email your CloudCoins, they will be removed from the export folder and sent via email. If you interrupt the email process, you can find your CloudCoin in this export folder. You can use the import file picker to import them back into your bank.</string>
+</resources>

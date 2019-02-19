@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="global.cloudcoin.ccbank"
+    android:versionCode="32"
+    android:versionName="2.0.1"
+    >
+    <supports-screens android:anyDensity="true"
+        android:xlargeScreens="true" android:largeScreens="true"
+        android:normalScreens="true" android:smallScreens="true"/>
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+
+    <application android:label="@string/app_name" android:icon="@mipmap/launcher">
+        <activity android:name="MainActivity"
+            android:theme="@style/app_theme"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="file" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.stack" />
+                <data android:pathPattern=".*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.stack"/>
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="content" />
+                <data android:pathPattern=".*\\.stack" />
+                <data android:mimeType="application/octet-stream" />
+            </intent-filter>
+
+            <!-- For http -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="http" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.stack" />
+                <data android:pathPattern=".*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.stack"/>
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+            <!-- For https -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="https" />
+                <data android:host="*" />
+                <data android:pathPattern=".*\\.stack" />
+                <data android:pathPattern=".*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\.stack"/>
+                <data android:pathPattern=".*\\..*\\..*\\..*\\..*\\..*\\.stack"/>
+                <data android:mimeType="*/*" />
+            </intent-filter>
+
+        </activity>
+
+        <activity android:name="DirPickerActivity"
+            android:theme="@style/app_theme"
+            android:label="@string/app_name">
+        </activity>
+
+
+
+    </application>
+
+</manifest>

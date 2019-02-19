@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/dialogwidth"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/dialogbg"
+    android:layout_marginLeft="32dp"
+    android:layout_marginRight="32dp"
+    android:layout_marginBottom="32dp"
+    android:layout_marginTop="32dp"
+>
+<LinearLayout 
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:layout_alignParentTop="true"
+	android:orientation="vertical"
+	android:id="@+id/toplayer"
+	android:padding="8dp"
+>
+
+<TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:text="@string/importresults"
+        android:textColor="#000000"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"
+/>
+
+<TextView
+        style="@style/InvText0"
+        android:layout_marginTop="10dp"
+        android:id="@+id/imptotal" 
+/>
+
+<TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:text="@string/tcimported"
+        android:textColor="#777777"
+        android:textSize="10dp"
+        android:layout_marginTop="0dp"
+/>
+
+<ImageView
+	android:layout_width="match_parent"
+	android:layout_height="5dp"
+	android:src="@drawable/dotted"
+	android:layerType="software" 
+	android:layout_marginTop="12dp"
+/>
+
+<LinearLayout 
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal"
+	android:id="@+id/layermain"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"
+	android:layout_gravity="center"
+	android:gravity="center"
+>
+	<LinearLayout 
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:padding="8dp"
+		android:layout_weight="1"
+		android:layout_gravity="center"
+		android:gravity="center"
+	>
+		<TextView
+		        style="@style/InvText4"
+		        android:layout_marginTop="10dp"
+			android:id="@+id/auth"
+		/>
+		<TextView
+		        android:layout_marginTop="10dp"
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:gravity="center"
+			android:layout_gravity="center"
+			android:text="@string/importresultsauth"
+			android:textColor="#777777"
+			android:textSize="10dp"
+		/>
+	</LinearLayout>
+	<LinearLayout 
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:orientation="vertical"
+		android:padding="8dp"
+		android:layout_weight="1"
+		android:layout_gravity="center"
+		android:gravity="center"
+	>
+		<TextView
+		        style="@style/InvText5"
+			android:layout_marginTop="10dp"
+			android:id="@+id/failed"
+		/>
+		<TextView
+		        android:layout_marginTop="10dp"
+			android:layout_height="wrap_content"
+			android:layout_width="wrap_content"
+			android:gravity="center"
+			android:layout_gravity="center"
+			android:text="@string/importresultstrash"
+			android:textColor="#777777"
+			android:textSize="10dp"
+		/>
+	</LinearLayout>
+</LinearLayout>
+
+</LinearLayout>
+
+<!-- buttons -->
+
+<LinearLayout
+	android:id="@+id/buttonwrapper"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginTop="14dp"
+       	android:gravity="center"
+	android:background="@drawable/border"
+	android:layout_alignParentBottom="true"
+>
+	<LinearLayout
+		android:id="@+id/closebutton"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+       		android:gravity="center"
+		android:clickable="true"
+	>
+		<TextView
+			android:id="@+id/closebuttontext"
+			android:layout_marginTop="12dp"
+			android:layout_marginBottom="12dp"
+        		android:layout_height="wrap_content"
+		        android:layout_width="wrap_content"
+        		android:gravity="center|top"
+	        	android:layout_gravity="center|top"
+		        android:textColor="#777777"
+        		android:textSize="12dp"
+		/>
+	</LinearLayout>
+
+	<LinearLayout
+		android:id="@+id/emailbutton"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+	       	android:gravity="center"
+		android:clickable="true"
+		android:background="@drawable/buttonrightbg"
+	>
+		<TextView
+			android:id="@+id/email"
+			android:layout_marginTop="12dp"
+			android:layout_marginBottom="12dp"
+        		android:layout_height="wrap_content"
+		        android:layout_width="wrap_content"
+        		android:gravity="center|top"
+	        	android:layout_gravity="center|top"
+	        	android:text="@string/email"
+		        android:textColor="#FFFFFF"
+        		android:textSize="12dp"
+		/>
+	</LinearLayout>
+</LinearLayout>
+
+<!-- /buttons -->
+
+
+</LinearLayout>

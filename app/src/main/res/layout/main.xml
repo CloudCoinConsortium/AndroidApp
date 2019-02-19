@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:background="#348EFB"
+>
+<!-- Background -->
+<ImageView
+	android:id="@+id/backgroundid"
+	android:src="@drawable/backicons"
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent"
+	android:scaleType="centerCrop"
+/>
+
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:ads="http://schemas.android.com/apk/res-auto"
+	android:orientation="vertical"
+	android:layout_width="fill_parent"
+	android:layout_height="fill_parent"
+	android:gravity="top"
+	android:layout_gravity="center"
+	android:background="@android:color/transparent"
+	android:padding="4dp"
+>
+	<LinearLayout
+                android:orientation="vertical"
+                android:layout_height="wrap_content"
+                android:layout_width="fill_parent"
+                android:padding="10dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:id="@+id/blayouttitle"
+                android:background="@android:color/transparent"
+		android:scaleType="centerCrop"
+		
+        >
+		<ImageView
+			android:id="@+id/logoid"
+			android:src="@drawable/logo3"
+			android:layout_height="19dp"
+			android:layout_width="121dp"
+		/>
+
+	</LinearLayout>
+
+
+
+ 	<RelativeLayout
+                android:orientation="vertical"
+                android:layout_height="0dp"
+                android:layout_width="fill_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:id="@+id/blayoutwr"
+		android:layout_weight="1"
+                android:background="@android:color/transparent"
+        >
+
+		<LinearLayout
+	                android:orientation="vertical"
+        	        android:layout_height="fill_parent"
+                	android:layout_width="320dp"
+	                android:layout_gravity="center"
+        	        android:gravity="center"
+			android:paddingLeft="32dp"
+			android:paddingRight="32dp"
+			android:paddingBottom="14dp"
+	                android:id="@+id/wrapper"
+        	        android:background="@android:color/transparent"
+		>
+	
+			<!-- Button #1 -->
+			<FrameLayout 
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="0dp"
+				android:layout_weight="1"
+			>
+				<LinearLayout
+					android:orientation="vertical"
+					android:layout_height="fill_parent"
+					android:layout_width="fill_parent"
+					android:id="@+id/b1"
+				>
+					<LinearLayout
+						android:layout_height="fill_parent"
+						android:layout_width="fill_parent"
+						android:id="@+id/bx1"
+						android:layout_weight="5"
+					/>
+					<LinearLayout
+						android:orientation="vertical"
+						android:layout_height="fill_parent"
+						android:layout_width="fill_parent"
+						android:layout_gravity="center"
+						android:gravity="center"
+						android:id="@+id/limport"
+						android:background="@drawable/buttonbg"
+						android:layout_weight="1"
+						android:clickable="true"
+					>
+						<ImageView
+							android:layout_gravity="center"
+							android:gravity="center"	
+							android:id="@+id/iadd"
+							android:layout_height="43dp"
+							android:layout_width="35dp"
+							android:background="@drawable/importbutton"
+						/>
+						<TextView
+							android:layout_height="wrap_content"
+							android:layout_width="wrap_content"
+							android:gravity="center"
+							android:layout_gravity="center"
+							android:id="@+id/tadd"
+							android:text="@string/tadd"
+							android:textColor="#FFB71A"
+							android:textSize="12dp"
+						/>
+						<TextView
+							android:layout_height="wrap_content"
+							android:layout_width="wrap_content"
+							android:id="@+id/icoins"
+							android:text="@string/icoins"
+							android:textColor="#CCCCCC"
+							android:textSize="10dp"
+							android:visibility="gone"
+							android:layout_gravity="center"
+							android:gravity="center"
+						/>
+					</LinearLayout>
+				</LinearLayout>
+				<ImageView
+					android:id="@+id/i1"
+					android:src="@drawable/importicon"
+					android:layout_height="wrap_content"
+					android:layout_width="wrap_content"
+					android:layout_gravity="top|center"
+					android:gravity="top|center"
+				/>
+			</FrameLayout>
+			<!-- End Button #1 -->
+
+			<!-- Button #2 -->
+			<FrameLayout 
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="0dp"
+				android:layout_weight="1"
+			>
+				<LinearLayout
+					android:orientation="vertical"
+					android:layout_height="fill_parent"
+					android:layout_width="fill_parent"
+					android:id="@+id/b2"
+				>
+					<LinearLayout
+						android:layout_height="fill_parent"
+						android:layout_width="fill_parent"
+						android:id="@+id/bx2"
+						android:layout_weight="5"
+					/>
+					<LinearLayout
+						android:orientation="vertical"
+						android:layout_height="fill_parent"
+						android:layout_width="fill_parent"
+						android:layout_gravity="center"
+						android:gravity="center"
+						android:id="@+id/lbank"
+						android:background="@drawable/buttonbg"
+						android:layout_weight="1"
+						android:clickable="true"
+					>
+						<ImageView
+							android:layout_gravity="center"
+							android:gravity="center"	
+							android:id="@+id/ibank"
+							android:layout_height="42dp"
+							android:layout_width="48dp"
+							android:background="@drawable/bankbutton"
+						/>
+						<TextView
+							android:layout_height="wrap_content"
+							android:layout_width="wrap_content"
+							android:gravity="center"
+							android:layout_gravity="center"
+							android:id="@+id/tbank"
+							android:text="@string/tbank"
+							android:textColor="#6FBD6C"
+							android:textSize="12dp"
+						/>
+					</LinearLayout>
+				</LinearLayout>
+				<ImageView
+					android:id="@+id/i2"
+					android:src="@drawable/bankicon"
+					android:layout_height="wrap_content"
+					android:layout_width="wrap_content"
+					android:layout_gravity="top|center"
+					android:gravity="top|center"
+				/>
+			</FrameLayout>
+			<!-- End Button #2 -->
+
+			<!-- Button #3 -->
+			<FrameLayout 
+				android:orientation="vertical"
+				android:layout_width="fill_parent"
+				android:layout_height="0dp"
+				android:layout_weight="1"
+			>
+				<LinearLayout
+					android:orientation="vertical"
+					android:layout_height="fill_parent"
+					android:layout_width="fill_parent"
+					android:id="@+id/b3"
+				>
+					<LinearLayout
+						android:layout_height="fill_parent"
+						android:layout_width="fill_parent"
+						android:id="@+id/bx3"
+						android:layout_weight="5"
+					/>
+					<LinearLayout
+						android:orientation="vertical"
+						android:layout_height="fill_parent"
+						android:layout_width="fill_parent"
+						android:layout_gravity="center"
+						android:gravity="center"
+						android:id="@+id/lexport"
+						android:background="@drawable/buttonbg"
+						android:layout_weight="1"
+						android:clickable="true"
+					>
+						<ImageView
+							android:layout_gravity="center"
+							android:gravity="center"	
+							android:id="@+id/iexport"
+							android:layout_height="34dp"
+							android:layout_width="47dp"
+							android:background="@drawable/exportbutton"
+						/>
+						<TextView
+							android:layout_height="wrap_content"
+							android:layout_width="wrap_content"
+							android:gravity="center"
+							android:layout_gravity="center"
+							android:id="@+id/texport"
+							android:text="@string/tspend"
+							android:textColor="#C86DD7"
+							android:textSize="12dp"
+						/>
+					</LinearLayout>
+				</LinearLayout>
+				<ImageView
+					android:id="@+id/i3"
+					android:src="@drawable/exporticon"
+					android:layout_height="wrap_content"
+					android:layout_width="wrap_content"
+					android:layout_gravity="top|center"
+					android:gravity="top|center"
+				/>
+			</FrameLayout>
+			<!-- End Button #3 -->
+	        </LinearLayout>
+	</RelativeLayout>
+
+	
+	<!-- Footer -->
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="40dp"
+		android:layout_marginTop="0dp"
+		android:padding="2dp"
+		android:layout_gravity="center"
+		android:gravity="center|bottom"
+	>
+
+		<TextView
+        	        android:orientation="vertical"
+                	android:layout_height="wrap_content"
+	                android:layout_width="wrap_content"
+        	        android:gravity="center"
+			android:layout_marginTop="0dp"
+			android:padding="1dp"
+        	        android:layout_gravity="center"
+                	android:id="@+id/turl"
+			android:textStyle="bold"
+        	        android:text="@string/url"
+                	android:textColor="#ffffff"
+	                android:textSize="12dp"
+	        />
+
+		<TextView
+        	        android:orientation="vertical"
+                	android:layout_height="wrap_content"
+	                android:layout_width="wrap_content"
+        	        android:gravity="center"
+                	android:layout_marginTop="0dp"
+	                android:padding="1dp"
+        	        android:layout_gravity="center"
+                	android:id="@+id/tversion"
+	                android:textColor="#ffffff"
+        	        android:textSize="10dp"
+	        />
+	</LinearLayout>
+	<!-- End footer -->
+
+</LinearLayout>
+
+
+
+</FrameLayout>

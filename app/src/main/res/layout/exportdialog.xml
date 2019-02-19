@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/dialogwidth"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:background="@drawable/dialogbg"
+    android:layout_marginLeft="32dp"
+    android:layout_marginRight="32dp"
+    android:layout_marginBottom="32dp"
+    android:layout_marginTop="32dp"
+>
+<LinearLayout 
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:layout_alignParentTop="true"
+	android:orientation="vertical"
+	android:id="@+id/toplayer"
+>
+<TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:text="@string/exportcoins"
+        android:textColor="#000000"
+        android:textSize="16dp"
+        android:layout_marginTop="10dp"
+/>
+
+
+<TextView
+	style="@style/InvText0"
+	android:layout_marginTop="10dp"
+	android:id="@+id/exptotal" 
+	android:text=""
+/>
+
+<TextView
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:text="@string/tcib"
+        android:textColor="#777777"
+        android:textSize="10dp"
+	android:layout_marginTop="0dp"
+/>
+</LinearLayout>
+
+<!-- buttons -->
+<LinearLayout
+	android:id="@+id/buttonwrapper"
+	android:layout_width="fill_parent"
+	android:layout_height="wrap_content"
+	android:layout_marginTop="14dp"
+       	android:gravity="center"
+	android:background="@drawable/border"
+	android:layout_alignParentBottom="true"
+>
+	<LinearLayout
+		android:id="@+id/closebutton"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+       		android:gravity="center"
+		android:clickable="true"
+	>
+		<TextView
+			android:layout_marginTop="12dp"
+			android:layout_marginBottom="12dp"
+        		android:layout_height="wrap_content"
+		        android:layout_width="wrap_content"
+        		android:gravity="center|top"
+	        	android:layout_gravity="center|top"
+	        	android:text="@string/close"
+		        android:textColor="#777777"
+        		android:textSize="12dp"
+		/>
+	</LinearLayout>
+	<LinearLayout
+		android:id="@+id/exportbutton"
+		android:layout_width="0dp"
+		android:layout_height="wrap_content"
+		android:layout_weight="1"
+	       	android:gravity="center"
+		android:clickable="true"
+		android:background="@drawable/buttonrightbg"
+	>
+		<TextView
+			android:id="@+id/exporttv"
+			android:layout_marginTop="12dp"
+			android:layout_marginBottom="12dp"
+        		android:layout_height="wrap_content"
+		        android:layout_width="wrap_content"
+        		android:gravity="center|top"
+	        	android:layout_gravity="center|top"
+	        	android:text=""
+		        android:textColor="#FFFFFF"
+        		android:textSize="12dp"
+		/>
+	</LinearLayout>
+
+</LinearLayout>
+<!-- /buttons -->
+
+
+<LinearLayout
+	android:layout_above="@id/buttonwrapper"
+	android:layout_below="@id/toplayer"
+	android:orientation="vertical"
+	android:layout_height="wrap_content"
+	android:layout_width="fill_parent"
+	android:layout_gravity="top|center"
+	android:gravity="top|center"
+	android:id="@+id/blayoutmaininner"
+	android:padding="10dp"
+>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center"
+        android:gravity="top|center"
+        android:id="@+id/blayoutmainext"
+        android:fillViewport="true"
+	android:overScrollMode="never"
+>
+
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_height="fill_parent"
+		android:layout_width="fill_parent"
+		android:layout_gravity="top|center"
+		android:gravity="top|center"
+		android:id="@+id/blayoutmaininner"
+		android:padding="6dp"
+	>
+		<RadioGroup
+			android:id="@+id/radioGroup"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center"
+			android:gravity="center"
+			android:orientation="@android:color/transparent">
+
+			<RadioButton
+				android:id="@+id/rjpg"
+				android:layout_width="96dp"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center"
+				android:gravity="center"
+				android:textColor="#FFFFFF"     
+				android:text=".jpg  "
+				android:button="@null"
+				android:background="@drawable/radioselectorleft"
+				android:padding="8dp"
+				android:textSize="12dp"
+				android:layout_weight="1" />
+			<RadioButton
+				android:id="@+id/rjson"
+				android:layout_width="96dp"
+				android:layout_height="wrap_content"
+				android:layout_gravity="center"
+				android:gravity="center"
+				android:textColor="#FFFFFF"
+				android:checked="true"
+				android:text=".stack"
+				android:button="@null"
+				android:background="@drawable/radioselectorright"
+				android:padding="8dp"
+				android:textSize="12dp"
+			android:layout_weight="1" />
+		</RadioGroup>
+
+		<!-- main layout -->
+		<LinearLayout  android:id="@+id/blayoutmain"	
+			android:layout_marginTop="4dp"
+			android:layout_width="wrap_content"
+			android:layout_height="200dp"
+			android:layout_gravity="center"
+			android:gravity="center"
+			android:orientation="horizontal"
+			android:padding="4dp"
+			android:background="@android:color/transparent"
+		>
+
+		<LinearLayout android:id="@+id/blayoutmain" style="@style/InvExt1">
+                        <TextView android:id="@+id/bst1" android:text="1s" style="@style/InvText1" />
+                	<LinearLayout android:id="@+id/blayoutmain" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:background="@drawable/npicker">
+	                        <NumberPicker style="@style/np" android:id="@+id/np1"/>
+			</LinearLayout>
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+			>
+	                        <TextView style="@style/InvText2" android:text="@string/of" />
+        	                <TextView style="@style/InvText3" android:id="@+id/bs1" />
+			</LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/blayoutmain" style="@style/InvExt1">
+                        <TextView android:id="@+id/bst5" android:text="5s" style="@style/InvText1" />
+                	<LinearLayout android:id="@+id/blayoutmain" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:background="@drawable/npicker">
+ 	                       <NumberPicker android:id="@+id/np5"  style="@style/np" />
+			</LinearLayout>
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+			>
+	                        <TextView style="@style/InvText2" android:text="@string/of" />
+        	                <TextView style="@style/InvText3" android:id="@+id/bs5" />
+			</LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/blayoutmain" style="@style/InvExt1">
+                        <TextView android:id="@+id/bst25" android:text="25s" style="@style/InvText1" />
+                	<LinearLayout android:id="@+id/blayoutmain" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:background="@drawable/npicker">
+                        	<NumberPicker  android:id="@+id/np25"  style="@style/np" />
+			</LinearLayout>
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+			>
+	                        <TextView style="@style/InvText2" android:text="@string/of" />
+        	                <TextView style="@style/InvText3" android:id="@+id/bs25" />
+			</LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/blayoutmain" style="@style/InvExt1">
+                        <TextView android:id="@+id/bst100" android:text="100s" style="@style/InvText1" />
+                	<LinearLayout android:id="@+id/blayoutmain" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:background="@drawable/npicker">
+                        	<NumberPicker   android:id="@+id/np100"  style="@style/np" />
+			</LinearLayout>
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+			>
+	                        <TextView style="@style/InvText2" android:text="@string/of" />
+        	                <TextView style="@style/InvText3" android:id="@+id/bs100" />
+			</LinearLayout>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/blayoutmain" style="@style/InvExt1">
+                        <TextView android:id="@+id/bst250" android:text="250s" style="@style/InvText1" />
+                	<LinearLayout android:id="@+id/blayoutmain" 
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:background="@drawable/npicker">
+ 	                       <NumberPicker   android:id="@+id/np250"  style="@style/np" />
+			</LinearLayout>
+			<LinearLayout
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+			>
+	                        <TextView style="@style/InvText2" android:text="@string/of" />
+   				<TextView style="@style/InvText3" android:id="@+id/bs250" />
+			</LinearLayout>
+                </LinearLayout>
+
+	        </LinearLayout>
+		<!-- end main layout -->
+
+
+	<LinearLayout
+		    android:layout_width="fill_parent"
+		    android:layout_height="wrap_content"
+		    android:orientation="vertical"
+		    android:gravity="center"
+		    android:layout_gravity="center"
+		    android:id="@+id/holder"
+	>
+		<TextView style="@style/InvText3" 
+			android:id="@+id/bs250" 
+			android:textSize="10dp"
+			android:text="@string/exporttag"/>
+
+		<EditText
+			android:layout_width="180dp"
+			android:layout_height="28dp"
+			android:gravity="center"
+			android:layout_gravity="center"
+			android:textColorHint="#CECECE"
+			android:textColor="#444444"
+			android:hint="@string/optional"
+			android:background="@drawable/etdesign"
+			android:id="@+id/exporttag"
+			android:singleLine="true"
+			android:padding="4dp"
+			android:maxLength="16"
+			android:inputType="textCapWords"
+			android:textSize="14dp"
+		/>
+
+		<TextView style="@style/InvText3" 
+			android:id="@+id/en" 
+			android:textSize="9dp"
+		/>
+
+		
+
+	</LinearLayout>
+
+
+	</LinearLayout>
+
+
+
+</ScrollView>
+</LinearLayout>
+
+</RelativeLayout>
