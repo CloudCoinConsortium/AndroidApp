@@ -14,7 +14,7 @@ public class Echoer extends Servant {
         Log.v("XXX", "ECHOER");
     }
 
-    public void echo() {
+    public void run() {
         Log.v("ZZZZZZ", "ECHHHHO");
     }
 

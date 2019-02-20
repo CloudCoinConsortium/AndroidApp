@@ -2,6 +2,7 @@ package global.cloudcoin.ccbank;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.os.Environment;
 import android.provider.MediaStore;
 
 import android.content.res.Resources;
@@ -76,12 +77,18 @@ import android.os.Message;
 import java.util.Date;
 import java.util.Calendar;
 
+import global.cloudcoin.ccbank.Echoer.Echoer;
 import global.cloudcoin.ccbank.core.RAIDA;
+import global.cloudcoin.ccbank.core.AppCore;
+import global.cloudcoin.ccbank.core.Servant;
+import global.cloudcoin.ccbank.core.ServantRegistry;
 
 public class MainActivity extends Activity implements NumberPicker.OnValueChangeListener, OnClickListener {
 
 	TextView tv;
 	Button bt;
+
+	String ltag = "PocketBank";
 
 	boolean asyncFinished;
 
@@ -139,6 +146,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	public static final String APP_PREFERENCES_IMPORTDIR = "pref_importdir";
 
+
+	AppCore appCore;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 
@@ -188,6 +198,43 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		parseViewIntent();
 
 		isImportDialog = false;
+	}
+
+
+	private void initSystem() {
+
+
+		String state = Environment.getExternalStorageState();
+		if (!Environment.MEDIA_MOUNTED.equals(state)) {
+			Log.e(ltag, "Primary storage is not mounted");
+			return;
+		}
+
+		File path = Environment.getExternalStorageDirectory();
+		if (path == null) {
+			Log.e(ltag, "Failed to get External directory");
+			return;
+		}
+
+		ALogger alogger = new ALogger();
+
+		try {
+			AppCore.initFolders(path, alogger);
+			//appCore.initFolders();
+
+			ServantRegistry sr = new ServantRegistry();
+
+			sr.registerServants(new String[]{
+					"Echoer"
+			}, AppCore.getRootPath(), alogger);
+
+			//Echoer e = (Echoer) sr.getServant("Echoer");
+			//e.echo();
+
+
+		} catch (Exception e) {
+			Log.e(ltag, "Failed to init folders");
+		}
 	}
 
 	Handler getHandler() {

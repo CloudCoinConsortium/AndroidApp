@@ -5,7 +5,6 @@ import android.util.Log;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.GLoggerInterface;
 
-
 public class ALogger extends GLogger implements GLoggerInterface {
 
     @Override

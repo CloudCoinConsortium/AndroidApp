@@ -13,13 +13,21 @@ public class Servant {
 
     private GLogger logger;
 
+    protected Config config;
+
     public Servant(String name, String rootDir, GLogger logger) {
         this.name = name;
         this.rootDir = rootDir;
         this.status = STATUS_WAITING;
         this.logger = logger;
+        this.config = null;
 
         logger.info("xxx", "zzz123123412412");
+    }
+
+
+    private boolean readConfig() {
+        return true;
     }
 
     public int getStatus() {

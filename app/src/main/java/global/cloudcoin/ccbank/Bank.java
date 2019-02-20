@@ -96,18 +96,7 @@ public class Bank {
 		this.raida.logger = alogger;
 
 
-		Servant s = new Servant("xxx", "yyy", alogger);
 
-
-		ServantRegistry sr = new ServantRegistry();
-
-		sr.registerServants(new String[]{
-				"Echoer"
-		}, "/path/to/root", alogger);
-
-		Echoer e = (Echoer) sr.getServant("Echoer");
-
-		e.echo();
 
 
 		this.resetImportStats();
@@ -162,42 +151,12 @@ public class Bank {
 		return this.exportedFilenames;
 	}
 
-	private String createDirectory(File path, String dirName) {
-		String idPath;
 
-		idPath = path + "/" + DIR_BASE + "/" + dirName;
-		try {
-			File idPathFile = new File(idPath);
-			idPathFile.mkdirs();
-		} catch (Exception e) {
-			Log.e(TAG, "Can not create Import directory");
-			return null;
-		}
-
-		return idPath;
-	}
 
 	private void createDirectories() {
 
-		String state = Environment.getExternalStorageState();
-		if (!Environment.MEDIA_MOUNTED.equals(state)) {
-			Log.e(TAG, "Primary storage is not mounted");
-			return;
-		}
 
-		File path = Environment.getExternalStorageDirectory();
-		if (path == null) {
-			Log.e(TAG, "Failed to get External directory");
-			return;
-		}
 
-		importDirPath = createDirectory(path, IMPORT_DIR_NAME);
-		exportDirPath = createDirectory(path, EXPORT_DIR_NAME);
-		bankDirPath = createDirectory(path, BANK_DIR_NAME);
-		sentDirPath = createDirectory(path, SENT_DIR_NAME);
-
-		importedDirPath = createDirectory(path, IMPORT_DIR_NAME + "/" + IMPORTED_DIR_NAME);
-		trashDirPath = createDirectory(path, IMPORT_DIR_NAME + "/" + TRASH_DIR_NAME);
 	}
 
 
