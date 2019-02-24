@@ -2,6 +2,7 @@ package global.cloudcoin.ccbank.core;
 
 public class Config {
 
+    public static String DIR_ROOT = "CloudCoin";
     public static String DIR_BANK = "Bank";
     public static String DIR_COUNTERFEIT = "Counterfeit";
     public static String DIR_DANGEROUS = "Dangerous";
@@ -30,6 +31,26 @@ public class Config {
     public static String DIR_CONFIG = "Config";
 
 
+    public static String DIR_MAIN_LOGS = "Logs";
+
+    public static int THREAD_POOL_SIZE = 8;
+
+    public static int CONNECTION_TIMEOUT = 5000; // ms
+
+    public static int MAX_ALLOWED_FAILED_RAIDAS = 2;
+
+    public static String BACKUP0_RAIDA_IP = "95.179.159.178";
+    public static int BACKUP0_RAIDA_PORT = 40000;
+
+    public static String BACKUP1_RAIDA_IP = "66.42.61.239";
+    public static int BACKUP1_RAIDA_PORT = 40000;
+
+    public static String BACKUP2_RAIDA_IP = "45.32.134.65";
+    public static int BACKUP2_RAIDA_PORT = 40000;
 
 
+    public static String RAIDA_STATUS_READY = "ready";
+
+
+    public static int MAX_ALLOWED_LATENCY = 20000;
 }

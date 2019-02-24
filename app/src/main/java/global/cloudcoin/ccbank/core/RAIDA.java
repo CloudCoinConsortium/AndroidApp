@@ -27,112 +27,66 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.microedition.khronos.opengles.GL;
+
 import global.cloudcoin.ccbank.core.CloudCoin;
 import global.cloudcoin.ccbank.core.DetectionAgent;
 import global.cloudcoin.ccbank.MainActivity;
 
 public class RAIDA {
 
-	static String SERVERS_LIST_URL = "https://www.cloudcoin.co/servers.html";
-	static String RAIDA_LIST_FILE = "raida.json";
-	static String TAG = "RAIDA";
-	static int CONNECTION_TIMEOUT = 5000; // ms
-	static long FILE_CACHE_TIMEOUT = 3 * 3600 * 1000; // ms = 3 hours
+
+	static String ltag = "RAIDA";
+
 	public static int TOTAL_RAIDA_COUNT = 25;
 	static int THREAD_POOL_SIZE = 8;
 
-	ExecutorService service;
+
 	public DetectionAgent[] agents;
 
-	Context ctx;
+	ExecutorService service;
 
-	public GLoggerInterface logger;
+	public GLogger logger;
 
-	public RAIDA(Context ctx) {
+	final static int STATUS_ECHO_OK = 1;
+	final static int STATUS_ECHO_FAILED = 2;
+
+
+	public RAIDA(GLogger logger) {
 		agents = new DetectionAgent[TOTAL_RAIDA_COUNT];
 		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
-			agents[i] = new DetectionAgent(i, CONNECTION_TIMEOUT);
+			agents[i] = new DetectionAgent(i, Config.CONNECTION_TIMEOUT, logger);
 		}
 
-		this.ctx = ctx;
+		this.logger = logger;
 	}
 
-	public static void updateRAIDAList(Context context) {
-		String data;
-		File path = context.getFilesDir();
-		File file = new File(path, RAIDA_LIST_FILE);
-
-		if (file.exists()) {
-			long now = System.currentTimeMillis();
-			long lastModified =  file.lastModified();
-			
-			if (now - lastModified < FILE_CACHE_TIMEOUT) {
-				Log.d(TAG, "No need for update");
-				return;	
-			}
-
+	public void setExactUrls(String[] urls) {
+		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
+			logger.info(ltag, "Set RAIDA url to " + urls[i]);
+			agents[i].setExactFullUrl(urls[i]);
 		}
-	
-		Log.d(TAG, "Updating RAIDA List");
-
-		data = fetchRAIDAList();
-		if (data == null) {
-			Log.e(TAG, "Failed to update RAIDA list");
-			return;
-		}
-
-		try {
-			JSONObject jsonObject = new JSONObject(data);
-		} catch (Exception e) {
-			Log.e(TAG, "Invalid data received from the server");
-			return;
-		}
-
-		FileOutputStream stream = null; 
-		try {
-			stream = new FileOutputStream(file);
-			stream.write(data.getBytes());
-			stream.close();
-		} catch (FileNotFoundException e) {
-			Log.e(TAG, "File Not Found");
-			return;
-		} catch (IOException e) {
-			Log.e(TAG, "Failed to write RAIDA List file: " + e.getMessage());
-			return;
-		}
-
-		return;
 	}
 
-	public static String fetchRAIDAList() {
-		String data;
-		StringBuilder result = new StringBuilder();
-
-		URL url;
-		HttpURLConnection urlConnection = null;
-		try {
-			url = new URL(SERVERS_LIST_URL);
-			urlConnection = (HttpURLConnection) url.openConnection();
-			urlConnection.setConnectTimeout(CONNECTION_TIMEOUT);
-			InputStream in = new BufferedInputStream(urlConnection.getInputStream());
-			BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-			String line;
-			while((line = reader.readLine()) != null) {
-				result.append(line);
-			}
-		} catch (MalformedURLException e) {
-			Log.e(TAG, "Failed to fetch servers. Malformed URL " + SERVERS_LIST_URL);
-			return null;
-		} catch (IOException e) {
-			Log.e(TAG, "Failed to fetch servers: " + e.getMessage());
-			return null;
-		} finally {
-			if (urlConnection != null)
-				urlConnection.disconnect();
-		}	
-
-		return result.toString();
+	public void setUrl(String ip, int basePort) {
+		logger.info(ltag, "Set RAIDA ip " + ip + ":" + basePort);
+		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
+			agents[i].setFullUrl(ip, basePort);
+		}
 	}
+
+	public String[] getRAIDAURLs() {
+		String[] data;
+
+		data = new String[TOTAL_RAIDA_COUNT];
+		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
+			data[i] = agents[i].getFullURL();
+		}
+
+		return data;
+	}
+
+/*
 
 	public String[] getTickets(int[] triad, String[] ans, int nn, int sn, int denomination) {
 		final String[] returnTickets = new String[3];
@@ -284,6 +238,65 @@ public class RAIDA {
 		ccIn.calculateHP();
 		ccIn.calcExpirationDate();
 		ccIn.gradeStatus();
+
+	}
+	*/
+
+	public long[] getLastLatencies() {
+		long[] responses;
+
+		responses = new long[TOTAL_RAIDA_COUNT];
+		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++)
+			responses[i] = agents[i].getLastLatency();
+
+		return responses;
+	}
+
+	public String[] query(String[] requests) {
+		service = AppCore.getServiceExecutor();
+		List<Future<Runnable>> futures = new ArrayList<Future<Runnable>>();
+
+		final String[] results = new String[TOTAL_RAIDA_COUNT];
+
+		if (requests.length != TOTAL_RAIDA_COUNT) {
+			logger.error(ltag, "Internal error. Wrong parameters");
+			return null;
+		}
+
+		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
+			final int iFinal = i;
+			final String request = requests[i];
+			Future f = service.submit(new Runnable() {
+				public void run() {
+					results[iFinal] = agents[iFinal].doRequest(request);
+
+					//	Handler h = ((global.cloudcoin.ccbank.MainActivity) ctx).getHandler();
+					//	h.sendEmptyMessage(0);
+				}
+			});
+			futures.add(f);
+		}
+
+		for (Future<Runnable> f : futures) {
+			try {
+				f.get(Config.CONNECTION_TIMEOUT * 2, TimeUnit.MILLISECONDS);
+			} catch (ExecutionException e) {
+				logger.error(ltag, "Error executing the task");
+			} catch (TimeoutException e) {
+				logger.error(ltag, "Timeout during connection to the server");
+			} catch (InterruptedException e) {
+				logger.error(ltag, "Task interrupted");
+			}
+		}
+
+		return results;
+		//for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
+		//	ccIn.pastStatus[i] = pastStatuses[i];
+		//}
+
+
+		//service.shutdownNow();
+
 
 	}
 

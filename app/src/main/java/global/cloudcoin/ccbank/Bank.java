@@ -91,7 +91,7 @@ public class Bank {
 
 
 
-		this.raida = new RAIDA(ctx);
+		this.raida = new RAIDA(null);
 
 		this.raida.logger = alogger;
 
@@ -362,7 +362,7 @@ public class Bank {
 		this.frackedCoins = loadCoinArray("fracked");
 	}
 
-
+/*
 	public void fixFracked(int idx) {
 		CloudCoin cc;
 
@@ -397,6 +397,7 @@ public class Bank {
 			Log.e(TAG, "Failed to save coin: " + cc.fullFileName);
 		}
 	}
+	*/
 
 	public void moveFileToTrash(String fileName, String error) {
 		File fsource, ftarget;
@@ -681,7 +682,7 @@ public class Bank {
 
 				//CHANGED WILL NOT WORK (remove filename)
 				cc = new CloudCoin(incomeFiles.get(i).fileName);
-				raida.detectCoin(cc);
+			//	raida.detectCoin(cc);
 
 				Log.v(TAG, "Coin #" + cc.sn + " got extension " + cc.extension);
 

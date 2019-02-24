@@ -1,6 +1,8 @@
 package global.cloudcoin.ccbank;
 
+import android.Manifest;
 import android.content.ContentResolver;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -10,6 +12,7 @@ import android.content.res.Resources;
 import android.app.Activity;
 import android.os.Bundle;
 
+import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.TextView;
 import android.content.Context;
@@ -78,6 +81,7 @@ import java.util.Date;
 import java.util.Calendar;
 
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.AppCore;
 import global.cloudcoin.ccbank.core.Servant;
@@ -85,13 +89,21 @@ import global.cloudcoin.ccbank.core.ServantRegistry;
 
 public class MainActivity extends Activity implements NumberPicker.OnValueChangeListener, OnClickListener {
 
-	TextView tv;
-	Button bt;
 
 	String ltag = "PocketBank";
 
-	boolean asyncFinished;
+	final static int ECHO_RESULT_INITIAL = 0;
+	final static int ECHO_RESULT_OK = 1;
+	final static int ECHO_RESULT_FAILED = 2;
+	final static int ECHO_RESULT_DOING = 3;
 
+	int echoResult;
+
+	ServantRegistry sr;
+
+
+	TextView tv;
+	Button bt;
 	LinearLayout ll1, ll2, ll3;
 
 	SharedPreferences mSettings;
@@ -146,6 +158,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	public static final String APP_PREFERENCES_IMPORTDIR = "pref_importdir";
 
+	final static int MY_STORAGE_WRITE_CONSTANT = 1;
 
 	AppCore appCore;
 
@@ -157,14 +170,14 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		setContentView(R.layout.main);
 
-		asyncFinished = false;
+
 		files = null;
 
-		init();
+		echoResult = ECHO_RESULT_INITIAL;
 
 		setImportState(IMPORT_STATE_INIT);
 		bank = new Bank(this);
-
+/*
 		mHandler = new Handler(Looper.getMainLooper()) {
                         public void handleMessage(Message inputMessage) {
                                 int what = inputMessage.what;
@@ -194,14 +207,42 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			}
 		});
 
-		myThread.start();
+		myThread.start();*/
+
+		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 		parseViewIntent();
 
+		initSystem();
 		isImportDialog = false;
+
+		Log.v("xxx", "ONCREATE FINISHED");
 	}
 
 
 	private void initSystem() {
+
+		AppCore.initPool();
+
+		if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+				!= PackageManager.PERMISSION_GRANTED) {
+
+			ActivityCompat.requestPermissions(this,
+					new String[]{
+							Manifest.permission.WRITE_EXTERNAL_STORAGE,
+							Manifest.permission.READ_EXTERNAL_STORAGE
+					},
+					MY_STORAGE_WRITE_CONSTANT);
+		} else {
+			// Location permission has been granted, continue as usual.
+			Log.v(ltag, "Granted");
+
+			doInitSystem();
+		}
+
+		initUI();
+	}
+
+	public void doInitSystem() {
 
 
 		String state = Environment.getExternalStorageState();
@@ -217,23 +258,48 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 
 		ALogger alogger = new ALogger();
-
 		try {
 			AppCore.initFolders(path, alogger);
 			//appCore.initFolders();
 
-			ServantRegistry sr = new ServantRegistry();
+			sr = new ServantRegistry();
 
 			sr.registerServants(new String[]{
-					"Echoer"
+					"Echoer",
+					"Authenticator",
 			}, AppCore.getRootPath(), alogger);
 
-			//Echoer e = (Echoer) sr.getServant("Echoer");
-			//e.echo();
-
+			startEchoService();
 
 		} catch (Exception e) {
 			Log.e(ltag, "Failed to init folders");
+		}
+
+	}
+
+	public void startEchoService() {
+		echoResult = ECHO_RESULT_DOING;
+
+		Echoer e = (Echoer) sr.getServant("Echoer");
+		e.launch(new EchoCb());
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode,
+										   String permissions[], int[] grantResults) {
+		switch (requestCode) {
+			case MY_STORAGE_WRITE_CONSTANT: {
+
+				if (grantResults.length > 0
+						&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+					doInitSystem();
+				} else {
+					// permission denied, boo! Disable the
+					// functionality that depends on this permission.
+				}
+				return;
+			}
+
 		}
 	}
 
@@ -254,9 +320,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		pb.setProgress(raidaStatus);
 
 		subTv.setText(s);
-        }
+	}
 
-	public void init() {
+	public void initUI() {
 		try {  
 			version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
 		} catch (NameNotFoundException e) {
@@ -272,7 +338,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		ll3 = (LinearLayout) findViewById(R.id.lexport);
 		ll3.setOnClickListener(this);
 	
-		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
+
 
 		((TextView) findViewById(R.id.tversion)).setText(version);
 	}
@@ -304,7 +370,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		super.onResume();
 
 		updateImportString();
-		doFixFracked();
+		//doFixFracked();
+		Log.v("xxx", "ONRESUME");
 	}
 
 	public void updateImportString() {
@@ -351,8 +418,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 			resId = getResources().getIdentifier(idTxt, "id", getPackageName());
 			ids[idx][i] = (TextView) dialog.findViewById(resId);
-                }
-        }
+		}
+	}
 
 
 	private void initDialog(int layout) {
@@ -373,9 +440,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	private void showError(String msg) {
-                Toast toast = Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG);
-                toast.show();
-        }
+		Toast toast = Toast.makeText(getBaseContext(), msg, Toast.LENGTH_LONG);
+		toast.show();
+	}
 
 	private int getTotal() {
 		int total = 0;
@@ -403,11 +470,11 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		sb.append(" " + total);
 
 		exportTv.setText(sb.toString());
-        }
+	}
 
-        public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+	public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
 		updateTotal();
-        }
+	}
 
 	public void setNumberPickerTextColor(NumberPicker numberPicker, int color) {
 		final int count = numberPicker.getChildCount();
@@ -479,7 +546,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		if (savedImportDir == "") {
 			importDir = bank.getDefaultRelativeImportDirPath();
 			if (importDir == null) {
-				Toast.makeText(this,R.string.errmnt,Toast.LENGTH_SHORT).show();
+				Toast.makeText(this,R.string.errmnt, Toast.LENGTH_SHORT).show();
 
 				return;
 			}
@@ -489,7 +556,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 
 		if (!bank.examineImportDir()) {
-			Toast.makeText(this,R.string.errimport,Toast.LENGTH_SHORT).show();
+			Toast.makeText(this,R.string.errimport, Toast.LENGTH_SHORT).show();
 			return;
 		}
 
@@ -624,9 +691,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	public void selectFile() {
-                Intent i = new Intent((Context) this, DirPickerActivity.class);
-                startActivityForResult(i, REQUEST_CODE_IMPORT_DIR);
-        }
+		Intent i = new Intent((Context) this, DirPickerActivity.class);
+		startActivityForResult(i, REQUEST_CODE_IMPORT_DIR);
+	}
 
 	public void doEmailReceipt() {
 		StringBuilder sb = new StringBuilder();
@@ -681,7 +748,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	public void showImportScreen() {
 		int totalIncomeLength;
 		String result;
-                String importDir = "";
+		String importDir = "";
 
 		if (!isImportDialog)
 			dialog = new Dialog(this);
@@ -725,7 +792,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 			TextView ttv;
 
-
 			ttv = (TextView) dialog.findViewById(R.id.closebuttontext);
 			if (failed > 0 || toBank == 0)
 				ttv.setText(R.string.back);
@@ -750,6 +816,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			return;
 		}
 
+		/*
 		if (bank.getSuspectSize() > 0) {
 			initDialog(R.layout.importdialog6);
 			LinearLayout goButton = (LinearLayout) dialog.findViewById(R.id.gobutton);
@@ -760,7 +827,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			});
 			dialog.show();
 			return;
-		}
+		}*/
 
 
 		initDialog(R.layout.importdialog);
@@ -957,8 +1024,18 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		switch (id) {
 			case R.id.limport:
-				if (!asyncFinished) 
+
+				if (echoResult == ECHO_RESULT_INITIAL)
 					return;
+				else if (echoResult == ECHO_RESULT_DOING) {
+					showError("RAIDA is being checked. Please wait");
+					return;
+				} if (echoResult == ECHO_RESULT_FAILED) {
+					showError("RAIDA failed. Starting a new check. Please wait");
+
+					startEchoService();
+					return;
+				}
 
 				showImportScreen();
 				break;
@@ -1050,7 +1127,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
                 protected String doInBackground(String... params) {
                         for (int i = 0; i < bank.getFrackedCoinsLength(); i++) {
 				publishProgress(i);
-				bank.fixFracked(i);
+				//bank.fixFracked(i);
 			}
 
 			return "OK";
@@ -1189,6 +1266,27 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		statusString = String.format(getResources().getString(R.string.authstring), importedIncomeLength, totalIncomeLength);
 
 		return statusString;
+	}
+
+
+	class EchoCb implements CallbackInterface {
+		public void callback() {
+			runOnUiThread(new Runnable() {
+
+				@Override
+				public void run() {
+					echoResult = ECHO_RESULT_OK;
+				}
+			});
+
+		}
+	}
+
+	class AuthCb implements CallbackInterface {
+	    public void callback() {
+	        Log.v("xxx", "sss");
         }
+    }
+
 
 }
