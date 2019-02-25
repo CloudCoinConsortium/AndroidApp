@@ -37,9 +37,9 @@ public class CloudCoin {
 	public String[] pans;
 	public int[] pastStatus; 
  
-	public String ed; 
-	public String edHex;
-	public int hp; 
+	private String ed;
+	private String edHex;
+	private int hp;
 	public String aoid; 
 	public String fileName;
 	public String json;
@@ -77,6 +77,32 @@ public class CloudCoin {
 		jpeg = null;
 	}
 
+	public CloudCoin(String fileName) throws JSONException {
+		String data = loadFile(fileName);
+
+		if (data == null)
+			throw(new JSONException("Failed to open file"));
+
+		JSONObject o = new JSONObject(data);
+		JSONArray incomeJsonArray = o.getJSONArray("cloudcoin");
+
+		JSONObject childJSONObject = incomeJsonArray.getJSONObject(0);
+
+		nn = childJSONObject.getInt("nn");
+		sn = childJSONObject.getInt("sn");
+
+		JSONArray an = childJSONObject.getJSONArray("an");
+
+		ed = childJSONObject.optString("ed");
+		aoid = childJSONObject.optString("aoid");
+
+		//	aoid = aoid.replace("[", "");
+		//	aoid = aoid.replace("]", "");
+
+
+		this.ans = toStringArray(an);
+	}
+
 	public CloudCoin(int nn, int sn, String[] ans, String ed, String aoid, String tag) {
 		initCommon();
 
@@ -101,117 +127,7 @@ public class CloudCoin {
 
 		return result;
 	}
-	public CloudCoin(String dummy) {
 
-	}
-
-/*
-	public CloudCoin(IncomeFile file) throws Exception {
-		raidaCnt = RAIDA.TOTAL_RAIDA_COUNT;
-		int cnt;
-		FileInputStream fis;
-
-
-		initCommon();
-
-		ans = new String[raidaCnt];
-		tag = file.fileTag;
-		fullFileName = file.fileName;
-
-		if (file.fileType == IncomeFile.TYPE_JPEG) {
-			String wholeString ="";
-			byte[] jpegHeader = new byte[455];
-			int startAn, endAn;
-			
-			try {
-				fis = new FileInputStream(file.fileName);
-				cnt = fis.read(jpegHeader);
-				wholeString = toHexadecimal(jpegHeader);
-				fis.close();
-			} catch (FileNotFoundException e) {
-				Log.e(TAG, "File not found");
-				throw new Exception();
-			} catch (IOException e) {
-				Log.e(TAG, "Error while reading file");
-				throw new Exception();
-			}
-				
-			startAn = 40; 
-			endAn = 72;
-
-			for (int i = 0; i < raidaCnt; i++) {
-				ans[i] = wholeString.substring(startAn + (i * 32), endAn + (i * 32));
-			}
-
-			aoid = wholeString.substring(840, 895);
-			hp = raidaCnt;
-			ed = wholeString.substring(898, 902);
-			nn = Integer.parseInt(wholeString.substring(902, 904), 16);
-			sn = Integer.parseInt(wholeString.substring(904, 910), 16);
-
-
-		} else if (file.fileType == IncomeFile.TYPE_STACK) {
-			String jsonData;
-
-			jsonData = loadJSON(file.fileName);
-			if (jsonData == null) {
-				Log.e(TAG, "Failed to parse json: " + file.fileName);
-				throw new Exception("Failed to parse json");
-			}
-
-			try {
-				JSONObject o = new JSONObject(jsonData);
-				JSONArray incomeJsonArray = o.getJSONArray("cloudcoin");
-
-				JSONObject childJSONObject = incomeJsonArray.getJSONObject(0);
-				int nn     = childJSONObject.getInt("nn");
-				int sn     = childJSONObject.getInt("sn");
-				JSONArray an = childJSONObject.getJSONArray("an");
-				String ed     = childJSONObject.getString("ed");
-				String aoid = childJSONObject.getString("aoid");
-
-				aoid = aoid.replace("[", "");
-				aoid = aoid.replace("]", "");
-
-				this.nn = nn;	
-				this.sn = sn;
-				this.ans = toStringArray(an);
-				this.ed = ed;
-				this.aoid = aoid;
-			} catch (JSONException e) {
-				Log.e(TAG, "Stack file " + file.fileName + " is corrupted: " + e.getMessage());
-				throw new Exception("Stack file " + file.fileName + " is corrupted: " + e.getMessage());
-			}
-
-			Log.v(TAG, "AOID " + this.aoid);
-
-			int indexStartOfStatus = this.aoid.indexOf(">");
-			int indexEndOfStatus = this.aoid.indexOf("<");
-
-			if (indexStartOfStatus != -1 && indexEndOfStatus != -1) {
-				String rawStatus = aoid.substring(indexStartOfStatus + 1, indexEndOfStatus);
-				Log.v(TAG, "Raw status: " + rawStatus);
-				for (int i = 0; i < raidaCnt; i++) {
-					if (rawStatus.charAt(i) == 'p') {
-						this.pastStatus[i] = PAST_STATUS_PASS;
-					} else if (rawStatus.charAt(i) == 'f'){
-						this.pastStatus[i] = PAST_STATUS_FAIL;
-					} else if (rawStatus.charAt(i) == 'e') {
-						this.pastStatus[i] = PAST_STATUS_ERROR;
-					} else {
-						this.pastStatus[i] = PAST_STATUS_UNDETECTED;
-					}
-				}
-			}
-		} else {
-			Log.e(TAG, "Invalid file type");
-			throw new Exception();
-		}
-
-		fileName = getFileName();
-		
-	}
-*/
 	public static String[] toStringArray(JSONArray array) {
 		if (array == null)
 			return null;
@@ -221,10 +137,10 @@ public class CloudCoin {
 			arr[i] = array.optString(i);
 		}
 		return arr;
-        }
+	}
 
 
-	public static String loadJSON(String fileName) {
+	private String loadFile(String fileName) {
 		String jsonData = "";
 		BufferedReader br = null;
 		try {  
@@ -234,14 +150,12 @@ public class CloudCoin {
 				jsonData += line + "\n";
 			}
 		} catch (IOException e) {
-			Log.e(TAG, "Failed to open file " + fileName);
 			return null;
 		} finally {
 			try {  
 				if (br != null)
 					br.close();
 			} catch (IOException ex) {
-				Log.e(TAG, "Failed to close bufferedReader");
 				return null;
 			}
 		}
@@ -309,70 +223,6 @@ public class CloudCoin {
 		} 
 
 		return bytes;
-	}
-
-	public void setJpeg(String rootFolder, Context context) throws Exception {
-		byte[] returnBytes =  null;
-		String cloudCoinStr = "";
-
-		for (int i = 0; i < raidaCnt; i++) {
-			cloudCoinStr += this.ans[i];
-		}
-
-		cloudCoinStr += JPEGAOID; 
-		cloudCoinStr += "00";//LHC = 100%
-		cloudCoinStr += "97E2";//0x97E2;//Expiration date Sep. 2018
-		cloudCoinStr += "01";// cc.nn;//network number
-		String hexSN = Integer.toHexString(this.sn);
-		String fullHexSN = "";
-
-		switch (hexSN.length()) {  
-			case 1: fullHexSN = "00000" +hexSN; break;
-			case 2: fullHexSN = "0000" +hexSN; break;
-			case 3: fullHexSN = "000" +hexSN; break;
-			case 4: fullHexSN = "00" +hexSN; break;
-			case 5: fullHexSN = "0" +hexSN; break;
-			case 6: fullHexSN = hexSN; break;
-		}
-
-		cloudCoinStr += fullHexSN;
-		String Path = "";
-
-		String d = "" + getDenomination();
-
-		returnBytes = readAsset(context, "jpegs/jpeg" + d + ".jpg");
-		byte[] ccArray = hexStringToByteArray(cloudCoinStr);
-
-		int offset = 20;  
-		for (int j =0; j < ccArray.length; j++) {
-			returnBytes[offset + j] = ccArray[j];
-		}
-
-		this.jpeg = returnBytes;
-	}
-		
-	public String writeJpeg(String path) throws Exception {
-		Log.v(TAG, "writejpeg " + path);
-
-		String fileName = path + "/" + this.fileName + "jpg";
-
-		try {
-			File file = new File(fileName);
-			if (file.exists()) {
-				Log.e(TAG, "File " + fileName + " already exists");
-				throw new Exception();
-			}
-
-			FileOutputStream fos = new FileOutputStream(fileName);
-			fos.write(this.jpeg);
-			fos.close();
-		} catch (IOException e) {
-			Log.e(TAG, "Error while writing file: " + fileName);
-			e.printStackTrace();
-			throw new Exception();
-		}
-
-		return fileName;
 	}
 
 	public void saveCoin(String path, String extension) throws Exception {

@@ -21,7 +21,7 @@ public class Authenticator extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Authenticator");
                 doAuthencticate();
-                cb.callback();
+                cb.callback(null);
             }
         });
     }

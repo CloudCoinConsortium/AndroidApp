@@ -81,7 +81,10 @@ import java.util.Date;
 import java.util.Calendar;
 
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
+import global.cloudcoin.ccbank.ShowCoins.ShowCoinsResult;
 import global.cloudcoin.ccbank.core.CallbackInterface;
+import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.AppCore;
 import global.cloudcoin.ccbank.core.Servant;
@@ -267,6 +270,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			sr.registerServants(new String[]{
 					"Echoer",
 					"Authenticator",
+					"ShowCoins",
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
@@ -282,6 +286,11 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		Echoer e = (Echoer) sr.getServant("Echoer");
 		e.launch(new EchoCb());
+	}
+
+	public void startShowCoinsService() {
+		ShowCoins sc = (ShowCoins) sr.getServant("ShowCoins");
+		sc.launch(new ShowCoinsCb());
 	}
 
 	@Override
@@ -406,15 +415,14 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	private void allocId(int idx, String prefix) {
 		int resId, i;
-                String idTxt;
+		String idTxt;
 
-		stats[idx] = new int[size];
 		ids[idx] = new TextView[size];
 		for (i = 0; i < size; i++) {
-			if (i == size - 1)
-				idTxt = prefix + "all";
-			else
-				idTxt = prefix + Bank.denominations[i];
+		//	if (i == size - 1)
+		//		idTxt = prefix + "all";
+		//	else
+			idTxt = prefix + AppCore.getDenominations()[i];
 
 			resId = getResources().getIdentifier(idTxt, "id", getPackageName());
 			ids[idx][i] = (TextView) dialog.findViewById(resId);
@@ -969,42 +977,39 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		dialog.show();
 	}
 
-	public void showBankScreen() {
+	public void showBankScreen(int[][] counters) {
 		isImportDialog = false;
 		dialog = new Dialog(this);
 
+		if (counters.length == 0)
+			return;
+
 		initDialog(R.layout.bankdialog);
 
-		size = Bank.denominations.length + 1;
+		size = counters[0].length;
 		ids = new TextView[3][];
-		stats = new int[3][];
+		//stats = new int[3][];
 
-		allocId(IDX_BANK, "bs");
-		allocId(IDX_COUNTERFEIT, "cs");
-		allocId(IDX_FRACTURED, "fs");
+		allocId(Config.IDX_FOLDER_BANK, "bs");
+		//allocId(IDX_COUNTERFEIT, "cs");
+		allocId(Config.IDX_FOLDER_FRACKED, "fs");
 
-                stats[IDX_BANK] = bank.countCoins("bank");
-                stats[IDX_FRACTURED] = bank.countCoins("fracked");
+             //   stats[IDX_BANK] = bank.countCoins("bank");
+               // stats[IDX_FRACTURED] = bank.countCoins("fracked");
 
                 int j;
 		int totalCnt = 0;
 		int tval;
 
-                for (int i = 0; i < size; i++) {
-                        if (i == 0) {
-                                j = size - 1;
-				tval = 0;
-			} else {
-                                j = i - 1;
-				tval = Bank.denominations[i - 1];
-			}
+		for (int i = 0; i < size; i++) {
+			int authCount = counters[Config.IDX_FOLDER_BANK][i] +
+					counters[Config.IDX_FOLDER_FRACKED][i];
+			Log.v(ltag, "xx=" + i + " " + authCount);
+			ids[Config.IDX_FOLDER_BANK][i].setText("" + authCount);
+		}
 
-			int authCount = stats[IDX_BANK][i] + stats[IDX_FRACTURED][i];
-
-			totalCnt += tval * authCount;
-
-			ids[IDX_BANK][j].setText("" + authCount);
-                }
+		totalCnt = AppCore.getTotal(counters[Config.IDX_FOLDER_BANK]) +
+				AppCore.getTotal(counters[Config.IDX_FOLDER_FRACKED]);
 
 		TextView tcv = (TextView) dialog.findViewById(R.id.totalcoinstxt);
 		String msg = getResources().getString(R.string.acc);
@@ -1043,7 +1048,10 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				showExportScreen();
 				break;
 			case R.id.lbank:
-				showBankScreen();
+				startShowCoinsService();
+
+
+				//showBankScreen();
 				break;
 			default:
 				break;
@@ -1251,8 +1259,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		//ed.putInt("state", newState);
 		//ed.commit();
 
-                importState = newState;
-        }
+		importState = newState;
+	}
 
 	private String getStatusString(int progressCoins) {
                 String statusString;
@@ -1270,7 +1278,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 
 	class EchoCb implements CallbackInterface {
-		public void callback() {
+		public void callback(Object result) {
 			runOnUiThread(new Runnable() {
 
 				@Override
@@ -1278,15 +1286,29 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					echoResult = ECHO_RESULT_OK;
 				}
 			});
-
 		}
 	}
 
 	class AuthCb implements CallbackInterface {
-	    public void callback() {
+	    public void callback(Object result) {
 	        Log.v("xxx", "sss");
         }
     }
 
+    class ShowCoinsCb implements CallbackInterface {
+		public void callback(Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+
+					ShowCoinsResult scresult = (ShowCoinsResult) fresult;
+
+
+					showBankScreen(scresult.counters);
+				}
+			});
+		}
+	}
 
 }

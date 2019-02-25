@@ -303,7 +303,7 @@ public class Bank {
 		CloudCoin cc;
 		String incomeJson;
 
-		if (idx >= loadedIncome.size()) {
+	/*	if (idx >= loadedIncome.size()) {
 			importError(null, "Internal error");
 			return;
 		}	
@@ -352,6 +352,7 @@ public class Bank {
 			e.printStackTrace();
 			return;
 		}
+		*/
 	}
 
 	public void cancel() {
@@ -492,7 +493,7 @@ public class Bank {
 		bankFiles.addAll(frackedFiles);
 
 		failed = new int[values.length];
-
+/*
 		int denomination;
 		int totalSaved = 0;
 		int coinCount = 0;
@@ -594,7 +595,7 @@ public class Bank {
 				Log.e(TAG, "Failed to delete coin: " + ctd + " " + e.getMessage());
 			}
 		}
-
+*/
 		return failed;
 	}
 

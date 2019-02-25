@@ -31,6 +31,8 @@ public class Config {
     public static String DIR_CONFIG = "Config";
 
 
+    public static String DIR_ACCOUNTS = "Accounts";
+    public static String DIR_DEFAULT_USER = "DefaultUser";
     public static String DIR_MAIN_LOGS = "Logs";
 
     public static int THREAD_POOL_SIZE = 8;
@@ -53,4 +55,20 @@ public class Config {
 
 
     public static int MAX_ALLOWED_LATENCY = 20000;
+
+
+    public static int IDX_1 = 0;
+    public static int IDX_5 = 1;
+    public static int IDX_25 = 2;
+    public static int IDX_100 = 3;
+    public static int IDX_250 = 4;
+
+    public static int IDX_FOLDER_BANK = 0;
+    public static int IDX_FOLDER_FRACKED = 1;
+    public static int IDX_FOLDER_LOST = 2;
+    public static int IDX_FOLDER_LAST = 3;
+
+    public static int DEFAULT_NN = 1;
+
+
 }

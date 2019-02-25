@@ -35,7 +35,7 @@ public class Servant {
 
     private Hashtable<String, String> configHT;
 
-    protected String logDir;
+    protected String logDir, privateLogDir;
 
     protected CallbackInterface cb;
 
@@ -51,7 +51,11 @@ public class Servant {
         configHT = new Hashtable<String, String>();
 
         AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
+        AppCore.createDirectory(Config.DIR_ACCOUNTS + File.separator +
+                Config.DIR_DEFAULT_USER + File.separator + Config.DIR_LOGS + File.separator + name);
+
         this.logDir = AppCore.getLogDir() + File.separator + name;
+        this.privateLogDir = AppCore.getPrivateLogDir() + File.separator + name;
 
         this.raida = new RAIDA(logger);
 
@@ -347,8 +351,30 @@ public class Servant {
         }
 
         return newObject;
+    }
 
+    protected void cleanDir(String dir) {
+        File dirObj = new File(dir);
+        if (dirObj == null) {
+            logger.error(ltag, "No dir found: " + dir);
+            return;
+        }
 
+        for (File file: dirObj.listFiles()) {
+            if (!file.isDirectory()) {
+                logger.debug(ltag, "Deleting " + file);
+                file.delete();
+            }
+        }
+    }
+
+    protected void cleanLogDir() {
+        cleanDir(logDir);
+    }
+
+    protected void cleanPrivateLogDir() {
+        logger.info(ltag, "p="+privateLogDir);
+        cleanDir(privateLogDir);
     }
 
 }

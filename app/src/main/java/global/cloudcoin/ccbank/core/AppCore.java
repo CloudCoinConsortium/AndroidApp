@@ -40,7 +40,7 @@ public class AppCore {
         createDirectory(Config.DIR_ROOT);
         rootPath = new File(path, Config.DIR_ROOT);
 
-        createDirectory("Accounts");
+        createDirectory(Config.DIR_ACCOUNTS);
         createDirectory(Config.DIR_MAIN_LOGS);
         createDirectory("Receipts");
         createDirectory("Commands");
@@ -73,10 +73,10 @@ public class AppCore {
             Config.DIR_TRUSTEDTRANSFER
         };
 
-        createDirectory("Accounts" + File.separator + "DefaultUser");
+        createDirectory(Config.DIR_ACCOUNTS + File.separator + Config.DIR_DEFAULT_USER);
 
         for (String dir : folders) {
-            createDirectory("Accounts" + File.separator + "DefaultUser" + File.separator + dir);
+            createDirectory(Config.DIR_ACCOUNTS + File.separator + Config.DIR_DEFAULT_USER + File.separator + dir);
         }
 
 
@@ -117,4 +117,36 @@ public class AppCore {
 
        return f.toString();
    }
+
+   static public String getPrivateLogDir() {
+       File f;
+
+       f = new File(rootPath, Config.DIR_ACCOUNTS);
+       f = new File(f, Config.DIR_DEFAULT_USER);
+       f = new File(f, Config.DIR_LOGS);
+
+       return f.toString();
+   }
+
+   static public String getUserDir(String folder) {
+       File f;
+
+       f = new File(rootPath, Config.DIR_ACCOUNTS);
+       f = new File(f, Config.DIR_DEFAULT_USER);
+       f = new File(f, folder);
+
+       return f.toString();
+   }
+
+    static public int getTotal(int[] counters) {
+        return counters[Config.IDX_1] + counters[Config.IDX_5] * 5 +
+                counters[Config.IDX_25] * 25 + counters[Config.IDX_100] * 100 +
+                counters[Config.IDX_250] * 250;
+    }
+
+    static public int[] getDenominations() {
+        int[] denominations = {1, 5, 25, 100, 250};
+
+        return denominations;
+    }
 }

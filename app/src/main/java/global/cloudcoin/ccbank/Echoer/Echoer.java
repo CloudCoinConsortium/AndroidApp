@@ -49,7 +49,7 @@ public class Echoer extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Echoer");
                 doEcho();
-                cb.callback();
+                cb.callback(null);
             }
         });
     }
@@ -79,8 +79,6 @@ public class Echoer extends Servant {
         }
 
         saveResults();
-
-
     }
 
     public boolean doEchoReal() {
@@ -132,15 +130,7 @@ public class Echoer extends Servant {
         return true;
     }
 
-    private void cleanLogDir() {
-        File logDirObj = new File(logDir);
-        for (File file: logDirObj.listFiles()) {
-            if (!file.isDirectory()) {
-                logger.debug(ltag, "Deleting " + file);
-                file.delete();
-            }
-        }
-    }
+
 
     private boolean saveResults() {
         String status, message;
@@ -198,6 +188,5 @@ public class Echoer extends Servant {
 
         return true;
     }
-
 
 }
