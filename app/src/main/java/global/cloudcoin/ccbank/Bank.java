@@ -688,7 +688,7 @@ public class Bank {
 				Log.v(TAG, "Coin #" + cc.sn + " got extension " + cc.extension);
 
 				if (cc.extension.equals("bank")) {
-					cc.saveCoin(bankDirPath, cc.extension);
+		//			cc.saveCoin(bankDirPath, cc.extension);
 
 					importStats[STAT_AUTHENTIC]++;
 					importStats[STAT_VALUE_MOVED_TO_BANK] += cc.getDenomination();
@@ -697,7 +697,7 @@ public class Bank {
 					addCoinToReport(cc, "authentic");
 					deleteCoin(incomeFiles.get(i).fileName);
 				} else if (cc.extension.equals("fracked")) {
-					cc.saveCoin(bankDirPath, cc.extension);
+		//			cc.saveCoin(bankDirPath, cc.extension);
 
 					//importStats[STAT_FRACTURED]++;
 					importStats[STAT_AUTHENTIC]++;

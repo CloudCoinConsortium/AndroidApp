@@ -26,13 +26,11 @@ import global.cloudcoin.ccbank.core.GLogger;
 
 public class Echoer extends Servant {
 
-    protected CallbackInterface cb;
-
     String ltag = "Echoer";
+
     EchoResponse[] ers;
+
     long[] latencies;
-
-
 
     public Echoer(String rootDir, GLogger logger) {
         super("Echoer", rootDir, logger);

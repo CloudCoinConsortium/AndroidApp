@@ -80,9 +80,11 @@ import android.os.Message;
 import java.util.Date;
 import java.util.Calendar;
 
+import global.cloudcoin.ccbank.Authenticator.Authenticator;
 import global.cloudcoin.ccbank.Echoer.Echoer;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoinsResult;
+import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.RAIDA;
@@ -146,8 +148,10 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	int importState;
 
 	static int IMPORT_STATE_INIT = 1;
-	static int IMPORT_STATE_IMPORT = 2;
-	static int IMPORT_STATE_DONE = 3;
+
+	static int IMPORT_STATE_UNPACKING = 2;
+	static int IMPORT_STATE_IMPORT = 3;
+	static int IMPORT_STATE_DONE = 4;
 
 	ProgressBar pb;
 	int raidaStatus = 0;
@@ -156,8 +160,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	Handler mHandler;
 	boolean isFixing = false;
-
-	boolean isImportSuspect = false;
 
 	public static final String APP_PREFERENCES_IMPORTDIR = "pref_importdir";
 
@@ -213,7 +215,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		myThread.start();*/
 
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
-		parseViewIntent();
 
 		initSystem();
 		isImportDialog = false;
@@ -233,10 +234,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					new String[]{
 							Manifest.permission.WRITE_EXTERNAL_STORAGE,
 							Manifest.permission.READ_EXTERNAL_STORAGE
-					},
-					MY_STORAGE_WRITE_CONSTANT);
+					}, MY_STORAGE_WRITE_CONSTANT);
 		} else {
-			// Location permission has been granted, continue as usual.
 			Log.v(ltag, "Granted");
 
 			doInitSystem();
@@ -246,8 +245,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	public void doInitSystem() {
-
-
 		String state = Environment.getExternalStorageState();
 		if (!Environment.MEDIA_MOUNTED.equals(state)) {
 			Log.e(ltag, "Primary storage is not mounted");
@@ -263,22 +260,20 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		ALogger alogger = new ALogger();
 		try {
 			AppCore.initFolders(path, alogger);
-			//appCore.initFolders();
 
 			sr = new ServantRegistry();
-
 			sr.registerServants(new String[]{
 					"Echoer",
 					"Authenticator",
 					"ShowCoins",
+					"Unpacker",
+					"Authenticator",
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
-
 		} catch (Exception e) {
 			Log.e(ltag, "Failed to init folders");
 		}
-
 	}
 
 	public void startEchoService() {
@@ -293,22 +288,31 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		sc.launch(new ShowCoinsCb());
 	}
 
+	public void startUnpackerService() {
+		Unpacker up = (Unpacker) sr.getServant("Unpacker");
+		up.launch(new UnpackerCb());
+	}
+
+	public void startAuthenticatorService() {
+		Authenticator at = (Authenticator) sr.getServant("Authenticator");
+		at.launch(new AuthenticatorCb());
+	}
+
+
 	@Override
 	public void onRequestPermissionsResult(int requestCode,
 										   String permissions[], int[] grantResults) {
 		switch (requestCode) {
 			case MY_STORAGE_WRITE_CONSTANT: {
-
 				if (grantResults.length > 0
 						&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 					doInitSystem();
 				} else {
-					// permission denied, boo! Disable the
-					// functionality that depends on this permission.
+					showError("Permission was denied");
 				}
+
 				return;
 			}
-
 		}
 	}
 
@@ -346,8 +350,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		ll3 = (LinearLayout) findViewById(R.id.lexport);
 		ll3.setOnClickListener(this);
-	
-
 
 		((TextView) findViewById(R.id.tversion)).setText(version);
 	}
@@ -433,6 +435,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	private void initDialog(int layout) {
 		if (isImportDialog)
 			return;
+
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		dialog.setContentView(layout);
 		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
@@ -441,6 +444,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		LinearLayout closeButton = (LinearLayout) dialog.findViewById(R.id.closebutton);
 		closeButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				setImportState(IMPORT_STATE_INIT);
 				dialog.dismiss();
 			}
 		});
@@ -484,39 +488,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		updateTotal();
 	}
 
-	public void setNumberPickerTextColor(NumberPicker numberPicker, int color) {
-		final int count = numberPicker.getChildCount();
-
-		for (int i = 0; i < count; i++) {
-			View child = numberPicker.getChildAt(i);
-			if (child instanceof EditText) {
-				try {
-					Field selectorWheelPaintField = numberPicker.getClass()
-						.getDeclaredField("mSelectorWheelPaint");
-					selectorWheelPaintField.setAccessible(true);
-			
-					Field selectorDivider = numberPicker.getClass()
-						.getDeclaredField("mSelectionDivider");
-					selectorDivider.setAccessible(true);
-
-					ColorDrawable colorDrawable = new ColorDrawable(Color.parseColor("#ECECEC"));
-
-					selectorDivider.set(numberPicker, colorDrawable);
-					
-
-					((Paint) selectorWheelPaintField.get(numberPicker)).setColor(color);
-					((EditText) child).setTextColor(color);
-					numberPicker.invalidate();
-			
-					return;
-				}
-				catch (NoSuchFieldException e) {}
-				catch (IllegalAccessException e) {}
-				catch(IllegalArgumentException e) {}
-			}
-		}
-
-	}
 
 	private void InputStreamToFile(InputStream in, String file) {
 		try {
@@ -533,86 +504,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 		catch (Exception e) {
 			Log.e("MainActivity", "InputStreamToFile exception: " + e.getMessage());
-		}
-	}
-	private String getContentName(ContentResolver resolver, Uri uri){
-		Cursor cursor = resolver.query(uri, null, null, null, null);
-		cursor.moveToFirst();
-		int nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
-		if (nameIndex >= 0) {
-			return cursor.getString(nameIndex);
-		} else {
-			return null;
-		}
-	}
-	public void parseViewIntent() {
-		Intent intent = getIntent();
-		String action = intent.getAction();
-
-		String savedImportDir = mSettings.getString(APP_PREFERENCES_IMPORTDIR, "");
-		String importDir = "" ;
-		if (savedImportDir == "") {
-			importDir = bank.getDefaultRelativeImportDirPath();
-			if (importDir == null) {
-				Toast.makeText(this,R.string.errmnt, Toast.LENGTH_SHORT).show();
-
-				return;
-			}
-		} else {
-			importDir = savedImportDir;
-			bank.setImportDirPath(importDir);
-		}
-
-		if (!bank.examineImportDir()) {
-			Toast.makeText(this,R.string.errimport, Toast.LENGTH_SHORT).show();
-			return;
-		}
-
-		if (action.compareTo(Intent.ACTION_VIEW) == 0) {
-			String scheme = intent.getScheme();
-			ContentResolver resolver = getContentResolver();
-			if (scheme.compareTo(ContentResolver.SCHEME_CONTENT) == 0) {
-				Uri uri = intent.getData();
-
-				String name = getContentName(resolver, uri);
-
-				Log.v("tag" , "Content intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
-				try {
-					InputStream input = resolver.openInputStream(uri);
-					String importfilepath =  bank.getImportDirPath()+ "/"+ name;
-					InputStreamToFile(input, importfilepath);
-				}
-				catch (Exception e) {
-					Toast.makeText(this, "Error occured while opening the file", Toast.LENGTH_SHORT).show();
-				}
-				showImportScreen();
-				isImportDialog = false;
-
-			}
-			else if (scheme.compareTo(ContentResolver.SCHEME_FILE) == 0) {
-				Uri uri = intent.getData();
-				String name = uri.getLastPathSegment();
-
-				Log.v("tag" , "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
-
-				try {
-					InputStream input = resolver.openInputStream(uri);
-					String importfilepath =  bank.getImportDirPath()+ "/"+ name;
-					InputStreamToFile(input, importfilepath);
-				}
-				catch (Exception e) {
-					Toast.makeText(this, "Error occured while opening the file", Toast.LENGTH_SHORT).show();
-				}
-				showImportScreen();
-				isImportDialog = false;
-
-			}
-			else if (scheme.compareTo("http") == 0) {
-				// TODO Import from HTTP!
-			}
-			else if (scheme.compareTo("ftp") == 0) {
-				// TODO Import from FTP!
-			}
 		}
 	}
 
@@ -698,10 +589,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	
 	}
 
-	public void selectFile() {
-		Intent i = new Intent((Context) this, DirPickerActivity.class);
-		startActivityForResult(i, REQUEST_CODE_IMPORT_DIR);
-	}
+
 
 	public void doEmailReceipt() {
 		StringBuilder sb = new StringBuilder();
@@ -752,18 +640,23 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	//	email.openDialog();
 	}
 
-
 	public void showImportScreen() {
-		int totalIncomeLength;
 		String result;
-		String importDir = "";
 
 		if (!isImportDialog)
 			dialog = new Dialog(this);
 
-
 		if (!isOnline()) {
 			initDialog(R.layout.importdialog2);
+			dialog.show();
+			return;
+		}
+
+		if (importState == IMPORT_STATE_UNPACKING) {
+			initDialog(R.layout.importdialog);
+			tv = (TextView) dialog.findViewById(R.id.infotext);
+			tv.setText("Unpacking files...");
+
 			dialog.show();
 			return;
 		}
@@ -777,6 +670,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 			pb = (ProgressBar) dialog.findViewById(R.id.firstBar);
 			pb.setMax(RAIDA.TOTAL_RAIDA_COUNT);
+
 			dialog.show();
 			return;
 		}
@@ -824,74 +718,28 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			return;
 		}
 
-		/*
-		if (bank.getSuspectSize() > 0) {
-			initDialog(R.layout.importdialog6);
-			LinearLayout goButton = (LinearLayout) dialog.findViewById(R.id.gobutton);
-			goButton.setOnClickListener(new OnClickListener() {
-				public void onClick(View v) {
-					doImportSuspect();
-				}
-			});
-			dialog.show();
-			return;
-		}*/
-
-
 		initDialog(R.layout.importdialog);
-		LinearLayout fileButton = (LinearLayout) dialog.findViewById(R.id.filebutton);
-		fileButton.setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-				selectFile();
-			}
-		});
+
 
 		tv = (TextView) dialog.findViewById(R.id.infotext);
 
+		String importDir = AppCore.getUserDir(Config.DIR_IMPORT);
+		int totalFiles = AppCore.getFilesCount(Config.DIR_IMPORT);
 
-
-		if (files != null && files.size() > 0) {
-			bank.loadIncomeFromFiles(files);
-		} else {
-			String savedImportDir = mSettings.getString(APP_PREFERENCES_IMPORTDIR, "");
-
-			if (savedImportDir == "") {
-				importDir = bank.getDefaultRelativeImportDirPath();
-				if (importDir == null) {
-					tv.setText(R.string.errmnt);
-					dialog.show();
-					return;
-				}
-			} else {
-				importDir = savedImportDir;
-				bank.setImportDirPath(importDir);
-			}
-
-			if (!bank.examineImportDir()) {
-				tv.setText(R.string.errimport);
-				dialog.show();
-				return;
-			}
-		}
-
-		totalIncomeLength = bank.getLoadedIncomeLength();
-                if (totalIncomeLength == 0) {
+		if (totalFiles == 0) {
 			result = String.format(getResources().getString(R.string.erremptyimport), importDir);
 			tv.setText(result);		
 			dialog.show();
-                        return;
-                }
-
-		if (files != null && files.size() > 0) {
-                        result = String.format(getResources().getString(R.string.importfiles), totalIncomeLength);
-                } else {
-                        result = String.format(getResources().getString(R.string.importwarn), importDir, totalIncomeLength);            
+			return;
 		}
+
+		result = String.format(getResources().getString(R.string.importwarn), importDir, totalFiles);
 
 		dialog.setContentView(R.layout.importdialog3);
 		LinearLayout closeButton = (LinearLayout) dialog.findViewById(R.id.closebutton);
 		closeButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				setImportState(IMPORT_STATE_INIT);
 				dialog.dismiss();
 			}
 		});
@@ -899,14 +747,15 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		LinearLayout importButton = (LinearLayout) dialog.findViewById(R.id.importbutton);
 		importButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				doImport();
+				setImportState(IMPORT_STATE_UNPACKING);
+				dialog.dismiss();
+				showImportScreen();
+				startUnpackerService();
 			}
 		});
 
 		tv = (TextView) dialog.findViewById(R.id.infotext);
-                tv.setText(result);
-		
-
+		tv.setText(result);
 		
 		dialog.show();
 	}
@@ -929,7 +778,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
                         idTxt = "np" + Bank.denominations[i];
                         resId = getResources().getIdentifier(idTxt, "id", getPackageName());
                         nps[i] = (NumberPicker) dialog.findViewById(resId);
-			setNumberPickerTextColor(nps[i], Color.parseColor("#348EFB"));
+			//setNumberPickerTextColor(nps[i], Color.parseColor("#348EFB"));
 
                         idTxt = "bs" + Bank.denominations[i];
                         resId = getResources().getIdentifier(idTxt, "id", getPackageName());
@@ -988,19 +837,11 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		size = counters[0].length;
 		ids = new TextView[3][];
-		//stats = new int[3][];
 
 		allocId(Config.IDX_FOLDER_BANK, "bs");
-		//allocId(IDX_COUNTERFEIT, "cs");
 		allocId(Config.IDX_FOLDER_FRACKED, "fs");
 
-             //   stats[IDX_BANK] = bank.countCoins("bank");
-               // stats[IDX_FRACTURED] = bank.countCoins("fracked");
-
-                int j;
 		int totalCnt = 0;
-		int tval;
-
 		for (int i = 0; i < size; i++) {
 			int authCount = counters[Config.IDX_FOLDER_BANK][i] +
 					counters[Config.IDX_FOLDER_FRACKED][i];
@@ -1049,9 +890,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				break;
 			case R.id.lbank:
 				startShowCoinsService();
-
-
-				//showBankScreen();
 				break;
 			default:
 				break;
@@ -1059,32 +897,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 	}
 
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-                super.onActivityResult(requestCode, resultCode, data);
-
-		if (requestCode == REQUEST_CODE_IMPORT_DIR) {
-			if(resultCode == RESULT_OK) {
-        	                this.files = data.getStringArrayListExtra(DirPickerActivity.returnParameter);
-	                } else {
-	//			showError("Internal error");
-	                }
-
-			dialog.dismiss();
-			isImportDialog = false;
-			showImportScreen();
-			return;
-		}
-
-		bank.moveExportedToSent();
-		dialog.dismiss();
-        }
-
 	public boolean isOnline() {
 		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
 		NetworkInfo netInfo = cm.getActiveNetworkInfo();
 
 		return netInfo != null && netInfo.isConnectedOrConnecting();
-        }
+	}
 
 	private void lockOrientation() {
 		Display display = getWindowManager().getDefaultDisplay();
@@ -1179,7 +997,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	class ImportTask extends AsyncTask<String, Integer, String> {
-                protected String doInBackground(String... params) {
+		protected String doInBackground(String... params) {
 			bank.initReport();
 			bank.resetImportStats();
 
@@ -1191,17 +1009,10 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					publishProgress(i);
 					bank.importLoadedItem(i);
 				}
-			} else if (params[0] == "suspect") {
-				try {
-					bank.detectAuthenticity(null);
-				} catch (Exception e) {
-					Log.v("CLOUDCOIN", "Failed to detect suspect coins");
-				}
-
 			}
 
-                        return "OK";
-                }
+			return "OK";
+		}
 
 		protected void onPostExecute(String result) {
 			setImportState(IMPORT_STATE_DONE);
@@ -1213,7 +1024,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		protected void onPreExecute() {
 			lockOrientation();
-                        setImportState(IMPORT_STATE_IMPORT);
+			setImportState(IMPORT_STATE_IMPORT);
 			dialog.dismiss();
 			isImportDialog = false;
 			lastProgress = 0;
@@ -1230,7 +1041,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			coinActive = 0;
 			coinTotal = 0;
 			setDots();
-                }
+		}
 
 	}
 
@@ -1242,14 +1053,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		ffTask.execute();
 	}
 
-	private void doImportSuspect() {
-		isImportSuspect = true;
-		iTask = new ImportTask();
-		iTask.execute("suspect");
-	}
-
 	private void doImport() {
-		isImportSuspect = false;
 		iTask = new ImportTask();
 		iTask.execute("import");
 	}
@@ -1263,15 +1067,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	private String getStatusString(int progressCoins) {
-                String statusString;
+		String statusString;
 
-		if (isImportSuspect)
-			return "";
-
-		int totalIncomeLength = bank.getLoadedIncomeLength();
+		int totalFiles = AppCore.getFilesCount(Config.DIR_SUSPECT);
 		int importedIncomeLength = progressCoins + 1;
 
-		statusString = String.format(getResources().getString(R.string.authstring), importedIncomeLength, totalIncomeLength);
+		statusString = String.format(getResources().getString(R.string.authstring), importedIncomeLength, totalFiles);
 
 		return statusString;
 	}
@@ -1289,12 +1090,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 	}
 
-	class AuthCb implements CallbackInterface {
-	    public void callback(Object result) {
-	        Log.v("xxx", "sss");
-        }
-    }
-
     class ShowCoinsCb implements CallbackInterface {
 		public void callback(Object result) {
 			final Object fresult = result;
@@ -1310,5 +1105,41 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			});
 		}
 	}
+
+	class UnpackerCb implements CallbackInterface {
+		public void callback(Object result) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+
+					}
+					Log.v(ltag, "unpacker done");
+					setImportState(IMPORT_STATE_IMPORT);
+					dialog.dismiss();
+					isImportDialog = false;
+					lastProgress = 0;
+
+					startAuthenticatorService();
+
+					showImportScreen();
+				}
+			});
+		}
+	}
+
+	class AuthenticatorCb implements CallbackInterface {
+		public void callback(Object result) {
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					Log.v("xxx", "authenticator done");
+				}
+			});
+		}
+	}
+
 
 }

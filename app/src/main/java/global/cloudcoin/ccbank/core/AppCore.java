@@ -1,6 +1,12 @@
 package global.cloudcoin.ccbank.core;
 
+
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.concurrent.Executors;
 
@@ -149,4 +155,86 @@ public class AppCore {
 
         return denominations;
     }
+
+    static public void moveToFolder(String fileName, String folder) {
+        logger.info(ltag, "Moving to " + folder + " -> " + fileName);
+
+        try {
+            File fsource = new File(fileName);
+            String target = AppCore.getUserDir(folder) + File.separator +
+                    System.currentTimeMillis() + "-" + fsource.getName();
+
+            File ftarget = new File(target);
+            if (!fsource.renameTo(ftarget))
+                logger.error(ltag, "Failed to rename file " + fileName);
+        } catch (Exception e) {
+            logger.error(ltag, "Failed to move file to trash: " + e.getMessage());
+        }
+    }
+
+    static public void moveToTrash(String fileName) {
+        moveToFolder(fileName, Config.DIR_TRASH);
+    }
+
+    static public void moveToImported(String fileName) {
+        moveToFolder(fileName, Config.DIR_IMPORTED);
+    }
+
+
+    static public String loadFile(String fileName) {
+        String jsonData = "";
+        BufferedReader br = null;
+        try {
+            String line;
+            br = new BufferedReader(new FileReader(fileName));
+            while ((line = br.readLine()) != null) {
+                jsonData += line + "\n";
+            }
+        } catch (IOException e) {
+            return null;
+        } finally {
+            try {
+                if (br != null)
+                    br.close();
+            } catch (IOException ex) {
+                return null;
+            }
+        }
+
+        return jsonData;
+    }
+
+    static public boolean saveFile(String path, String data) {
+        File f = new File(path);
+        if (f.exists()) {
+            logger.error(ltag, "File " + path + " already exists");
+            return false;
+        }
+
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(path));
+            writer.write(data);
+        } catch (IOException e){
+            logger.error(ltag, "Failed to write file: " + e.getMessage());
+            return false;
+        } finally {
+            try{
+                if (writer != null)
+                    writer.close();
+            } catch (IOException e){
+                logger.error(ltag, "Failed to close buffered writer");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    static public int getFilesCount(String dir) {
+       String path = getUserDir(dir);
+
+       return new File(path).listFiles().length;
+    }
+
 }

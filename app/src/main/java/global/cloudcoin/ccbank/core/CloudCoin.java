@@ -42,8 +42,6 @@ public class CloudCoin {
 	private int hp;
 	public String aoid; 
 	public String fileName;
-	public String json;
-	public byte[] jpeg;
 	public static final int YEARSTILEXPIRE = 2;
 	public String extension; //"suspect", "bank", "fracked", "counterfeit"
 	public String[] gradeStatus = new String[3]; //What passed, what failed, what was undetected
@@ -73,12 +71,10 @@ public class CloudCoin {
 			this.pastStatus[i] = PAST_STATUS_UNDETECTED;
 		}
 
-		json = "";
-		jpeg = null;
 	}
 
 	public CloudCoin(String fileName) throws JSONException {
-		String data = loadFile(fileName);
+		String data = AppCore.loadFile(fileName);
 
 		if (data == null)
 			throw(new JSONException("Failed to open file"));
@@ -136,35 +132,12 @@ public class CloudCoin {
 		for (int i = 0; i < arr.length; i++) {
 			arr[i] = array.optString(i);
 		}
+
 		return arr;
 	}
 
-
-	private String loadFile(String fileName) {
-		String jsonData = "";
-		BufferedReader br = null;
-		try {  
-			String line;
-			br = new BufferedReader(new FileReader(fileName));
-			while ((line = br.readLine()) != null) {
-				jsonData += line + "\n";
-			}
-		} catch (IOException e) {
-			return null;
-		} finally {
-			try {  
-				if (br != null)
-					br.close();
-			} catch (IOException ex) {
-				return null;
-			}
-		}
-
-		return jsonData;
-	}
-
-	public void setJSON() {
-		String sep = System.getProperty("line.separator");
+	public String getJson() {
+		String json;
 
 		Date date = new Date();
 		Calendar cal = Calendar.getInstance();
@@ -176,94 +149,20 @@ public class CloudCoin {
 
 		String expDate = month + "-" + year;
 
-		json = "{" + sep;
-		json +=   "\t\"cloudcoin\": [{" + sep;
-		json += "\t\t\"nn\":\"1\"," + sep;
-		json +="\t\t\"sn\":\""+ sn + "\"," + sep;
-		json += "\t\t\"an\": [\"";
-
+		json = "{'cloudcoin':[{'nn':" + nn + ",'sn':" + sn + ",'an':['";
 		for (int i = 0; i < raidaCnt; i++) {
 			json += ans[i];
 			if (i != raidaCnt - 1) {
-				json += "\",\"";
+				json += "','";
 			}
 		}
 		
-		if (!aoid.startsWith("\""))
-			aoid = "\"" + aoid + "\"";
+		if (!aoid.startsWith("\"") && !aoid.startsWith("'"))
+			aoid = "'" + aoid + "'";
 
-		json += "\"]," + sep;
-		json += "\t\t\"ed\":\"" + expDate + "\"," + sep;
-		json += "\t\t\"aoid\": [" + aoid + "]" + sep;
-		json += "\t}] "+ sep;
-		json += "}";
+		json += "'], 'ed': '" + expDate + "', 'aoid': [" + aoid + "]}]}";
 
-	}
-
-	private byte[] readAsset(Context context, String fileName) throws Exception {
-		byte[] bytes;
-		try {  
-			AssetFileDescriptor fd = context.getAssets().openFd(fileName);
-			long size = fd.getLength();
-			bytes = new byte[(int) size];
-
-			InputStream fis = context.getAssets().open(fileName);
-
-			BufferedInputStream buf = new BufferedInputStream(fis);
-			buf.read(bytes, 0, bytes.length);
-			buf.close();
-
-			fis.close();
-		} catch (FileNotFoundException e) {
-			Log.e(TAG, "File not found: " + fileName);
-			throw new Exception();
-		} catch (IOException e) {
-			Log.e(TAG, "Error while reading file: " + fileName);
-			throw new Exception();
-		} 
-
-		return bytes;
-	}
-
-	public void saveCoin(String path, String extension) throws Exception {
-
-		String newFileName = path + "/" + this.fileName + extension;
-
-		setJSON();
-
-		File f = new File(newFileName);
-		if (f.exists()) {
-			Log.e(TAG, "File " + newFileName + " already exists");
-			throw new Exception("File " + newFileName + " already exists");
-		}
-
-		BufferedWriter writer = null;
-		try {
-			writer = new BufferedWriter(new FileWriter(newFileName));
-			writer.write(this.json);
-		} catch (IOException e){ 
-			Log.e(TAG, "Failed to save file " + newFileName);
-			throw new Exception("Failed to save file: " + e.getMessage());
-		} finally {    
-			try{
-				if (writer != null)
-					writer.close();
-			} catch (IOException e){
-				Log.e(TAG, "Failed to close BufferedWriter");
-				throw new Exception("Failed to close BufferedWriter");
-			}
-		}
-	}
-
-	private String toHexadecimal(byte[] digest) {
-		String hash = "";
-		for(byte aux : digest) {
-			int b = aux & 0xff;
-			if (Integer.toHexString(b).length() == 1) hash += "0";
-				hash += Integer.toHexString(b);
-		}
-
-		return hash;
+		return json;
 	}
 
 	private String generatePan() {  

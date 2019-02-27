@@ -88,8 +88,9 @@ public class Servant {
 
         urls = new String[RAIDA.TOTAL_RAIDA_COUNT];
 
-        File logDirObj = new File(logDir);
+        File logDirObj = new File(echoerLogDIr);
         for (File file : logDirObj.listFiles()) {
+            logger.info(ltag, "f="+file.toString());
             if (!file.isDirectory()) {
                 String fileName = file.getName();
                 logger.debug(ltag, "Checking " + file);

@@ -13,8 +13,6 @@ import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.Servant;
 
 public class ShowCoins extends Servant {
-    protected CallbackInterface cb;
-
     String ltag = "ShowCoins";
 
     ShowCoinsResult result;
@@ -58,33 +56,34 @@ public class ShowCoins extends Servant {
 
         File dirObj = new File(fullPath);
         for (File file: dirObj.listFiles()) {
-            if (!file.isDirectory()) {
-                logger.debug(ltag, "Parsing " + file);
+            if (file.isDirectory())
+                continue;
 
-                try {
-                    cc = new CloudCoin(file.toString());
-                } catch (JSONException e) {
-                    logger.error(ltag, "Failed to parse JSON: " + e.getMessage());
-                    continue;
-                }
+            logger.debug(ltag, "Parsing " + file);
 
-                switch (cc.getDenomination()) {
-                    case 1:
-                        result.counters[idx][Config.IDX_1]++;
-                        break;
-                    case 5:
-                        result.counters[idx][Config.IDX_5]++;
-                        break;
-                    case 25:
-                        result.counters[idx][Config.IDX_25]++;
-                        break;
-                    case 100:
-                        result.counters[idx][Config.IDX_100]++;
-                        break;
-                    case 250:
-                        result.counters[idx][Config.IDX_250]++;
-                        break;
-                }
+            try {
+                cc = new CloudCoin(file.toString());
+            } catch (JSONException e) {
+                logger.error(ltag, "Failed to parse JSON: " + e.getMessage());
+                continue;
+            }
+
+            switch (cc.getDenomination()) {
+                case 1:
+                    result.counters[idx][Config.IDX_1]++;
+                    break;
+                case 5:
+                    result.counters[idx][Config.IDX_5]++;
+                    break;
+                case 25:
+                    result.counters[idx][Config.IDX_25]++;
+                    break;
+                case 100:
+                    result.counters[idx][Config.IDX_100]++;
+                    break;
+                case 250:
+                    result.counters[idx][Config.IDX_250]++;
+                    break;
             }
         }
 
@@ -95,8 +94,6 @@ public class ShowCoins extends Servant {
         String fileName = folder + "_" + AppCore.getTotal(counters) + "_" + counters[Config.IDX_1] +
                 "_" + counters[Config.IDX_5] + "_" + counters[Config.IDX_25] + "_" +
                 counters[Config.IDX_100] + "_" + counters[Config.IDX_250] + ".txt";
-
-        logger.info(ltag, "f=" + fileName);
 
         File file = new File(privateLogDir + File.separator + fileName);
         try {

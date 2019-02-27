@@ -5,7 +5,6 @@ import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.Servant;
 
 public class Authenticator extends Servant {
-    protected CallbackInterface cb;
 
     String ltag = "Authencticator";
 
