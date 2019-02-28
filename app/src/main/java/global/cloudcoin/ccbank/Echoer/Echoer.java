@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 
+import global.cloudcoin.ccbank.core.AppCore;
 import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.RAIDA;
@@ -47,7 +48,9 @@ public class Echoer extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Echoer");
                 doEcho();
-                cb.callback(null);
+
+                if (cb != null)
+                    cb.callback(null);
             }
         });
     }
@@ -111,7 +114,6 @@ public class Echoer extends Servant {
             }
 
             ers[i] = (EchoResponse) parseResponse(results[i], EchoResponse.class);
-
             if (!ers[i].status.equals(Config.RAIDA_STATUS_READY)) {
                 logger.error(ltag, "RAIDA " + i + " is not ready");
                 cntErr++;
@@ -119,7 +121,7 @@ public class Echoer extends Servant {
 
         }
 
-        if (cntErr >= Config.MAX_ALLOWED_FAILED_RAIDAS) {
+        if (cntErr > Config.MAX_ALLOWED_FAILED_RAIDAS) {
             logger.debug(ltag, "Failed: " + cntErr);
 
             return false;
@@ -158,30 +160,12 @@ public class Echoer extends Servant {
 
             data = "{\"url\":\"" + raidaURLs[i] + "\"}";
 
-            if (!writeLog(fileName, data)) {
+            if (!AppCore.saveFile(logDir + File.separator + fileName, data)) {
                 logger.error(ltag, "Failed to write echoer logfile: " + fileName);
                 continue;
             }
 
             logger.info(ltag, "f="+fileName+ " d="+data);
-        }
-
-        return true;
-    }
-
-    private boolean writeLog(String fileIn, String data) {
-        String file = logDir + File.separator + fileIn;
-        FileOutputStream stream = null;
-        try {
-            stream = new FileOutputStream(file);
-            stream.write(data.getBytes());
-            stream.close();
-        } catch (FileNotFoundException e) {
-            logger.error("ltag", "File Not Found");
-            return false;
-        } catch (IOException e) {
-            Log.e(ltag, "Failed to write file: " + e.getMessage());
-            return false;
         }
 
         return true;

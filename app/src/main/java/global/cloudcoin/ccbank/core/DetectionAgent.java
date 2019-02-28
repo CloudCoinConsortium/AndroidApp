@@ -73,37 +73,7 @@ class DetectionAgent {
 		return this.fullURL;
 	}
 
-	public void parseResponse(String string) {
-		try {
-			JSONObject o = new JSONObject(string);
-			JSONArray incomeJsonArray = o.getJSONArray("cloudcoin");
-
-			//for (int i = 0; i < incomeJsonArray.length(); i++) {
-			//	JSONObject childJSONObject = incomeJsonArray.getJSONObject(i);
-			//	int nn     = childJSONObject.getInt("nn");
-			//	int sn     = childJSONObject.getInt("sn");
-			//	JSONArray an = childJSONObject.getJSONArray("an");
-			//	String ed     = childJSONObject.getString("ed");
-			//	String aoid = childJSONObject.getString("aoid");
-
-			//	aoid = aoid.replace("[", "");
-			//	aoid = aoid.replace("]", "");
-
-			//	cc = new CloudCoin(nn, sn, CloudCoin.toStringArray(an), ed, aoid, "");
-			//	cc.saveCoin(bankDirPath, "suspect");
-			//}
-		} catch (JSONException e) {
-		//	importError(incomeFile, "Failed to parse JSON file. It is corrupted: " + e.getMessage());
-			logger.error(ltag, "Failed to parse response: " + e.getMessage());
-			e.printStackTrace();
-			return;
-		}
-		//Player ronaldo = new ObjectMapper().readValue(string, Player.class);
-		//JSONParser parser = new JSONParser(); JSONObject json = (JSONObject) parser.parse(stringToParse);
-
-
-
-	}
+/*
 
 	public String get_ticket(int nn, int sn, String an, int d ) { 
 		long tsBefore, tsAfter;
@@ -133,35 +103,6 @@ class DetectionAgent {
 
 	}
 
-	public int echo() {
-		String url, response;
-		long tsBefore, tsAfter;
-
-		url = fullURL + "echo";
-		tsBefore = System.currentTimeMillis();
-
-		response = doRequest(url);
-
-		tsAfter = System.currentTimeMillis();
-		dms = tsAfter - tsBefore;
-
-		logger.debug(ltag, "time " + dms);
-
-		parseResponse(response);
-
-	/*	if (lastResponse == null) {
-			lastDetectStatus = RAIDA.STATUS_ECHO_FAILED;
-		} else if (lastResponse.contains("pass")) {
-			lastDetectStatus = CloudCoin.PAST_STATUS_PASS;
-		} else if (lastResponse.contains("fail") && lastResponse.length() < 200) {
-			lastDetectStatus = CloudCoin.PAST_STATUS_FAIL;
-		} else {
-			lastDetectStatus = CloudCoin.PAST_STATUS_ERROR;
-		}
-*/
-		return lastDetectStatus;
-	}
-
 	public int detect(int nn, int sn, String an, String pan, int d) {
 		long tsBefore, tsAfter;
 
@@ -184,21 +125,28 @@ class DetectionAgent {
 		}
 	
 		return lastDetectStatus;
-	}
+	}*/
 
 	public long getLastLatency() {
 		return dms;
 	}
 
-	public String doRequest(String url) {
+	public String doRequest(String url, String post) {
 		long tsBefore, tsAfter;
 		int c;
 		String data;
 		StringBuilder sb = new StringBuilder();
 
+		if (fullURL == null) {
+			logger.error(ltag, "Skipping raida: " + RAIDANumber);
+			return null;
+		}
+
 		String urlIn = fullURL + "/service/" + url;
 
-		logger.debug(ltag, "GET  url " + urlIn);
+		String method = (post == null) ? "GET" : "POST";
+
+		logger.debug(ltag, method + " url " + urlIn);
 
 		tsBefore = System.currentTimeMillis();
 
@@ -210,6 +158,17 @@ class DetectionAgent {
 			urlConnection.setConnectTimeout(connectionTimeout);
 			urlConnection.setReadTimeout(readTimeout);
 			urlConnection.setRequestProperty("User-Agent", "Android CloudCoin App");
+
+			if (post != null) {
+				logger.debug(ltag, post);
+
+				byte[] postDataBytes = post.getBytes("UTF-8");
+
+				urlConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+				urlConnection.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+				urlConnection.setDoOutput(true);
+				urlConnection.getOutputStream().write(postDataBytes);
+			}
 
 			if (urlConnection.getResponseCode() != 200) {
 				logger.error(ltag, "Invalid response from server " + urlIn + ":" + urlConnection.getResponseCode());
@@ -239,7 +198,7 @@ class DetectionAgent {
 				urlConnection.disconnect();
 		}
 	}
-
+/*
 	public String fix(int[] triad, String m1, String m2, String m3, String pan) {
 		long tsBefore, tsAfter;
 
@@ -264,7 +223,7 @@ class DetectionAgent {
 
 		return "error";
 	}
-
+*/
 
 
 	private int ordinalIndexOf(String str, String substr, int n) {

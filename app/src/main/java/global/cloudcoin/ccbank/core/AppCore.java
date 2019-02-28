@@ -84,10 +84,6 @@ public class AppCore {
         for (String dir : folders) {
             createDirectory(Config.DIR_ACCOUNTS + File.separator + Config.DIR_DEFAULT_USER + File.separator + dir);
         }
-
-
-
-
     }
 
     static public String getRootPath() {
@@ -180,7 +176,6 @@ public class AppCore {
         moveToFolder(fileName, Config.DIR_IMPORTED);
     }
 
-
     static public String loadFile(String fileName) {
         String jsonData = "";
         BufferedReader br = null;
@@ -236,5 +231,4 @@ public class AppCore {
 
        return new File(path).listFiles().length;
     }
-
 }

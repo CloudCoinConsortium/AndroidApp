@@ -191,25 +191,15 @@ public class Servant {
     private boolean parseConfigData(String xmlData) {
         String tagName = this.name.toUpperCase();
         String regex = ".*?<" + tagName + ">(.*)</" + tagName + ">.*";
-       //String regex = "<" + tagName + ">(.*)</" + tagName + ">";
 
-
-
-        logger.info(ltag, "REGEX="+regex);
         xmlData = xmlData.replaceAll("\\n", "");
         xmlData = xmlData.replaceAll("\\r", "");
         xmlData = xmlData.replaceAll("\\t", "");
         xmlData = xmlData.replaceAll(" ", "");
-        logger.info(ltag,"config="+xmlData);
         xmlData = xmlData.replaceAll(regex, "$1");
-        //xmlData = Pattern.compile(regex, Pattern.DOTALL).matcher(xmlData).replaceAll("$1");
-
-        logger.info(ltag,"config="+xmlData);
 
         String[] parts = xmlData.split("\n");
         for (String item : parts) {
-            logger.info(ltag,"s="+item);
-
             String[] subParts = item.split(":");
             if (subParts.length < 2) {
                 logger.error(ltag, "Failed to parse config");
@@ -227,11 +217,28 @@ public class Servant {
             configHT.put(k, rest);
         }
 
-
-
-
         return true;
     }
+
+    public String getConfigValue(String key) {
+        return configHT.get(key);
+    }
+
+    public int getIntConfigValue(String key) {
+        String val = getConfigValue(key);
+        if (val == null)
+            return -1;
+
+        int value;
+        try {
+            value = Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+
+        return value;
+    }
+
 
     private String getDefaultConfig() {
         String config = "    <AUTHENTICATOR>\n" +
@@ -334,7 +341,6 @@ public class Servant {
                 String value = o.optString(name);
 
                 logger.info(ltag, "got value " + value);
-
 
                 f.setAccessible(true);
                 f.set(newObject, value);

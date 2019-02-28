@@ -39,7 +39,7 @@ public class Config {
 
     public static int CONNECTION_TIMEOUT = 5000; // ms
 
-    public static int MAX_ALLOWED_FAILED_RAIDAS = 2;
+    public static int MAX_ALLOWED_FAILED_RAIDAS = 3;
 
     public static String BACKUP0_RAIDA_IP = "95.179.159.178";
     public static int BACKUP0_RAIDA_PORT = 40000;
@@ -71,5 +71,7 @@ public class Config {
     public static int DEFAULT_NN = 1;
 
     public static String DEFAULT_TAG = "CC";
+
+    public static int DEFAULT_MAX_COINS_MULTIDETECT = 400;
 
 }

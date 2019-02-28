@@ -38,7 +38,9 @@ public class Unpacker extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Unpacker");
                 doUnpack();
-                cb.callback(null);
+
+                if (cb != null)
+                    cb.callback(null);
             }
         });
     }

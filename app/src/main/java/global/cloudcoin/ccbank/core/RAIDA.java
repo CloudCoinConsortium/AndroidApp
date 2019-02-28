@@ -253,6 +253,10 @@ public class RAIDA {
 	}
 
 	public String[] query(String[] requests) {
+		return query(requests, null);
+	}
+
+	public String[] query(String[] requests, String[] posts) {
 		service = AppCore.getServiceExecutor();
 		List<Future<Runnable>> futures = new ArrayList<Future<Runnable>>();
 
@@ -263,15 +267,26 @@ public class RAIDA {
 			return null;
 		}
 
+		if (posts != null) {
+			if (posts.length != TOTAL_RAIDA_COUNT) {
+				logger.error(ltag, "Internal error. Wrong post parameters");
+				return null;
+			}
+		} else {
+			posts = new String[TOTAL_RAIDA_COUNT];
+			for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
+				posts[i] = null;
+			}
+		}
+
 		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
 			final int iFinal = i;
 			final String request = requests[i];
+			final String post = posts[i];
+
 			Future f = service.submit(new Runnable() {
 				public void run() {
-					results[iFinal] = agents[iFinal].doRequest(request);
-
-					//	Handler h = ((global.cloudcoin.ccbank.MainActivity) ctx).getHandler();
-					//	h.sendEmptyMessage(0);
+					results[iFinal] = agents[iFinal].doRequest(request, post);
 				}
 			});
 			futures.add(f);
@@ -290,14 +305,6 @@ public class RAIDA {
 		}
 
 		return results;
-		//for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
-		//	ccIn.pastStatus[i] = pastStatuses[i];
-		//}
-
-
-		//service.shutdownNow();
-
-
 	}
 
 }

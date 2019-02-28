@@ -55,18 +55,12 @@ public class CloudCoin {
 	static int PAST_STATUS_ERROR = 3;
 	static int PAST_STATUS_UNDETECTED = 4;
 
-	public static String JPEGAOID = "204f42455920474f4420262044454645415420545952414e54532000";
-	
-	
-	int raidaCnt;
-
 	public void initCommon() {
-		raidaCnt = RAIDA.TOTAL_RAIDA_COUNT;
 
-		pans = new String[raidaCnt];
-		pastStatus = new int[raidaCnt];
+		pans = new String[RAIDA.TOTAL_RAIDA_COUNT];
+		pastStatus = new int[RAIDA.TOTAL_RAIDA_COUNT];
 
-		for (int i = 0; i < raidaCnt; i++){
+		for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++){
 			this.pans[i] = generatePan();
 			this.pastStatus[i] = PAST_STATUS_UNDETECTED;
 		}
@@ -87,16 +81,24 @@ public class CloudCoin {
 		nn = childJSONObject.getInt("nn");
 		sn = childJSONObject.getInt("sn");
 
+		if (sn < 0 || sn > 16777217)
+            throw(new JSONException("Invalid SN number: " + sn));
+
+		if (nn < 0 || nn > 65535)
+            throw(new JSONException("Invalid NN number: " + nn));
+
 		JSONArray an = childJSONObject.getJSONArray("an");
 
 		ed = childJSONObject.optString("ed");
 		aoid = childJSONObject.optString("aoid");
 
-		//	aoid = aoid.replace("[", "");
-		//	aoid = aoid.replace("]", "");
+		ans = toStringArray(an);
+		if (ans.length != RAIDA.TOTAL_RAIDA_COUNT)
+		    throw(new JSONException("Wrong an count"));
 
+		pans = new String[RAIDA.TOTAL_RAIDA_COUNT];
 
-		this.ans = toStringArray(an);
+		setPansToAns();
 	}
 
 	public CloudCoin(int nn, int sn, String[] ans, String ed, String aoid, String tag) {
@@ -106,7 +108,7 @@ public class CloudCoin {
 		this.sn = sn;
 		this.ans = ans;
 		this.ed = ed;
-		this.hp = raidaCnt;
+		this.hp = RAIDA.TOTAL_RAIDA_COUNT;
 		this.aoid = aoid;
 
 		this.tag = tag;
@@ -150,9 +152,9 @@ public class CloudCoin {
 		String expDate = month + "-" + year;
 
 		json = "{'cloudcoin':[{'nn':" + nn + ",'sn':" + sn + ",'an':['";
-		for (int i = 0; i < raidaCnt; i++) {
+		for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
 			json += ans[i];
-			if (i != raidaCnt - 1) {
+			if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
 				json += "','";
 			}
 		}
@@ -201,21 +203,21 @@ public class CloudCoin {
 	}
 
 
-	public void setAnsToPans(){
-		for (int i =0; i < raidaCnt; i++) {
+	public void setPansToAns(){
+		for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
 			pans[i] = ans[i];
 		}
 	}
 
-
+/*
 	public void setAnsToPansIfPassed() {
 		for (int i = 0; i < raidaCnt; i++) {
 			if (pastStatus[i] == PAST_STATUS_PASS) {
 				ans[i] = pans[i];
 			}
 		}
-	}
-
+	}*/
+/*
 	public void calculateHP(){
 		hp = raidaCnt;
 
@@ -223,7 +225,7 @@ public class CloudCoin {
 			if( this.pastStatus[i] == PAST_STATUS_FAIL) 
 				hp--;
 		}
-	}
+	}*/
 
 	public void calcExpirationDate() {
 		Date date = new Date();
@@ -239,7 +241,7 @@ public class CloudCoin {
 		edHex += Integer.toHexString(year);
 	}
 
-
+/*
 	private String rateToString(int count) {
 		double pct = (double) count / (double) raidaCnt;
 
@@ -262,7 +264,8 @@ public class CloudCoin {
 
 		return "Minority";
 	}
-
+*/
+/*
 	public void gradeStatus(){
 		int passed = 0;
 		int failed = 0;
@@ -307,7 +310,7 @@ public class CloudCoin {
 
 		Log.v(TAG, "Got extension " + extension + "; passed = " +passed + " failed = " +failed + " other = " +other);
 	}
-
+*/
 	public byte[] hexStringToByteArray(String s) {
 		int len = s.length();
 		byte[] data = new byte[len / 2];

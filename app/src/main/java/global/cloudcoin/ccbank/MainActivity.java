@@ -81,6 +81,7 @@ import java.util.Date;
 import java.util.Calendar;
 
 import global.cloudcoin.ccbank.Authenticator.Authenticator;
+import global.cloudcoin.ccbank.Authenticator.AuthenticatorResult;
 import global.cloudcoin.ccbank.Echoer.Echoer;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoinsResult;
@@ -142,7 +143,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	TextView tvTotal, exportTv;
 
 	Dialog dialog;
-	ImportTask iTask;
 	FixFrackedTask ffTask;
 
 	int importState;
@@ -182,37 +182,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		setImportState(IMPORT_STATE_INIT);
 		bank = new Bank(this);
-/*
-		mHandler = new Handler(Looper.getMainLooper()) {
-                        public void handleMessage(Message inputMessage) {
-                                int what = inputMessage.what;
-
-                                if (what == 0) {
-                                        raidaStatus++;
-                                        setDots();
-                                } else if (what == COINS_CNT) {
-                                        raidaStatus = 0;
-                                        coinActive = inputMessage.arg1 + 1;
-                                        coinTotal = inputMessage.arg2;
-                                        setDots();
-                                }
-
-                        }
-                };
-
-		Thread myThread = new Thread(new Runnable() {
-			public void run() {
-				RAIDA.updateRAIDAList(MainActivity.this);
-
-				MainActivity.this.runOnUiThread(new Runnable() {
-					public void run() {
-						asyncFinished = true;		
-					}
-				});
-			}
-		});
-
-		myThread.start();*/
 
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
@@ -321,16 +290,16 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 
-	private void setDots() {
+	private void setDots(int raidaProcessed, int coinsProcessed, int coinsTotal) {
 		String s;
 
 		if (coinTotal == 0) {
 			s = "\n";
 		} else {
-			s = getResources().getString(R.string.coin) + " " + coinActive + "/" + coinTotal + "\n";
+			s = getResources().getString(R.string.coin) + " " + coinsProcessed + "/" + coinsTotal + "\n";
 		}
 
-		pb.setProgress(raidaStatus);
+		pb.setProgress(raidaProcessed);
 
 		subTv.setText(s);
 	}
@@ -664,7 +633,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		if (importState == IMPORT_STATE_IMPORT) {
 			initDialog(R.layout.importdialog4);
 			tv = (TextView) dialog.findViewById(R.id.infotext);
-			tv.setText(getStatusString(lastProgress));
+			tv.setText(getStatusString(0));
 
 			subTv = (TextView) dialog.findViewById(R.id.infotextsub);
 
@@ -996,66 +965,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 	}
 
-	class ImportTask extends AsyncTask<String, Integer, String> {
-		protected String doInBackground(String... params) {
-			bank.initReport();
-			bank.resetImportStats();
-
-			if (params[0] == "import") {
-				for (int i = 0; i < bank.getLoadedIncomeLength(); i++) {
-					if (isCancelled())
-						return "CANCELLED";
-	
-					publishProgress(i);
-					bank.importLoadedItem(i);
-				}
-			}
-
-			return "OK";
-		}
-
-		protected void onPostExecute(String result) {
-			setImportState(IMPORT_STATE_DONE);
-			setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-			dialog.dismiss();
-			isImportDialog = false;
-			showImportScreen();
-		}
-
-		protected void onPreExecute() {
-			lockOrientation();
-			setImportState(IMPORT_STATE_IMPORT);
-			dialog.dismiss();
-			isImportDialog = false;
-			lastProgress = 0;
-			showImportScreen();
-
-		}
-
-		protected void onProgressUpdate(Integer... values) {
-			tv.setText(getStatusString(values[0]));
-
-			lastProgress = values[0];
-
-			raidaStatus = 0;
-			coinActive = 0;
-			coinTotal = 0;
-			setDots();
-		}
-
-	}
-
 	private void doFixFracked() {
 		if (isFixing)
 			return;
 
 		ffTask = new FixFrackedTask();
 		ffTask.execute();
-	}
-
-	private void doImport() {
-		iTask = new ImportTask();
-		iTask.execute("import");
 	}
 
 	public void setImportState(int newState) {
@@ -1132,10 +1047,18 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	class AuthenticatorCb implements CallbackInterface {
 		public void callback(Object result) {
+			final Object fresult = result;
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					Log.v("xxx", "authenticator done");
+					AuthenticatorResult ar = (AuthenticatorResult) fresult;
+
+					tv.setText(getStatusString(ar.totalFilesProcessed));
+
+					setDots(ar.totalRAIDAProcessed, ar.totalCoinsProcessedInFile, ar.totalCoinsInFile);
+
+					Log.v("xxx", "authenticator done: " + ar.totalRAIDAProcessed + "/25 coin: " +
+							ar.totalCoinsProcessedInFile + "/" + ar.totalCoinsInFile + " f=" + ar.totalFilesProcessed);
 				}
 			});
 		}
