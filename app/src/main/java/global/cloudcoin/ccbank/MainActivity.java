@@ -83,15 +83,22 @@ import java.util.Calendar;
 import global.cloudcoin.ccbank.Authenticator.Authenticator;
 import global.cloudcoin.ccbank.Authenticator.AuthenticatorResult;
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
+import global.cloudcoin.ccbank.FrackFixer.FrackFixerResult;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoinsResult;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.core.CallbackInterface;
+import global.cloudcoin.ccbank.core.CommonResponse;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.AppCore;
 import global.cloudcoin.ccbank.core.Servant;
 import global.cloudcoin.ccbank.core.ServantRegistry;
+import global.cloudcoin.ccbank.Grader.Grader;
+import global.cloudcoin.ccbank.Grader.GraderResult;
+
+
 
 public class MainActivity extends Activity implements NumberPicker.OnValueChangeListener, OnClickListener {
 
@@ -107,7 +114,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	ServantRegistry sr;
 
-
 	TextView tv;
 	Button bt;
 	LinearLayout ll1, ll2, ll3;
@@ -118,20 +124,14 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	Bank bank;
 	ArrayList<String> files;
 
-        static int IDX_BANK = 0;
-        static int IDX_COUNTERFEIT = 1;
-        static int IDX_FRACTURED = 2;
-
-	final static int REQUEST_CODE_IMPORT_DIR = 1;
 	final static int COINS_CNT = 1;
 
 	boolean isImportDialog;
 
 	TextView subTv;
 
-        TextView[][] ids;
-        int[][] stats;
-        int size;
+    TextView[][] ids;
+    int size;
 	int lastProgress;
 
 	NumberPicker[] nps;
@@ -148,24 +148,18 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	int importState;
 
 	static int IMPORT_STATE_INIT = 1;
-
 	static int IMPORT_STATE_UNPACKING = 2;
 	static int IMPORT_STATE_IMPORT = 3;
 	static int IMPORT_STATE_DONE = 4;
 
 	ProgressBar pb;
-	int raidaStatus = 0;
-	int coinActive = 0;
-	int coinTotal = 0;
-
-	Handler mHandler;
-	boolean isFixing = false;
 
 	public static final String APP_PREFERENCES_IMPORTDIR = "pref_importdir";
 
 	final static int MY_STORAGE_WRITE_CONSTANT = 1;
 
-	AppCore appCore;
+
+	private int statToBankValue, statToBank, statFailed;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -237,6 +231,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					"ShowCoins",
 					"Unpacker",
 					"Authenticator",
+					"Grader",
+					"FrackFixer"
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
@@ -267,6 +263,15 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		at.launch(new AuthenticatorCb());
 	}
 
+	public void startGraderService() {
+		Grader gd = (Grader) sr.getServant("Grader");
+		gd.launch(new GraderCb());
+	}
+
+	public void startFrackFixer() {
+		FrackFixer ff = (FrackFixer) sr.getServant("FrackFixer");
+		ff.launch(new FrackFixererCb());
+	}
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode,
@@ -285,23 +290,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 	}
 
-	Handler getHandler() {
-		return mHandler;
-	}
-
-
-	private void setDots(int raidaProcessed, int coinsProcessed, int coinsTotal) {
-		String s;
-
-		if (coinTotal == 0) {
-			s = "\n";
-		} else {
-			s = getResources().getString(R.string.coin) + " " + coinsProcessed + "/" + coinsTotal + "\n";
-		}
-
+	private void setRAIDAProgress(int raidaProcessed, int totalFilesProcessed, int totalFiles) {
+		tv.setText(getStatusString(totalFilesProcessed, totalFiles));
 		pb.setProgress(raidaProcessed);
-
-		subTv.setText(s);
 	}
 
 	public void initUI() {
@@ -485,6 +476,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		//email.openDialogWithAttachments(filenames);
         }
 
+
 	public void doExport() {
 		String exportTag;
 		int[] values;
@@ -508,10 +500,10 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		for (int i = 0; i < size; i++)
 			values[i] = nps[i].getValue();
 
-		if (isFixing) {
-			showError(res.getString(R.string.fixing));
-			return;
-		}
+	//	if (isFixing) {
+	//		showError(res.getString(R.string.fixing));
+	//		return;
+	//	}
 
 		if (selectedId == R.id.rjpg) {
                         failed = bank.exportJpeg(values, exportTag);
@@ -624,7 +616,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		if (importState == IMPORT_STATE_UNPACKING) {
 			initDialog(R.layout.importdialog);
 			tv = (TextView) dialog.findViewById(R.id.infotext);
-			tv.setText("Unpacking files...");
+			tv.setText(getString(R.string.unpacking));
 
 			dialog.show();
 			return;
@@ -633,13 +625,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		if (importState == IMPORT_STATE_IMPORT) {
 			initDialog(R.layout.importdialog4);
 			tv = (TextView) dialog.findViewById(R.id.infotext);
-			tv.setText(getStatusString(0));
-
 			subTv = (TextView) dialog.findViewById(R.id.infotextsub);
 
 			pb = (ProgressBar) dialog.findViewById(R.id.firstBar);
 			pb.setMax(RAIDA.TOTAL_RAIDA_COUNT);
 
+			setRAIDAProgress(0, 0, AppCore.getFilesCount(Config.DIR_SUSPECT));
 			dialog.show();
 			return;
 		}
@@ -655,34 +646,28 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				}
 			});
 
-			int toBankValue, toBank, failed;
-	
-			toBankValue = bank.getImportStats(Bank.STAT_VALUE_MOVED_TO_BANK);
-			toBank = bank.getImportStats(Bank.STAT_AUTHENTIC);
-			failed = bank.getImportStats(Bank.STAT_FAILED);
-
 			TextView ttv;
 
 			ttv = (TextView) dialog.findViewById(R.id.closebuttontext);
-			if (failed > 0 || toBank == 0)
+			if (statFailed > 0 || statToBank == 0)
 				ttv.setText(R.string.back);
 			else
 				ttv.setText(R.string.awesome);
 			
 
 			ttv = (TextView) dialog.findViewById(R.id.imptotal);
-			ttv.setText("" + toBankValue);
+			ttv.setText("" + statToBankValue);
 
 			ttv = (TextView) dialog.findViewById(R.id.auth);
-			ttv.setText("" + toBank);
+			ttv.setText("" + statToBank);
 
 			ttv = (TextView) dialog.findViewById(R.id.failed);
-			ttv.setText("" + failed);
+			ttv.setText("" + statFailed);
 
 			try {
 				dialog.show();
 			} catch (Exception e) {
-				Log.v("CLOUDCOIN", "Activity is gone. No result will be shown");
+				Log.v(ltag, "Activity is gone. No result will be shown");
 			}
 			return;
 		}
@@ -929,7 +914,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 
 		protected void onPreExecute() {
-			isFixing = true;
+	//		isFixing = true;
                         bank.loadFracked();
 
 			before = bank.getFrackedCoinsLength();
@@ -944,7 +929,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		protected void onPostExecute(String result) {
 			int fixedCnt;
 
-			isFixing = false;
+	//		isFixing = false;
 
 			if (before == 0)
 				return;
@@ -966,8 +951,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	private void doFixFracked() {
-		if (isFixing)
-			return;
+		//if (isFixing)
+		//	return;
 
 		ffTask = new FixFrackedTask();
 		ffTask.execute();
@@ -981,13 +966,10 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		importState = newState;
 	}
 
-	private String getStatusString(int progressCoins) {
+	private String getStatusString(int progressCoins, int totalFiles) {
 		String statusString;
 
-		int totalFiles = AppCore.getFilesCount(Config.DIR_SUSPECT);
-		int importedIncomeLength = progressCoins + 1;
-
-		statusString = String.format(getResources().getString(R.string.authstring), importedIncomeLength, totalFiles);
+		statusString = String.format(getResources().getString(R.string.authstring), progressCoins, totalFiles);
 
 		return statusString;
 	}
@@ -1000,6 +982,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				@Override
 				public void run() {
 					echoResult = ECHO_RESULT_OK;
+					startFrackFixer();
 				}
 			});
 		}
@@ -1023,15 +1006,17 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	class UnpackerCb implements CallbackInterface {
 		public void callback(Object result) {
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+
+			}
+
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-					try {
-						Thread.sleep(500);
-					} catch (InterruptedException e) {
 
-					}
-					Log.v(ltag, "unpacker done");
+					Log.v("xxx", "unpacker done");
 					setImportState(IMPORT_STATE_IMPORT);
 					dialog.dismiss();
 					isImportDialog = false;
@@ -1053,16 +1038,71 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				public void run() {
 					AuthenticatorResult ar = (AuthenticatorResult) fresult;
 
-					tv.setText(getStatusString(ar.totalFilesProcessed));
+					if (ar.status == AuthenticatorResult.STATUS_ERROR) {
+						setImportState(IMPORT_STATE_INIT);
+						dialog.dismiss();
+						showError("Internal error or RAIDA is unavailable");
 
-					setDots(ar.totalRAIDAProcessed, ar.totalCoinsProcessedInFile, ar.totalCoinsInFile);
+						//startGraderService();
+
+
+						return;
+					}
+
+					if (ar.status == AuthenticatorResult.STATUS_FINISHED) {
+						//setImportState(IMPORT_STATE_DONE);
+						//dialog.dismiss();
+						//showImportScreen();
+						startGraderService();
+						return;
+					}
+
+					setRAIDAProgress(ar.totalRAIDAProcessed, ar.totalFilesProcessed, ar.totalFiles);
 
 					Log.v("xxx", "authenticator done: " + ar.totalRAIDAProcessed + "/25 coin: " +
-							ar.totalCoinsProcessedInFile + "/" + ar.totalCoinsInFile + " f=" + ar.totalFilesProcessed);
+							" f=" + ar.totalFilesProcessed);
 				}
 			});
 		}
 	}
 
+	class GraderCb implements CallbackInterface {
+		public void callback(Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					GraderResult gr = (GraderResult) fresult;
+
+					statToBankValue = gr.totalAuthenticValue + gr.totalFrackedValue;
+					statToBank = gr.totalAuthentic + gr.totalFracked;
+					statFailed = gr.totalLost + gr.totalCounterfeit + gr.totalUnchecked;
+
+					setImportState(IMPORT_STATE_DONE);
+					dialog.dismiss();
+					showImportScreen();
+				}
+			});
+		}
+	}
+
+	class FrackFixererCb implements CallbackInterface {
+		public void callback(Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					FrackFixerResult fr = (FrackFixerResult) fresult;
+
+					if (fr.status == FrackFixerResult.STATUS_ERROR) {
+						Log.v("XXX", "ERROR FIXING");
+						return;
+					}
+
+					Log.v("xxx", "FIXXXXERRR " + fr.failed + " fixed="+fr.fixed);
+				}
+			});
+		}
+	}
 
 }

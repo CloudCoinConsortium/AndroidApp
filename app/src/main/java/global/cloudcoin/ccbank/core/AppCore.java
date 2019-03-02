@@ -8,11 +8,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.Executors;
 
 import global.cloudcoin.ccbank.core.Config;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+
+import java.security.MessageDigest;
+
+
 
 public class AppCore {
 
@@ -172,6 +178,10 @@ public class AppCore {
         moveToFolder(fileName, Config.DIR_TRASH);
     }
 
+    static public void moveToLost(String fileName) {
+        moveToFolder(fileName, Config.DIR_LOST);
+    }
+
     static public void moveToImported(String fileName) {
         moveToFolder(fileName, Config.DIR_IMPORTED);
     }
@@ -226,9 +236,70 @@ public class AppCore {
         return true;
     }
 
+    static public void deleteFile(String path) {
+        File f = new File(path);
+
+        logger.debug(ltag, "Deleting " + path);
+        f.delete();
+    }
+
     static public int getFilesCount(String dir) {
        String path = getUserDir(dir);
+       File rFile;
+       int rv;
 
-       return new File(path).listFiles().length;
+       try {
+           rFile = new File(path);
+           rv = rFile.listFiles().length;
+       } catch (Exception e) {
+           logger.error(ltag, "Failed to read directory: " + e.getMessage());
+           return 0;
+       }
+
+       return rv;
     }
+
+    static public String getMD5(String data) {
+        byte[] bytesOfMessage = data.getBytes();
+        byte[] digest;
+
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            digest = md.digest(bytesOfMessage);
+        } catch (NoSuchAlgorithmException e) {
+            logger.error(ltag, "No such algorithm MD5: " + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            logger.error(ltag, "MD5 error: " + e.getMessage());
+            return null;
+        }
+
+        return toHexString(digest);
+    }
+
+    static public String toHexString(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+
+        for (int i = 0; i < bytes.length; i++) {
+            String hex = Integer.toHexString(0xFF & bytes[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+
+        return hexString.toString();
+    }
+
+    static public String generateHex() {
+        String AB = "0123456789ABCDEF";
+
+        SecureRandom rnd = new SecureRandom();
+        StringBuilder sb = new StringBuilder(32);
+        for (int i = 0; i < 32; i++)
+            sb.append(AB.charAt(rnd.nextInt(AB.length())));
+
+        return sb.toString();
+    }
+
 }

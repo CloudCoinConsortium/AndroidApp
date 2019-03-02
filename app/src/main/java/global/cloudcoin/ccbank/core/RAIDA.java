@@ -253,10 +253,14 @@ public class RAIDA {
 	}
 
 	public String[] query(String[] requests) {
-		return query(requests, null);
+		return query(requests, null, null);
 	}
 
 	public String[] query(String[] requests, String[] posts) {
+		return query(requests, posts, null);
+	}
+
+	public String[] query(String[] requests, String[] posts, CallbackInterface cb) {
 		service = AppCore.getServiceExecutor();
 		List<Future<Runnable>> futures = new ArrayList<Future<Runnable>>();
 
@@ -283,10 +287,13 @@ public class RAIDA {
 			final int iFinal = i;
 			final String request = requests[i];
 			final String post = posts[i];
+			final CallbackInterface myCb = cb;
 
 			Future f = service.submit(new Runnable() {
 				public void run() {
 					results[iFinal] = agents[iFinal].doRequest(request, post);
+					if (myCb != null)
+						myCb.callback(null);
 				}
 			});
 			futures.add(f);

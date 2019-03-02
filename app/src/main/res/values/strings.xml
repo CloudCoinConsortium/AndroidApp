@@ -32,9 +32,9 @@
 	<string name="movedtobank">Total Moved to Bank: %1$d Coins</string>
 	<string name="importresults">Result of Import</string>
 	<string name="importresultsauth">Authentic and moved to bank</string>
-	<string name="importresultstrash">Counterfeit or failed and moved to Trash</string>
+	<string name="importresultstrash">Counterfeit or failed</string>
 	<string name="trashnote">Please check your CloudCoin Trash\nof a note about what happened</string>
-	<string name="authstring">Authenticating %1$d of %2$d CloudCoin Files</string>
+	<string name="authstring">Authenticated %1$d of %2$d CloudCoin Files</string>
 	<string name="authfrackedstring">Fixing %1$d of %2$d Fracked Coins</string>
 
 	<string name="totaltoexport">Total to export: %1$d CloudCoins</string>
@@ -79,4 +79,5 @@
 	<string name="suspectcoins">We found suspect coins in the Bank. We will validate them now</string>
 	<string name="warning">Warning!</string>
 	<string name="exportnotice">When you export your CloudCoins. They will be placed in the Export folder located at %1$s. If you email your CloudCoins, they will be removed from the export folder and sent via email. If you interrupt the email process, you can find your CloudCoin in this export folder. You can use the import file picker to import them back into your bank.</string>
+	<string name="unpacking">Unpacking files...</string>
 </resources>

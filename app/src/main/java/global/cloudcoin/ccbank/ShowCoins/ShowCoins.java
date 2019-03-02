@@ -21,12 +21,13 @@ public class ShowCoins extends Servant {
         super("ShowCoins", rootDir, logger);
 
         result = new ShowCoinsResult();
-        result.counters = new int[Config.IDX_FOLDER_LAST][5];
+
     }
 
     public void launch(CallbackInterface icb) {
         this.cb = icb;
 
+        result.counters = new int[Config.IDX_FOLDER_LAST][5];
         launchThread(new Runnable() {
             @Override
             public void run() {

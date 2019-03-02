@@ -98,7 +98,7 @@ public class Unpacker extends Servant {
         String json = cc.getJson();
         String path;
 
-        path = AppCore.getUserDir(Config.DIR_SUSPECT) + File.separator + fileName + "stack";
+        path = AppCore.getUserDir(Config.DIR_SUSPECT) + File.separator + fileName;
 
         logger.info(ltag, "Saving " + path + ": " + json);
 
@@ -262,16 +262,16 @@ public class Unpacker extends Servant {
                 JSONArray ans = childJSONObject.getJSONArray("an");
                 String[] strAns = toStringArray(ans);
 
-                JSONArray aoid = childJSONObject.optJSONArray("aoid");
-                String[] strAoids = toStringArray(aoid);
-                String strAoid = String.join("-", strAoids);
+                //JSONArray aoid = childJSONObject.optJSONArray("aoid");
+                //String[] strAoids = toStringArray(aoid);
+                //String strAoid = String.join("-", strAoids);
 
                 String ed = childJSONObject.optString("ed");
 
-                cc = new CloudCoin(nn, sn, strAns, ed, strAoid, Config.DEFAULT_TAG);
+                cc = new CloudCoin(nn, sn, strAns, ed, "", Config.DEFAULT_TAG);
 
                 ccs[i] = cc;
-                logger.info(ltag, "sss="+sn+" nn="+nn+ " aoid="+strAoid+ " e="+ed);
+                logger.info(ltag, "sss="+sn+" nn="+nn+ "  e="+ed);
             }
         } catch (JSONException e) {
             logger.error(ltag, "Failed to parse stack: " + e.getMessage());

@@ -102,10 +102,6 @@ public class Echoer extends Servant {
         latencies = raida.getLastLatencies();
 
         for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
-            ers[i] = null;
-        }
-
-        for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             logger.info(ltag, "RAIDA " + i + ": " + results[i] + " latency=" + latencies[i]);
             if (results[i] == null) {
                 logger.error(ltag, "Failed to get result. RAIDA " + i + " is not ready");
@@ -113,10 +109,18 @@ public class Echoer extends Servant {
                 continue;
             }
 
+            logger.info(ltag, "parsing " + i);
             ers[i] = (EchoResponse) parseResponse(results[i], EchoResponse.class);
+            if (ers[i] == null) {
+                logger.error(ltag, "Failed to parse response");
+                cntErr++;
+                continue;
+            }
+            logger.info(ltag, "parsing2 " + ers[i]);
             if (!ers[i].status.equals(Config.RAIDA_STATUS_READY)) {
                 logger.error(ltag, "RAIDA " + i + " is not ready");
                 cntErr++;
+                continue;
             }
 
         }

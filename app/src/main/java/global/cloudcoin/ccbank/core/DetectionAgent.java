@@ -18,33 +18,19 @@ import org.json.JSONException;
 
 class DetectionAgent {
 
-	GLogger logger;
-
+	private GLogger logger;
 	String ltag = "DetectionAgent";
 
-	int connectionTimeout;
-	int readTimeout;
+	private int connectionTimeout;
+	private int readTimeout;
 	private long dms;
-
-	public int lastDetectStatus = CloudCoin.PAST_STATUS_ERROR;
-	public String lastRequest = "empty";
-	public String lastResponse = "empty";
-
-	public String lastTicket = "empty";
-	public String lastTicketStatus = "empty";
-	public String lastFixStatus = "empty";
-
 	private String fullURL;
 
-
-	static String TAG = "RAIDADetectionAgent";
-
-	int RAIDANumber;
+	private int RAIDANumber;
 
 	public DetectionAgent(int RAIDANumber, int timeout, GLogger logger) {
 
 		this.RAIDANumber = RAIDANumber;
-
 
 		// TODO: remove +2 seconds. Now it is a workaround for slow RAIDAs
 		this.readTimeout = timeout + 2000;
@@ -102,30 +88,8 @@ class DetectionAgent {
 		return "error";
 
 	}
+*/
 
-	public int detect(int nn, int sn, String an, String pan, int d) {
-		long tsBefore, tsAfter;
-
-		lastRequest = fullURL + "detect?nn="+nn+"&sn="+sn+"&an="+an+"&pan="+pan+"&denomination="+d;
-		tsBefore = System.currentTimeMillis();
-
-		lastResponse = doRequest(lastRequest);
-
-		tsAfter = System.currentTimeMillis();
-		dms = tsAfter - tsBefore;
-
-		if (lastResponse == null) {
-			lastDetectStatus = CloudCoin.PAST_STATUS_ERROR;
-		} else if (lastResponse.contains("pass")) {
-			lastDetectStatus = CloudCoin.PAST_STATUS_PASS;
-		} else if (lastResponse.contains("fail") && lastResponse.length() < 200) {
-			lastDetectStatus = CloudCoin.PAST_STATUS_FAIL;
-		} else {
-			lastDetectStatus = CloudCoin.PAST_STATUS_ERROR;
-		}
-	
-		return lastDetectStatus;
-	}*/
 
 	public long getLastLatency() {
 		return dms;
@@ -139,11 +103,10 @@ class DetectionAgent {
 
 		if (fullURL == null) {
 			logger.error(ltag, "Skipping raida: " + RAIDANumber);
-			return null;
+			return "";
 		}
 
 		String urlIn = fullURL + "/service/" + url;
-
 		String method = (post == null) ? "GET" : "POST";
 
 		logger.debug(ltag, method + " url " + urlIn);
@@ -224,15 +187,6 @@ class DetectionAgent {
 		return "error";
 	}
 */
-
-
-	private int ordinalIndexOf(String str, String substr, int n) {
-		int pos = str.indexOf(substr);
-		while (--n > 0 && pos != -1)
-			pos = str.indexOf(substr, pos + 1);
-
-		return pos;
-	}
 
 }
 

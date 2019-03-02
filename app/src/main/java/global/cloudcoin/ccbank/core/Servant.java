@@ -328,23 +328,27 @@ public class Servant {
     }
 
 
-    public Object parseResponse(String string, Class c) {
-        JSONObject o;
-
-        Object newObject;
+    private Object setFields(Class c, JSONObject o) {
+        Object targetObject;
 
         try {
-            newObject = c.newInstance();
-            o = new JSONObject(string);
+            targetObject = c.newInstance();
             for (Field f : c.getDeclaredFields()) {
                 String name = f.getName();
                 String value = o.optString(name);
 
-                logger.info(ltag, "got value " + value);
-
                 f.setAccessible(true);
-                f.set(newObject, value);
+                f.set(targetObject, value);
+            }
 
+            if (c.getSuperclass() != null && c.getSuperclass() == CommonResponse.class) {
+                for (Field f : c.getSuperclass().getDeclaredFields()) {
+                    String name = f.getName();
+                    String value = o.optString(name);
+
+                    f.setAccessible(true);
+                    f.set(targetObject, value);
+                }
             }
         } catch (IllegalAccessException e) {
             logger.error(ltag, "Illegal access ex");
@@ -352,6 +356,48 @@ public class Servant {
         } catch (InstantiationException e) {
             logger.error(ltag, "Illegal instantiation");
             return null;
+        }
+
+        return targetObject;
+    }
+
+    public Object[] parseArrayResponse(String string, Class c) {
+        Object[] newObjectArray;
+        JSONArray a;
+        JSONObject o;
+
+        if (string == null)
+            return null;
+
+        try {
+            a = new JSONArray(string.trim());
+            newObjectArray = new Object[a.length()];
+            for (int i = 0; i < a.length(); i++) {
+                o = a.getJSONObject(i);
+                newObjectArray[i] = setFields(c, o);
+                if (newObjectArray[i] == null)
+                    return null;
+            }
+        } catch (JSONException e) {
+            logger.error(ltag, "Failed to parse json: " + e.getMessage());
+            return null;
+        }
+
+        return newObjectArray;
+    }
+
+    public Object parseResponse(String string, Class c) {
+        JSONObject o;
+        Object newObject;
+
+        if (string == null)
+            return null;
+
+        try {
+            o = new JSONObject(string.trim());
+            newObject = setFields(c, o);
+            if (newObject == null)
+                return null;
         } catch (JSONException e) {
             logger.error(ltag, "Failed to parse json: " + e.getMessage());
             return null;

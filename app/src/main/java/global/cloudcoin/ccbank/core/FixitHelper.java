@@ -1,7 +1,7 @@
 package global.cloudcoin.ccbank.core;
 
 public class FixitHelper {
-
+/*
 	public int[] trustedServers = new int[8];
 	public int[] trustedTriad1;
 	public int[] trustedTriad2;
@@ -14,7 +14,7 @@ public class FixitHelper {
 	public boolean finnished = false;
 
 	public FixitHelper(int raidaNumber) {  
-		int[] trustedServers  = new int[] { 33, 33, 33, 33,  33,  33,  33, 37 };
+		int[] trustedServers;
 
 		switch (raidaNumber) {
 			case 0: trustedServers = new int[] { 19, 20, 21, 24,  1,  4,  5,  6 }; break;
@@ -49,8 +49,7 @@ public class FixitHelper {
 		trustedTriad3 = new int[]{trustedServers[3] , trustedServers[5] , trustedServers[6] };
 		trustedTriad4 = new int[]{trustedServers[4] , trustedServers[6] , trustedServers[7] };
 
-	        currentTriad = trustedTriad1;
-
+		currentTriad = trustedTriad1;
 	}
 
 
@@ -68,11 +67,9 @@ public class FixitHelper {
 			case 4:
 				currentTriad = trustedTriad4;
 				break;
-			default:
-				this.finnished = true;
-				break;
 		}
 	}
+	*/
 }
 
 

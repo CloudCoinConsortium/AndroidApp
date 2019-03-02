@@ -1,13 +1,7 @@
 package global.cloudcoin.ccbank.Echoer;
 
-public class EchoResponse {
-    String status;
+import global.cloudcoin.ccbank.core.CommonResponse;
 
-    String server;
-
-    String message;
-
-    String version;
-
-    String time;
+public class EchoResponse extends CommonResponse {
+    /* The same response */
 }

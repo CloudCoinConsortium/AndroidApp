@@ -74,4 +74,7 @@ public class Config {
 
     public static int DEFAULT_MAX_COINS_MULTIDETECT = 400;
 
+
+    public static int PASS_THRESHOLD = 20;
+
 }
