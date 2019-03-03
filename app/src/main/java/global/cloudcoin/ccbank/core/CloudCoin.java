@@ -172,6 +172,22 @@ public class CloudCoin {
 		return json;
 	}
 
+	public String getSimpleJson() {
+		String json;
+
+		json = "{\"nn\":" + nn + ",\"sn\":" + sn + ",\"an\":[\"";
+		for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
+			json += ans[i];
+			if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
+				json += "\",\"";
+			}
+		}
+
+		json += "\"]}";
+
+		return json;
+	}
+
 	public String getPownString() {
 		return pownString;
 	}

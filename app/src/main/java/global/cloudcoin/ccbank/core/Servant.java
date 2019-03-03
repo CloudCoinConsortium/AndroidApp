@@ -1,31 +1,26 @@
 package global.cloudcoin.ccbank.core;
 
-import android.telecom.Call;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOError;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Hashtable;
+import java.util.Set;
 
 
 public class Servant {
 
     private String ltag = "Servant";
 
-    final static int STATUS_RUNNING = 1;
-    final static int STATUS_WAITING = 2;
-
     private String rootDir;
     private String name;
-    private int status;
 
     protected RAIDA raida;
 
@@ -44,7 +39,6 @@ public class Servant {
     public Servant(String name, String rootDir, GLogger logger) {
         this.name = name;
         this.rootDir = rootDir;
-        this.status = STATUS_WAITING;
         this.logger = logger;
         this.config = null;
 
@@ -64,6 +58,17 @@ public class Servant {
         readConfig();
     }
 
+    public void launch() {
+        launch(null);
+    }
+
+    public void launch(CallbackInterface cb) {}
+
+    public void launchDetachedThread(Runnable runnable) {
+        thread = new Thread(runnable);
+        thread.setDaemon(true);
+        thread.start();
+    }
 
     public void launchThread(Runnable runnable) {
         thread = new Thread(runnable);
@@ -90,7 +95,6 @@ public class Servant {
 
         File logDirObj = new File(echoerLogDIr);
         for (File file : logDirObj.listFiles()) {
-            logger.info(ltag, "f="+file.toString());
             if (!file.isDirectory()) {
                 String fileName = file.getName();
                 logger.debug(ltag, "Checking " + file);
@@ -135,8 +139,6 @@ public class Servant {
 
                     JSONObject o = new JSONObject(data);
                     url = o.getString("url");
-
-                    logger.info(ltag, "urll=" + url);
                 } catch (JSONException e) {
                     logger.error(ltag, "Failed to parse JSON " + fileName + ": " + e.getMessage());
                     continue;
@@ -313,14 +315,6 @@ public class Servant {
                 "    </FOLDERS>";
 
         return config;
-    }
-
-    public int getStatus() {
-        return this.status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
     }
 
     public void setLogger(GLogger logger) {

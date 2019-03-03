@@ -28,20 +28,18 @@ import global.cloudcoin.ccbank.core.GLogger;
 public class Echoer extends Servant {
 
     String ltag = "Echoer";
-
     EchoResponse[] ers;
-
     long[] latencies;
 
     public Echoer(String rootDir, GLogger logger) {
         super("Echoer", rootDir, logger);
-
-        ers = new EchoResponse[RAIDA.TOTAL_RAIDA_COUNT];
-        latencies = new long[RAIDA.TOTAL_RAIDA_COUNT];
     }
 
     public void launch(CallbackInterface icb) {
         this.cb = icb;
+
+        ers = new EchoResponse[RAIDA.TOTAL_RAIDA_COUNT];
+        latencies = new long[RAIDA.TOTAL_RAIDA_COUNT];
 
         launchThread(new Runnable() {
             @Override
@@ -116,13 +114,13 @@ public class Echoer extends Servant {
                 cntErr++;
                 continue;
             }
+
             logger.info(ltag, "parsing2 " + ers[i]);
             if (!ers[i].status.equals(Config.RAIDA_STATUS_READY)) {
                 logger.error(ltag, "RAIDA " + i + " is not ready");
                 cntErr++;
                 continue;
             }
-
         }
 
         if (cntErr > Config.MAX_ALLOWED_FAILED_RAIDAS) {
@@ -133,8 +131,6 @@ public class Echoer extends Servant {
 
         return true;
     }
-
-
 
     private boolean saveResults() {
         String status, message;
@@ -169,7 +165,7 @@ public class Echoer extends Servant {
                 continue;
             }
 
-            logger.info(ltag, "f="+fileName+ " d="+data);
+            logger.debug(ltag, "file " + fileName + " data " + data);
         }
 
         return true;

@@ -261,17 +261,10 @@ public class Unpacker extends Servant {
 
                 JSONArray ans = childJSONObject.getJSONArray("an");
                 String[] strAns = toStringArray(ans);
-
-                //JSONArray aoid = childJSONObject.optJSONArray("aoid");
-                //String[] strAoids = toStringArray(aoid);
-                //String strAoid = String.join("-", strAoids);
-
                 String ed = childJSONObject.optString("ed");
 
                 cc = new CloudCoin(nn, sn, strAns, ed, "", Config.DEFAULT_TAG);
-
                 ccs[i] = cc;
-                logger.info(ltag, "sss="+sn+" nn="+nn+ "  e="+ed);
             }
         } catch (JSONException e) {
             logger.error(ltag, "Failed to parse stack: " + e.getMessage());

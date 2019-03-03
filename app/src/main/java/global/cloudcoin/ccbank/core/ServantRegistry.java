@@ -1,15 +1,8 @@
 package global.cloudcoin.ccbank.core;
 
-
 import java.util.Hashtable;
 import java.lang.reflect.Constructor;
-
-import javax.microedition.khronos.opengles.GL;
-
-import global.cloudcoin.ccbank.core.GLogger;
-
-
-
+import java.util.Set;
 
 public class ServantRegistry {
 
@@ -44,17 +37,13 @@ public class ServantRegistry {
         Package packageObj = this.getClass().getPackage();
         String classBinName = packageObj.getName();
 
-
         classBinName = classBinName.substring(0, classBinName.lastIndexOf('.'));
 
         try {
             ClassLoader classLoader = this.getClass().getClassLoader();
 
             classBinName += "." + name + "." + name;
-
-            // Load the target class using its binary name
             Class loadedMyClass = classLoader.loadClass(classBinName);
-
 
             Constructor constructor = loadedMyClass.getDeclaredConstructor(String.class, GLogger.class);
             Object myClassObject = constructor.newInstance(rootDir, logger);
@@ -75,5 +64,28 @@ public class ServantRegistry {
         return true;
     }
 
+    public boolean isRunning(String name) {
+        String packageName = getClass().getPackage().getName();
+        String targetClass;
 
+        targetClass = packageName.replaceAll(".core$", "") + "." + name + "." + name;
+
+        if (getServant(name) == null)
+            return false;
+
+        Set<Thread> threadSet  = Thread.getAllStackTraces().keySet();
+        for (Thread t : threadSet) {
+            StackTraceElement[] es = t.getStackTrace();
+            String className;
+
+            for (int i = 0; i < es.length; i++) {
+                className = es[i].getClassName();
+
+                if (className.startsWith(targetClass))
+                    return true;
+            }
+        }
+
+        return false;
+    }
 }

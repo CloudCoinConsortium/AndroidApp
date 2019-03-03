@@ -1,24 +1,20 @@
 package global.cloudcoin.ccbank.core;
 
-
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.Executors;
-
-import global.cloudcoin.ccbank.core.Config;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-
 import java.security.MessageDigest;
-
-
 
 public class AppCore {
 
@@ -136,18 +132,22 @@ public class AppCore {
        return f.toString();
    }
 
-   static public String getUserDir(String folder) {
-       File f;
+   static public String getUserDir(String folder, String user) {
+        File f;
 
-       f = new File(rootPath, Config.DIR_ACCOUNTS);
-       f = new File(f, Config.DIR_DEFAULT_USER);
-       f = new File(f, folder);
+        f = new File(rootPath, Config.DIR_ACCOUNTS);
+        f = new File(f, user);
+        f = new File(f, folder);
 
-       return f.toString();
+        return f.toString();
    }
 
-    static public int getTotal(int[] counters) {
-        return counters[Config.IDX_1] + counters[Config.IDX_5] * 5 +
+   static public String getUserDir(String folder) {
+       return getUserDir(folder, Config.DIR_DEFAULT_USER);
+   }
+
+   static public int getTotal(int[] counters) {
+       return counters[Config.IDX_1] + counters[Config.IDX_5] * 5 +
                 counters[Config.IDX_25] * 25 + counters[Config.IDX_100] * 100 +
                 counters[Config.IDX_250] * 250;
     }
@@ -182,6 +182,8 @@ public class AppCore {
         moveToFolder(fileName, Config.DIR_LOST);
     }
 
+    static public void moveToBank(String fileName) { moveToFolder(fileName, Config.DIR_BANK); }
+
     static public void moveToImported(String fileName) {
         moveToFolder(fileName, Config.DIR_IMPORTED);
     }
@@ -209,6 +211,23 @@ public class AppCore {
         return jsonData;
     }
 
+    static public byte[] loadFileToBytes(String path) {
+        byte[] getBytes = {};
+        try {
+            File file = new File(path);
+            getBytes = new byte[(int) file.length()];
+            InputStream is = new FileInputStream(file);
+            is.read(getBytes);
+            is.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return getBytes;
+    }
+
     static public boolean saveFile(String path, String data) {
         File f = new File(path);
         if (f.exists()) {
@@ -234,6 +253,25 @@ public class AppCore {
         }
 
         return true;
+    }
+
+    static public boolean saveFileFromBytes(String path, byte[] bytes) {
+       try {
+           File file = new File(path);
+           if (file.exists()) {
+               logger.error(ltag, "File exists: " + path);
+               return false;
+           }
+
+           FileOutputStream fos = new FileOutputStream(file);
+           fos.write(bytes);
+           fos.close();
+       } catch (IOException e) {
+           logger.error(ltag, "Failed to write file: " + e.getMessage());
+           return false;
+       }
+
+       return true;
     }
 
     static public void deleteFile(String path) {
@@ -291,6 +329,18 @@ public class AppCore {
         return hexString.toString();
     }
 
+    static public byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) +
+                    Character.digit(s.charAt(i+1), 16));
+        }
+
+        return data;
+    }
+
+
     static public String generateHex() {
         String AB = "0123456789ABCDEF";
 
@@ -302,4 +352,8 @@ public class AppCore {
         return sb.toString();
     }
 
+
+    public static String padString(String string, int length, char padding) {
+        return String.format("%" + length + "s", string).replace(' ', padding);
+    }
 }

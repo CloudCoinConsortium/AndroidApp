@@ -1,19 +1,10 @@
 package global.cloudcoin.ccbank.core;
 
-import android.util.Log;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
-
-import global.cloudcoin.ccbank.MainActivity;
-import global.cloudcoin.ccbank.core.CloudCoin;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.json.JSONException;
-
 
 
 class DetectionAgent {
@@ -28,6 +19,8 @@ class DetectionAgent {
 
 	private int RAIDANumber;
 
+	private int lastStatus;
+
 	public DetectionAgent(int RAIDANumber, int timeout, GLogger logger) {
 
 		this.RAIDANumber = RAIDANumber;
@@ -37,6 +30,8 @@ class DetectionAgent {
 		this.connectionTimeout = timeout;
 
 		this.logger = logger;
+
+		lastStatus = RAIDA.STATUS_OK;
 
 		setDefaultFullUrl();
 	}
@@ -59,36 +54,16 @@ class DetectionAgent {
 		return this.fullURL;
 	}
 
-/*
+	public int getStatus() {
+		if (fullURL == null)
+			lastStatus = RAIDA.STATUS_FAILED;
 
-	public String get_ticket(int nn, int sn, String an, int d ) { 
-		long tsBefore, tsAfter;
-
-		lastRequest = fullURL + "get_ticket?nn="+nn+"&sn="+sn+"&an="+an+"&pan="+an+"&denomination="+d;
-		tsBefore = System.currentTimeMillis();
-
-		lastResponse = doRequest(lastRequest);
-		if (lastResponse == null)
-			return "error";
-
-                tsAfter = System.currentTimeMillis();
-		dms = tsAfter - tsBefore;
-
-		if (lastResponse.contains("ticket")) {
-			String[] KeyPairs = this.lastResponse.split(",");
-			String message = KeyPairs[3];
-			int startTicket = ordinalIndexOf( message, "\"", 3);
-			int endTicket = ordinalIndexOf( message, "\"", 4);
-			lastTicket = message.substring(startTicket + 1, endTicket);
-			lastTicketStatus = "ticket";
-
-			return lastTicket;
-		}
-
-		return "error";
-
+		return lastStatus;
 	}
-*/
+
+	public void setStatus(int status) {
+		lastStatus = status;
+	}
 
 
 	public long getLastLatency() {
@@ -103,6 +78,7 @@ class DetectionAgent {
 
 		if (fullURL == null) {
 			logger.error(ltag, "Skipping raida: " + RAIDANumber);
+			lastStatus = RAIDA.STATUS_FAILED;
 			return "";
 		}
 
@@ -135,6 +111,7 @@ class DetectionAgent {
 
 			if (urlConnection.getResponseCode() != 200) {
 				logger.error(ltag, "Invalid response from server " + urlIn + ":" + urlConnection.getResponseCode());
+				lastStatus = RAIDA.STATUS_FAILED;
 				return null;
 			}
 
@@ -149,44 +126,22 @@ class DetectionAgent {
 			tsAfter = System.currentTimeMillis();
 			dms = tsAfter - tsBefore;
 
+			lastStatus = RAIDA.STATUS_OK;
+
 			return sb.toString();
 		} catch (MalformedURLException e) {
 			logger.error(ltag, "Failed to fetch. Malformed URL " + urlIn);
+			lastStatus = RAIDA.STATUS_FAILED;
 			return null;
 		} catch (IOException e) {
 			logger.error(ltag, "Failed to fetch URL: " + e.getMessage());
+			lastStatus = RAIDA.STATUS_FAILED;
 			return null;
 		} finally {
 			if (urlConnection != null)
 				urlConnection.disconnect();
 		}
 	}
-/*
-	public String fix(int[] triad, String m1, String m2, String m3, String pan) {
-		long tsBefore, tsAfter;
-
-		lastFixStatus = "error";
-		int f1 = triad[0];
-		int f2 = triad[1];
-		int f3 = triad[2];
-		lastRequest = fullURL + "fix?fromserver1="+f1+"&message1="+m1+"&fromserver2="+f2+"&message2="+m2+"&fromserver3="+f3+"&message3="+m3+"&pan="+pan;
-		tsBefore = System.currentTimeMillis();
-
-		lastResponse = doRequest(lastRequest);
-		if (lastResponse == null)
-			return "error";
-
-		tsAfter = System.currentTimeMillis();
-		dms = tsAfter - tsBefore;
-
-		if (lastResponse.contains("success")) {
-			lastFixStatus = "success";
-			return "success";
-		}
-
-		return "error";
-	}
-*/
 
 }
 

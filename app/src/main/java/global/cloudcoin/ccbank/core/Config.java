@@ -54,6 +54,7 @@ public class Config {
     public static String RAIDA_STATUS_READY = "ready";
 
 
+
     public static int MAX_ALLOWED_LATENCY = 20000;
 
 
@@ -76,5 +77,11 @@ public class Config {
 
 
     public static int PASS_THRESHOLD = 20;
+
+    public static int TYPE_STACK = 1;
+    public static int TYPE_JPEG = 2;
+    public static int TYPE_CSV = 3;
+
+    public static String JPEG_MARKER = "01C34A46494600010101006000601D05";
 
 }

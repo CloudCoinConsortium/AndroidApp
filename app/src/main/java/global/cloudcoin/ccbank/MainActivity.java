@@ -1,17 +1,15 @@
 package global.cloudcoin.ccbank;
 
 import android.Manifest;
-import android.content.ContentResolver;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Environment;
-import android.provider.MediaStore;
 
 import android.content.res.Resources;
 
 import android.app.Activity;
 import android.os.Bundle;
 
+import android.os.StrictMode;
 import android.support.v4.app.ActivityCompat;
 import android.view.View;
 import android.widget.TextView;
@@ -20,7 +18,6 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.content.Intent;
 import android.view.Window;
-import android.os.Handler;
 import android.graphics.Color;
 
 import android.util.Log;
@@ -28,72 +25,62 @@ import android.view.WindowManager;
 import android.view.Display;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.Thread;
 import java.lang.Runnable;
-
 import android.widget.Toast;
-
-import java.io.FileOutputStream;
+import android.graphics.Paint;
 
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
-
 import android.app.Dialog;
 
-import android.net.Uri;
 
 import android.content.pm.PackageManager.NameNotFoundException;
-
 import android.view.ViewGroup.LayoutParams;
 
 
 import android.widget.LinearLayout;
-
 import android.graphics.drawable.ColorDrawable;
-
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
-
 import android.widget.EditText;
-import java.lang.reflect.Field;
-import android.graphics.Paint;
 
+
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-
-import android.os.AsyncTask;
 import android.graphics.Point;
 import android.os.Build;
 
 import android.content.pm.ActivityInfo;
 import android.view.Surface;
-
 import android.widget.ProgressBar;
-import android.os.Looper;
-import android.os.Message;
 
 
 import java.util.Date;
 import java.util.Calendar;
 
+
 import global.cloudcoin.ccbank.Authenticator.Authenticator;
 import global.cloudcoin.ccbank.Authenticator.AuthenticatorResult;
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.Exporter.Exporter;
+import global.cloudcoin.ccbank.Exporter.ExporterResult;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixerResult;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoinsResult;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.core.CallbackInterface;
-import global.cloudcoin.ccbank.core.CommonResponse;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.AppCore;
-import global.cloudcoin.ccbank.core.Servant;
 import global.cloudcoin.ccbank.core.ServantRegistry;
 import global.cloudcoin.ccbank.Grader.Grader;
 import global.cloudcoin.ccbank.Grader.GraderResult;
@@ -101,8 +88,6 @@ import global.cloudcoin.ccbank.Grader.GraderResult;
 
 
 public class MainActivity extends Activity implements NumberPicker.OnValueChangeListener, OnClickListener {
-
-
 	String ltag = "PocketBank";
 
 	final static int ECHO_RESULT_INITIAL = 0;
@@ -118,20 +103,14 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	Button bt;
 	LinearLayout ll1, ll2, ll3;
 
+	ArrayList<String> exportedFilenames;
+
 	SharedPreferences mSettings;
 	static public String version;
-
-	Bank bank;
-	ArrayList<String> files;
-
-	final static int COINS_CNT = 1;
-
-	boolean isImportDialog;
 
 	TextView subTv;
 
     TextView[][] ids;
-    int size;
 	int lastProgress;
 
 	NumberPicker[] nps;
@@ -143,7 +122,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	TextView tvTotal, exportTv;
 
 	Dialog dialog;
-	FixFrackedTask ffTask;
 
 	int importState;
 
@@ -155,11 +133,17 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	ProgressBar pb;
 
 	public static final String APP_PREFERENCES_IMPORTDIR = "pref_importdir";
-
 	final static int MY_STORAGE_WRITE_CONSTANT = 1;
 
 
 	private int statToBankValue, statToBank, statFailed;
+
+	static int DIALOG_NONE = 0;
+	static int DIALOG_IMPORT = 1;
+	static int DIALOG_BANK = 2;
+	static int DIALOG_EXPORT = 3;
+
+	int requestedDialog;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -169,25 +153,18 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		setContentView(R.layout.main);
 
-
-		files = null;
-
 		echoResult = ECHO_RESULT_INITIAL;
-
 		setImportState(IMPORT_STATE_INIT);
-		bank = new Bank(this);
 
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
 		initSystem();
-		isImportDialog = false;
 
 		Log.v("xxx", "ONCREATE FINISHED");
 	}
 
 
 	private void initSystem() {
-
 		AppCore.initPool();
 
 		if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -204,6 +181,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			doInitSystem();
 		}
 
+		requestedDialog = DIALOG_NONE;
 		initUI();
 	}
 
@@ -232,12 +210,35 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					"Unpacker",
 					"Authenticator",
 					"Grader",
-					"FrackFixer"
+					"FrackFixer",
+					"Exporter"
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
 		} catch (Exception e) {
 			Log.e(ltag, "Failed to init folders");
+		}
+
+
+		int d;
+		String templateDir, fileName;
+
+		templateDir = AppCore.getUserDir(Config.DIR_TEMPLATES);
+		fileName = templateDir + File.separator + "jpeg1.jpg";
+		File f = new File(fileName);
+		if (!f.exists()) {
+			Log.v(ltag, "Copying templates");
+			for (int i = 0; i < AppCore.getDenominations().length; i++) {
+				d = AppCore.getDenominations()[i];
+				try {
+					fileName = "jpeg" + d + ".jpg";
+					copyAssetFile("jpegs" + File.separator + fileName,
+							AppCore.getUserDir(Config.DIR_TEMPLATES) +
+									File.separator + fileName);
+				} catch (IOException e) {
+					Log.e(ltag, "Failed to copy file: " + e.getMessage());
+				}
+			}
 		}
 	}
 
@@ -268,9 +269,19 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		gd.launch(new GraderCb());
 	}
 
-	public void startFrackFixer() {
+	public void startFrackFixerService() {
+		if (sr.isRunning("FrackFixer")) {
+			Log.v(ltag, "Fracker is already running. Nothing to do");
+			return;
+		}
+
 		FrackFixer ff = (FrackFixer) sr.getServant("FrackFixer");
 		ff.launch(new FrackFixererCb());
+	}
+
+	public void startExporterService() {
+		Exporter e = (Exporter) sr.getServant("Exporter");
+		e.launch(new ExporterCb());
 	}
 
 	@Override
@@ -296,7 +307,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	public void initUI() {
-		try {  
+		try {
 			version = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
 		} catch (NameNotFoundException e) {
 			version = "";
@@ -339,51 +350,18 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	public void onResume() {
 		super.onResume();
-
-		updateImportString();
-		//doFixFracked();
-		Log.v("xxx", "ONRESUME");
-	}
-
-	public void updateImportString() {
-		String importDir;
-		String savedImportDir = mSettings.getString(APP_PREFERENCES_IMPORTDIR, "");
-
-		if (savedImportDir == "") {
-			importDir = bank.getDefaultRelativeImportDirPath();
-			if (importDir == null) 
-				return;
-		} else {
-			importDir = savedImportDir;
-			bank.setImportDirPath(importDir);
-		}
-
-		if (!bank.examineImportDir()) 
-			return;
-
-		TextView ltv = (TextView) findViewById(R.id.icoins);
-
-		int totalIncomeLength = bank.getLoadedIncomeLength();
-                if (totalIncomeLength == 0) 
-			ltv.setVisibility(View.GONE);
-		else 
-			ltv.setVisibility(View.VISIBLE);
 	}
 
 	public void onDestroy() {
 		super.onDestroy();
 	}
 
-
-	private void allocId(int idx, String prefix) {
+	private void allocId(int idx, int size, String prefix) {
 		int resId, i;
 		String idTxt;
 
 		ids[idx] = new TextView[size];
 		for (i = 0; i < size; i++) {
-		//	if (i == size - 1)
-		//		idTxt = prefix + "all";
-		//	else
 			idTxt = prefix + AppCore.getDenominations()[i];
 
 			resId = getResources().getIdentifier(idTxt, "id", getPackageName());
@@ -393,9 +371,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 
 	private void initDialog(int layout) {
-		if (isImportDialog)
-			return;
-
 		dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		dialog.setContentView(layout);
 		dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
@@ -416,26 +391,35 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		toast.show();
 	}
 
-	private int getTotal() {
+	private void showMessage(String msg) {
+		showError(msg);
+	}
+
+	private void showShortMessage(String msg) {
+		Toast toast = Toast.makeText(getBaseContext(), msg, Toast.LENGTH_SHORT);
+		toast.show();
+	}
+
+	private int getExportTotal() {
 		int total = 0;
 
-		for (int i = 0; i < size; i++) {
-			int denomination =  Bank.denominations[i];
+		for (int i = 0; i < AppCore.getDenominations().length; i++) {
+			int denomination =  AppCore.getDenominations()[i];;
 			total += denomination * nps[i].getValue();
 		}
 
 		return total;
 	}
 
-	public void updateTotal() {
-                String totalStr;
+	public void updateExportTotal() {
+		String totalStr;
 
 		if (exportTv == null)
 			return;
 
 		Resources res = getResources();
 
-                int total = getTotal();
+		int total = getExportTotal();
 
 		StringBuilder sb = new StringBuilder();
 		sb.append(res.getString(R.string.export));
@@ -445,89 +429,59 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-		updateTotal();
+		updateExportTotal();
 	}
 
-
-	private void InputStreamToFile(InputStream in, String file) {
-		try {
-			OutputStream out = new FileOutputStream(new File(file));
-
-			int size = 0;
-			byte[] buffer = new byte[1024];
-
-			while ((size = in.read(buffer)) != -1) {
-				out.write(buffer, 0, size);
-			}
-
-			out.close();
-		}
-		catch (Exception e) {
-			Log.e("MainActivity", "InputStreamToFile exception: " + e.getMessage());
-		}
-	}
 
 	public void doSendEmail() {
-                ArrayList<String> filenames;
+		StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+		StrictMode.setVmPolicy(builder.build());
 
-                filenames = bank.getExportedFilenames();
-
-                //EmailSender email = new EmailSender(this, "", "Send CloudCoins");
-		//email.openDialogWithAttachments(filenames);
-        }
+		EmailSender email = new EmailSender(this, "", "Send CloudCoins");
+		email.openDialogWithAttachments(exportedFilenames);
+	}
 
 
 	public void doExport() {
 		String exportTag;
 		int[] values;
-                int[] failed;
-                int totalFailed = 0;
 
 		Resources res = getResources();
-
-		if (getTotal() == 0) {
+		if (getExportTotal() == 0) {
 			showError(res.getString(R.string.nocoins));
 			return;
 		}
 
-                et = (EditText) dialog.findViewById(R.id.exporttag);
+		et = (EditText) dialog.findViewById(R.id.exporttag);
 		exportTag = et.getText().toString();
 
 		RadioGroup rg = (RadioGroup) dialog.findViewById(R.id.radioGroup);
 		int selectedId = rg.getCheckedRadioButtonId();
+		int size = AppCore.getDenominations().length;
 
 		values = new int[size];
 		for (int i = 0; i < size; i++)
 			values[i] = nps[i].getValue();
 
-	//	if (isFixing) {
-	//		showError(res.getString(R.string.fixing));
-	//		return;
-	//	}
-
-		if (selectedId == R.id.rjpg) {
-                        failed = bank.exportJpeg(values, exportTag);
-                } else if (selectedId == R.id.rjson) {
-                        failed = bank.exportJson(values, exportTag);
-		} else {
-			Log.v("CC", "We will never be here");
+		if (sr.isRunning("FrackFixer")) {
+			showError(res.getString(R.string.fixing));
 			return;
 		}
 
-                String msg;
+		int type;
+		if (selectedId == R.id.rjpg) {
+			type = Config.TYPE_JPEG;
+		} else if (selectedId == R.id.rjson) {
+			type = Config.TYPE_STACK;
+		} else
+			return;
 
-		if (failed[0] == -1) {
-                        msg = res.getString(R.string.globalexporterror);
-                } else {
-			for (int i = 0; i < size; i++) {
-				totalFailed += failed[i];
-			}
-			if (totalFailed == 0) {
-				msg = String.format(res.getString(R.string.exportok), bank.getRelativeExportDirPath());
-                        } else {
-				msg = String.format(res.getString(R.string.exportfailed), totalFailed);
-                        }
-                }
+		Exporter ex = (Exporter) sr.getServant("Exporter");
+		ex.launch(Config.DIR_DEFAULT_USER, type, values, exportTag, new ExporterCb());
+	}
+
+	public void showExportResult() {
+		String msg = "Exported successfully";
 
 		dialog.setContentView(R.layout.exportdialog2);
 
@@ -547,10 +501,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				dialog.dismiss();
 			}
 		});
-	
+
 	}
-
-
 
 	public void doEmailReceipt() {
 		StringBuilder sb = new StringBuilder();
@@ -577,7 +529,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		sb.append(res.getString(R.string.paymentreceived));
 		sb.append(" " + dateStr + "\n");
 		sb.append(res.getString(R.string.totalreceived));
-		sb.append(": " + bank.getImportStats(Bank.STAT_VALUE_MOVED_TO_BANK) + "\n");
+	//sb.append(": " + bank.getImportStats(Bank.STAT_VALUE_MOVED_TO_BANK) + "\n");
 		sb.append("\n");
 
 		sb.append(res.getString(R.string.serialnumber));
@@ -586,6 +538,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		sb.append("\n");
 		sb.append("------------------------------------------------------\n");
 
+		/*
 		ArrayList<String[]> report = bank.getReport();
 		for (String[] item : report) {
 			sb.append(String.format("%1$-15s", item[0]));
@@ -596,6 +549,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			sb.append("CC\n");
 		}
 
+		*/
+
+
 	//	EmailSender email = new EmailSender(this, "", "Import Receipt");
 	//	email.setBody(sb.toString());
 	//	email.openDialog();
@@ -604,9 +560,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	public void showImportScreen() {
 		String result;
 
-		if (!isImportDialog)
-			dialog = new Dialog(this);
-
+		dialog = new Dialog(this);
 		if (!isOnline()) {
 			initDialog(R.layout.importdialog2);
 			dialog.show();
@@ -653,7 +607,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				ttv.setText(R.string.back);
 			else
 				ttv.setText(R.string.awesome);
-			
+
 
 			ttv = (TextView) dialog.findViewById(R.id.imptotal);
 			ttv.setText("" + statToBankValue);
@@ -674,7 +628,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		initDialog(R.layout.importdialog);
 
-
 		tv = (TextView) dialog.findViewById(R.id.infotext);
 
 		String importDir = AppCore.getUserDir(Config.DIR_IMPORT);
@@ -682,7 +635,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		if (totalFiles == 0) {
 			result = String.format(getResources().getString(R.string.erremptyimport), importDir);
-			tv.setText(result);		
+			tv.setText(result);
 			dialog.show();
 			return;
 		}
@@ -710,59 +663,61 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		tv = (TextView) dialog.findViewById(R.id.infotext);
 		tv.setText(result);
-		
+
 		dialog.show();
 	}
 
-	public void showExportScreen() {
-		isImportDialog = false;
+	public void showExportScreen(int[][] counters) {
+		int size, i, resId, lTotal;
+		String idTxt;
+
+        if (dialog != null)
+            dialog.dismiss();
+
 		dialog = new Dialog(this);
 
-		int i, resId;
-                String idTxt;
-		int bankCoins[], frackedCoins[];
-		int lTotal;
+		if (counters.length == 0)
+			return;
+
+		size = AppCore.getDenominations().length;
 
 		initDialog(R.layout.exportdialog);
 
-		size = Bank.denominations.length;
 		nps = new NumberPicker[size];
-                tvs = new TextView[size];
-                for (i = 0; i < size; i++) {
-                        idTxt = "np" + Bank.denominations[i];
-                        resId = getResources().getIdentifier(idTxt, "id", getPackageName());
-                        nps[i] = (NumberPicker) dialog.findViewById(resId);
-			//setNumberPickerTextColor(nps[i], Color.parseColor("#348EFB"));
+		tvs = new TextView[size];
+		for (i = 0; i < size; i++) {
+			idTxt = "np" + AppCore.getDenominations()[i];
+			resId = getResources().getIdentifier(idTxt, "id", getPackageName());
+			nps[i] = (NumberPicker) dialog.findViewById(resId);
 
-                        idTxt = "bs" + Bank.denominations[i];
-                        resId = getResources().getIdentifier(idTxt, "id", getPackageName());
-                        tvs[i] = (TextView) dialog.findViewById(resId);
-                }
+			setNumberPickerTextColor(nps[i], Color.parseColor("#348EFB"));
 
+			idTxt = "bs" + AppCore.getDenominations()[i];
+			resId = getResources().getIdentifier(idTxt, "id", getPackageName());
+			tvs[i] = (TextView) dialog.findViewById(resId);
+		}
 
 		tvTotal = (TextView) dialog.findViewById(R.id.exptotal);
 		exportTv = (TextView) dialog.findViewById(R.id.exporttv);
 
-		bankCoins = bank.countCoins("bank");
-		frackedCoins = bank.countCoins("fracked");
-
 		int overall = 0;
 		for (i = 0; i < size; i++) {
-			lTotal = bankCoins[i + 1] + frackedCoins[i + 1];
+			lTotal = counters[Config.IDX_FOLDER_BANK][i] +
+					counters[Config.IDX_FOLDER_FRACKED][i];
 
 			nps[i].setMinValue(0);
 			nps[i].setMaxValue(lTotal);
 			nps[i].setValue(0);
 			nps[i].setOnValueChangedListener(this);
-			nps[i].setTag(Bank.denominations[i]);
+			nps[i].setTag(AppCore.getDenominations()[i]);
 			nps[i].setWrapSelectorWheel(false);
-		
+
 			tvs[i].setText("" + lTotal);
 
-			overall += Bank.denominations[i] * lTotal;
+			overall += AppCore.getDenominations()[i] * lTotal;
 		}
 
-		updateTotal();
+		updateExportTotal();
 		tvTotal.setText("" + overall);
 
 		LinearLayout exportButton = (LinearLayout) dialog.findViewById(R.id.exportbutton);
@@ -772,7 +727,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			}
 		});
 
-		String msg = String.format(getResources().getString(R.string.exportnotice), bank.getRelativeExportDirPath());
+		String msg = String.format(getResources().getString(R.string.exportnotice),
+				AppCore.getUserDir(Config.DIR_EXPORT));
 
 		TextView eNotice = (TextView) dialog.findViewById(R.id.en);
 		eNotice.setText(msg);
@@ -781,7 +737,11 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	public void showBankScreen(int[][] counters) {
-		isImportDialog = false;
+		int size;
+
+        if (dialog != null)
+            dialog.dismiss();
+
 		dialog = new Dialog(this);
 
 		if (counters.length == 0)
@@ -792,14 +752,14 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		size = counters[0].length;
 		ids = new TextView[3][];
 
-		allocId(Config.IDX_FOLDER_BANK, "bs");
-		allocId(Config.IDX_FOLDER_FRACKED, "fs");
+		allocId(Config.IDX_FOLDER_BANK, size,"bs");
+		allocId(Config.IDX_FOLDER_FRACKED, size, "fs");
 
 		int totalCnt = 0;
 		for (int i = 0; i < size; i++) {
 			int authCount = counters[Config.IDX_FOLDER_BANK][i] +
 					counters[Config.IDX_FOLDER_FRACKED][i];
-			Log.v(ltag, "xx=" + i + " " + authCount);
+
 			ids[Config.IDX_FOLDER_BANK][i].setText("" + authCount);
 		}
 
@@ -814,6 +774,38 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		dialog.show();
 	}
 
+	public void setNumberPickerTextColor(NumberPicker numberPicker, int color) {
+		final int count = numberPicker.getChildCount();
+
+		for (int i = 0; i < count; i++) {
+			View child = numberPicker.getChildAt(i);
+			if (child instanceof EditText) {
+				try {
+					Field selectorWheelPaintField = numberPicker.getClass()
+							.getDeclaredField("mSelectorWheelPaint");
+					selectorWheelPaintField.setAccessible(true);
+
+					Field selectorDivider = numberPicker.getClass()
+							.getDeclaredField("mSelectionDivider");
+					selectorDivider.setAccessible(true);
+
+					ColorDrawable colorDrawable = new ColorDrawable(Color.parseColor("#ECECEC"));
+					selectorDivider.set(numberPicker, colorDrawable);
+
+					((Paint) selectorWheelPaintField.get(numberPicker)).setColor(color);
+					((EditText) child).setTextColor(color);
+					numberPicker.invalidate();
+
+					return;
+				}
+				catch (NoSuchFieldException e) {}
+				catch (IllegalAccessException e) {}
+				catch(IllegalArgumentException e) {}
+			}
+		}
+
+	}
+
 	public void onClick(View v) {
 		final int id;
 		Intent intent;
@@ -821,12 +813,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		id = v.getId();
 
-
 		switch (id) {
 			case R.id.limport:
 
 				if (echoResult == ECHO_RESULT_INITIAL)
 					return;
+
 				else if (echoResult == ECHO_RESULT_DOING) {
 					showError("RAIDA is being checked. Please wait");
 					return;
@@ -837,17 +829,24 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					return;
 				}
 
+				requestedDialog= DIALOG_IMPORT;
 				showImportScreen();
 				break;
 			case R.id.lexport:
-				showExportScreen();
+                requestedDialog= DIALOG_EXPORT;
+				//showExportScreen();
+				showShortMessage("Loading");
+                startShowCoinsService();
 				break;
 			case R.id.lbank:
+                requestedDialog= DIALOG_BANK;
+                //showBankScreen();
+				showShortMessage("Loading");
 				startShowCoinsService();
 				break;
 			default:
 				break;
-				
+
 		}
 	}
 
@@ -897,66 +896,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 				else
 					setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                }
-        }
-
-
-	class FixFrackedTask extends AsyncTask<String, Integer, String> {
-		int before, after;
-
-                protected String doInBackground(String... params) {
-                        for (int i = 0; i < bank.getFrackedCoinsLength(); i++) {
-				publishProgress(i);
-				//bank.fixFracked(i);
-			}
-
-			return "OK";
 		}
 
-		protected void onPreExecute() {
-	//		isFixing = true;
-                        bank.loadFracked();
-
-			before = bank.getFrackedCoinsLength();
-
-			if (before == 0)
-				return;
-
-			String msg = String.format(getResources().getString(R.string.fixstart), before);
-			showError(msg);
-		}
-
-		protected void onPostExecute(String result) {
-			int fixedCnt;
-
-	//		isFixing = false;
-
-			if (before == 0)
-				return;
-
-			after = bank.getFrackedCoinsLength();
-			fixedCnt = before - after;
-
-			// It is possible that some coins will be added during Import process
-			if (fixedCnt < 0)
-				fixedCnt = 0;
-
-			String msg = String.format(getResources().getString(R.string.fixed), fixedCnt, before);
-			showError(msg);
-		}
-
-		protected void onProgressUpdate(Integer... values) {
-		//	showError("Fixed " + values[0] + " of " + bank.getFrackedCoinsLength());
-		}
-	}
-
-	private void doFixFracked() {
-		//if (isFixing)
-		//	return;
-
-		ffTask = new FixFrackedTask();
-		ffTask.execute();
-	}
+    }
 
 	public void setImportState(int newState) {
 		//SharedPreferences.Editor ed = mSettings.edit();
@@ -974,6 +916,18 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		return statusString;
 	}
 
+	public void copyAssetFile(String assetFilePath, String destinationFilePath) throws IOException {
+		InputStream in = getApplicationContext().getAssets().open(assetFilePath);
+		OutputStream out = new FileOutputStream(destinationFilePath);
+
+		byte[] buf = new byte[1024];
+		int len;
+		while ((len = in.read(buf)) > 0)
+			out.write(buf, 0, len);
+
+		in.close();
+		out.close();
+	}
 
 	class EchoCb implements CallbackInterface {
 		public void callback(Object result) {
@@ -982,23 +936,24 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				@Override
 				public void run() {
 					echoResult = ECHO_RESULT_OK;
-					startFrackFixer();
+					startFrackFixerService();
 				}
 			});
 		}
 	}
 
     class ShowCoinsCb implements CallbackInterface {
-		public void callback(Object result) {
+		public void callback(final Object result) {
 			final Object fresult = result;
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-
 					ShowCoinsResult scresult = (ShowCoinsResult) fresult;
 
-
-					showBankScreen(scresult.counters);
+					if (requestedDialog == DIALOG_BANK)
+					    showBankScreen(scresult.counters);
+					else if (requestedDialog == DIALOG_EXPORT)
+					    showExportScreen(scresult.counters);
 				}
 			});
 		}
@@ -1019,7 +974,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					Log.v("xxx", "unpacker done");
 					setImportState(IMPORT_STATE_IMPORT);
 					dialog.dismiss();
-					isImportDialog = false;
 					lastProgress = 0;
 
 					startAuthenticatorService();
@@ -1095,14 +1049,45 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					FrackFixerResult fr = (FrackFixerResult) fresult;
 
 					if (fr.status == FrackFixerResult.STATUS_ERROR) {
-						Log.v("XXX", "ERROR FIXING");
+						showError("Failed to fix coins");
 						return;
 					}
 
-					Log.v("xxx", "FIXXXXERRR " + fr.failed + " fixed="+fr.fixed);
+					if (fr.status == FrackFixerResult.STATUS_FINISHED) {
+						if (fr.fixed + fr.failed > 0) {
+							showMessage("Fracker fixed: " + fr.fixed + ", failed: " + fr.failed);
+							return;
+						}
+					}
 				}
 			});
 		}
 	}
 
+	class ExporterCb implements CallbackInterface {
+		public void callback(Object result) {
+			final Object fresult = result;
+
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ExporterResult er = (ExporterResult) fresult;
+
+					Log.v("XXX", "EXPORTER RETURNED");
+
+					if (er.status == ExporterResult.STATUS_ERROR) {
+						dialog.dismiss();
+						showError("Failed to fix coins");
+						return;
+					}
+
+					if (er.status == ExporterResult.STATUS_FINISHED) {
+						exportedFilenames = er.exportedFileNames;
+						showExportResult();
+						return;
+					}
+				}
+			});
+		}
+	}
 }

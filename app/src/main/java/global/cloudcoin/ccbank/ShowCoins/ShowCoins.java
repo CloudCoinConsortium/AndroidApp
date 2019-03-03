@@ -33,7 +33,9 @@ public class ShowCoins extends Servant {
             public void run() {
                 logger.info(ltag, "RUN ShowCoins");
                 doShowCoins();
-                cb.callback(result);
+
+                if (cb != null)
+                    cb.callback(result);
             }
         });
     }
