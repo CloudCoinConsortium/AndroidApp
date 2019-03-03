@@ -79,7 +79,7 @@ public class Exporter extends Servant {
         }
 
         if (!pickCoinsInDir(fullBankPath, values)) {
-            logger.debug(ltag, "Not enough coins in the Bank dir");
+            logger.debug(ltag, "Not enough coins in the bank dir");
             if (!pickCoinsInDir(fullFrackedPath, values)) {
                 logger.error(ltag, "Not enough coins in the Fracked dir");
                 er.status = ExporterResult.STATUS_ERROR;

@@ -159,8 +159,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		mSettings = PreferenceManager.getDefaultSharedPreferences(this);
 
 		initSystem();
-
-		Log.v("xxx", "ONCREATE FINISHED");
 	}
 
 
@@ -277,11 +275,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		FrackFixer ff = (FrackFixer) sr.getServant("FrackFixer");
 		ff.launch(new FrackFixererCb());
-	}
-
-	public void startExporterService() {
-		Exporter e = (Exporter) sr.getServant("Exporter");
-		e.launch(new ExporterCb());
 	}
 
 	@Override
@@ -529,32 +522,17 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		sb.append(res.getString(R.string.paymentreceived));
 		sb.append(" " + dateStr + "\n");
 		sb.append(res.getString(R.string.totalreceived));
-	//sb.append(": " + bank.getImportStats(Bank.STAT_VALUE_MOVED_TO_BANK) + "\n");
+		sb.append("\n");
+		sb.append(statToBankValue);
+		sb.append(" of ");
+		sb.append(statToBank);
+		sb.append(" coins. Failed: ");
+		sb.append(statFailed);
 		sb.append("\n");
 
-		sb.append(res.getString(R.string.serialnumber));
-		sb.append("   |   ");
-		sb.append(res.getString(R.string.importresult));
-		sb.append("\n");
-		sb.append("------------------------------------------------------\n");
-
-		/*
-		ArrayList<String[]> report = bank.getReport();
-		for (String[] item : report) {
-			sb.append(String.format("%1$-15s", item[0]));
-			sb.append(" ");
-			sb.append(String.format("%1$-15s", item[1]));
-			sb.append(" ");
-			sb.append(item[2]);
-			sb.append("CC\n");
-		}
-
-		*/
-
-
-	//	EmailSender email = new EmailSender(this, "", "Import Receipt");
-	//	email.setBody(sb.toString());
-	//	email.openDialog();
+		EmailSender email = new EmailSender(this, "", "Import Receipt");
+		email.setBody(sb.toString());
+		email.openDialog();
 	}
 
 	public void showImportScreen() {
