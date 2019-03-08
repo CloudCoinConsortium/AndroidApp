@@ -36,11 +36,14 @@ public class Servant {
 
     protected Thread thread;
 
+    protected boolean cancelRequest;
+
     public Servant(String name, String rootDir, GLogger logger) {
         this.name = name;
         this.rootDir = rootDir;
         this.logger = logger;
         this.config = null;
+        this.cancelRequest = false;
 
         configHT = new Hashtable<String, String>();
 
@@ -56,6 +59,18 @@ public class Servant {
         logger.info(ltag, "Instantiated servant " + name);
 
         readConfig();
+    }
+
+    public void cancel() {
+        this.cancelRequest = true;
+    }
+
+    public void resume() {
+        this.cancelRequest = false;
+    }
+
+    public boolean isCancelled() {
+        return this.cancelRequest;
     }
 
     public void launch() {
@@ -263,8 +278,8 @@ public class Servant {
                 "    \n" +
                 "    <EMAILER>\n" +
                 "    \tsmtp-server:mail.cloudcoin.global\n" +
-                "    \tusername:testmail1\n" +
-                "    \tpassword:ijjlaijijoijeijijijijdf\n" +
+                "    \tusername:dummy\n" +
+                "    \tpassword:dummy\n" +
                 "    </EMAILER>\n" +
                 "    \n" +
                 "    <EXPORTER>\n" +

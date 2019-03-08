@@ -190,7 +190,6 @@ public class Authenticator extends Servant {
     private void moveCoins(ArrayList<CloudCoin> ccs) {
         for (CloudCoin cc : ccs) {
             cc.setPownStringFromDetectStatus();
-            logger.info("xxx", "cc=" + cc.sn + " v=" + cc.getPownString() + " an=" + cc.ans[14] + "/pan="+cc.pans[14]);
 
             String ccFile = AppCore.getUserDir(Config.DIR_DETECTED) +
                     File.separator + cc.getFileName();
@@ -243,7 +242,7 @@ public class Authenticator extends Servant {
             return;
         }
 
-        logger.info(ltag, "totalll="+ globalResult.totalFiles);
+        logger.info(ltag, "total files "+ globalResult.totalFiles);
 
         File dirObj = new File(fullPath);
         for (File file: dirObj.listFiles()) {
@@ -260,11 +259,21 @@ public class Authenticator extends Servant {
                 continue;
             }
 
+            if (isCancelled()) {
+                logger.info(ltag, "Cancelled");
+
+                resume();
+
+                AuthenticatorResult ar = new AuthenticatorResult();
+                globalResult.status = AuthenticatorResult.STATUS_CANCELLED;
+                copyFromGlobalResult(ar);
+                if (cb != null)
+                    cb.callback(ar);
+
+                return;
+            }
+
             ccs.add(cc);
-
-            logger.info(ltag, "asize="+ccs.size());
-
-            maxCoins = 3;
             if (ccs.size() == maxCoins) {
                 logger.info(ltag, "Processing");
 
@@ -308,6 +317,5 @@ public class Authenticator extends Servant {
         if (cb != null)
             cb.callback(ar);
 
-        logger.info(ltag, "Auth!");
     }
 }

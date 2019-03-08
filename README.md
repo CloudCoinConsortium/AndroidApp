@@ -9,7 +9,7 @@ CloudCoin Pocket Bank v. 2.0
 The app meets the standards: https://cloudcoinconsortium.org/software.html
 
 
-All servants can be invoked through a direct function call or a file-command can be issued to the Command Folder (to be implemented)
+All servants can be invoked through a direct function call or a file command can be issued to the Command Folder (to be implemented)
 
 If called by a direct call, each Servant has to be registered in the ServiceRegistry
 

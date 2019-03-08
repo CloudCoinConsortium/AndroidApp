@@ -163,7 +163,7 @@ public class Unpacker extends Servant {
                 return false;
         }
 
-        //AppCore.moveToImported(fileName);
+        AppCore.moveToImported(fileName);
 
         return true;
     }

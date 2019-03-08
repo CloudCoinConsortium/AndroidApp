@@ -132,6 +132,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	ProgressBar pb;
 
+
 	public static final String APP_PREFERENCES_IMPORTDIR = "pref_importdir";
 	final static int MY_STORAGE_WRITE_CONSTANT = 1;
 
@@ -144,6 +145,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	static int DIALOG_EXPORT = 3;
 
 	int requestedDialog;
+
+	Authenticator at;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -258,7 +261,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	}
 
 	public void startAuthenticatorService() {
-		Authenticator at = (Authenticator) sr.getServant("Authenticator");
+		at = (Authenticator) sr.getServant("Authenticator");
 		at.launch(new AuthenticatorCb());
 	}
 
@@ -336,9 +339,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	public void onPause() {
 		super.onPause();
-
-	//	if (iTask != null)
-	//		iTask.cancel(true);
 	}
 
 	public void onResume() {
@@ -373,6 +373,18 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		closeButton.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				setImportState(IMPORT_STATE_INIT);
+
+				//Authenticator s = (Authenticator) sr.getServant("Authenticator")
+
+				if (sr.isRunning("Authenticator")) {
+					at.cancel();
+
+					Log.v("xxx", "CANCEEEEELLL");
+				}
+
+
+
+
 				dialog.dismiss();
 			}
 		});
@@ -433,7 +445,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		EmailSender email = new EmailSender(this, "", "Send CloudCoins");
 		email.openDialogWithAttachments(exportedFilenames);
 	}
-
 
 	public void doExport() {
 		String exportTag;
@@ -975,24 +986,15 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 						dialog.dismiss();
 						showError("Internal error or RAIDA is unavailable");
 
-						//startGraderService();
-
-
 						return;
-					}
-
-					if (ar.status == AuthenticatorResult.STATUS_FINISHED) {
-						//setImportState(IMPORT_STATE_DONE);
-						//dialog.dismiss();
-						//showImportScreen();
+					} else if (ar.status == AuthenticatorResult.STATUS_FINISHED) {
 						startGraderService();
 						return;
-					}
+					} else if (ar.status == AuthenticatorResult.STATUS_CANCELLED) {
+					    return;
+                    }
 
 					setRAIDAProgress(ar.totalRAIDAProcessed, ar.totalFilesProcessed, ar.totalFiles);
-
-					Log.v("xxx", "authenticator done: " + ar.totalRAIDAProcessed + "/25 coin: " +
-							" f=" + ar.totalFilesProcessed);
 				}
 			});
 		}

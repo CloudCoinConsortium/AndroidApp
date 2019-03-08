@@ -3,13 +3,13 @@
 	<string name="app_name">Cloud Coin Consortium</string>
 	<string name="app_name0">Pocket Bank</string>
 	<string name="app_name1">With RAIDA Authenticity Detection</string>
-	<string name="tadd">IMPORT</string>
+	<string name="tadd">DEPOSIT</string>
 	<string name="tbank">BANK</string>
 	<string name="tbankinventory">Bank Inventory</string>
-	<string name="tspend">EXPORT</string>
+	<string name="tspend">WITHDRAW</string>
 	<string name="loading">Loading</string>
-	<string name="importtag">Import Tag</string>
-	<string name="exporttag">Export Tag</string>
+	<string name="importtag">Deposit Tag</string>
+	<string name="exporttag">Withdraw Tag</string>
 	<string name="url">CloudCoinConsortium.com</string>
 
 	<string name="coin">Coin</string>
@@ -25,9 +25,9 @@
 
 	<string name="errmnt">Can not locate your Import directory. Make sure that your primary storage is properly installed into the device</string>
 	<string name="errimport">Error occured while doing search in your Import directory</string>
-	<string name="erremptyimport">There were no CloudCoins found in your income folder. Please put your CloudCoins (.jpg or .stack) files in your income folder and try again. Your Income folder can be found on your primary storage at:\n\n%1$s</string>
+	<string name="erremptyimport">There were no CloudCoins found in your Import folder. Please put your CloudCoins (.jpg or .stack) files in your Import folder and try again. Your Import folder can be found on your primary storage at:\n\n%1$s</string>
 
-	<string name="importwarn">Import will import all CloudCoin files from your Import folder. Please put all your CloudCoin files (.jpg and .stack) into the Import folder located on your primary storage at:\n\n%1$s\n\nWe are going to import %2$d file(s). Tap OK to continue</string>
+	<string name="importwarn">Deposit will import all CloudCoin files from your Import folder. Please put all your CloudCoin files (.jpg and .stack) into the Import folder located on your primary storage at:\n\n%1$s\n\nWe are going to import %2$d file(s). Tap OK to continue</string>
 
 	<string name="movedtobank">Total Moved to Bank: %1$d Coins</string>
 	<string name="importresults">Result of Import</string>
@@ -57,14 +57,14 @@
 	<string name="importfiles">We are going to import %1$d file(s)</string>
 	<string name="acc">Total Authentic CloudCoins: </string>
 	<string name="close">Close</string>
-	<string name="exportcoins">Export Coins</string>
-	<string name="importcoins">Import Coins</string>
+	<string name="exportcoins">Withdraw Coins</string>
+	<string name="importcoins">Deposit Coins</string>
 	<string name="tcib">Total Coins in Bank</string>
 	<string name="of">of</string>
 	<string name="optional">Optional</string>
-	<string name="export">Export</string>
-	<string name="importstr">Import</string>
-	<string name="exportresult">Result of Export</string>
+	<string name="export">Withdraw</string>
+	<string name="importstr">Deposit</string>
+	<string name="exportresult">Result of Withdraw</string>
 	<string name="nocoins">No coins selected</string>
 	<string name="sorryraida">Sorry, the RAIDA is unavailable</string>
 	<string name="selectfile">Select file</string>
@@ -78,6 +78,6 @@
 	<string name="icoins">You have coins waiting to be imported</string>
 	<string name="suspectcoins">We found suspect coins in the Bank. We will validate them now</string>
 	<string name="warning">Warning!</string>
-	<string name="exportnotice">When you export your CloudCoins. They will be placed in the Export folder located at %1$s. If you email your CloudCoins, they will be removed from the export folder and sent via email. If you interrupt the email process, you can find your CloudCoin in this export folder. You can use the import file picker to import them back into your bank.</string>
-	<string name="unpacking">Unpacking files...</string>
+	<string name="exportnotice">When you withdraw your CloudCoins they will be placed in the Export folder located at %1$s. If you email your CloudCoins, they will be removed from the export folder and sent via email. If you interrupt the email process, you can find your CloudCoin in this export folder. You can use the import file picker to import them back into your bank.</string>
+	<string name="unpacking">Unpacking files&#8230;</string>
 </resources>
