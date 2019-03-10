@@ -92,6 +92,7 @@ public class FrackFixer extends Servant {
     public void copyFromMainFr(FrackFixerResult nfr) {
         nfr.failed = fr.failed;
         nfr.fixed = fr.fixed;
+        nfr.status = fr.status;
     }
 
     public void doFrackFix() {
@@ -147,7 +148,7 @@ public class FrackFixer extends Servant {
     }
 
     private void syncCoin(int raidaIdx, CloudCoin cc) {
-        logger.info(ltag, "xx=" + cc.originalFile);
+        logger.info(ltag, "Syncing " + cc.originalFile);
 
         cc.setDetectStatus(raidaIdx, CloudCoin.STATUS_PASS);
         cc.setPownStringFromDetectStatus();

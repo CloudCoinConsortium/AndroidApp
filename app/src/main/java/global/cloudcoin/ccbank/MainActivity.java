@@ -111,7 +111,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	TextView subTv;
 
     TextView[][] ids;
-	int lastProgress;
 
 	NumberPicker[] nps;
 	TextView[] tvs;
@@ -378,8 +377,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 				if (sr.isRunning("Authenticator")) {
 					at.cancel();
-
-					Log.v("xxx", "CANCEEEEELLL");
 				}
 
 
@@ -959,14 +956,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			runOnUiThread(new Runnable() {
 				@Override
 				public void run() {
-
-					Log.v("xxx", "unpacker done");
 					setImportState(IMPORT_STATE_IMPORT);
 					dialog.dismiss();
-					lastProgress = 0;
-
 					startAuthenticatorService();
-
 					showImportScreen();
 				}
 			});

@@ -1,8 +1,5 @@
 package global.cloudcoin.ccbank.Unpacker;
 
-
-import android.icu.text.UnicodeSetSpanner;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -11,8 +8,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.time.LocalDate;
-import java.util.ArrayList;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 
 import global.cloudcoin.ccbank.core.AppCore;
@@ -337,12 +336,28 @@ public class Unpacker extends Servant {
     }
 
     private String expirationDateHexToString(String edHex) {
-        long monthsAfterZero = Long.valueOf(edHex, 16);
+        int monthsAfterZero = Integer.valueOf(edHex, 16);
 
-        LocalDate zeroDate = LocalDate.of(2016, 8, 13);
-        LocalDate ed = zeroDate.plusMonths(monthsAfterZero);
+        Date date;
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+            date = sdf.parse("13-08-2016");
+        } catch (ParseException e) {
+            return "08-2016";
+        }
 
-        return ed.getMonthValue() + "-" + ed.getYear();
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+
+        cal.add(Calendar.MONTH, monthsAfterZero);
+        //LocalDate zeroDate = LocalDate.of(2016, 8, 13);
+        //LocalDate ed = zeroDate.plusMonths(monthsAfterZero);
+
+        //return ed.getMonthValue() + "-" + ed.getYear();
+
+        int m = cal.get(Calendar.MONTH) + 1;
+
+        return m + "-" + cal.get(Calendar.YEAR);
     }
 
     private String[] toStringArray(JSONArray jsonArray) {
