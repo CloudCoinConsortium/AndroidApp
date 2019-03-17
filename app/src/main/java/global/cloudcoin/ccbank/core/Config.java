@@ -29,6 +29,8 @@ public class Config {
     public static String DIR_TRASH = "Trash";
     public static String DIR_TRUSTEDTRANSFER = "TrustedTransfer";
     public static String DIR_CONFIG = "Config";
+    public static String DIR_SENT = "Sent";
+
 
 
     public static String DIR_ACCOUNTS = "Accounts";
@@ -84,4 +86,8 @@ public class Config {
 
     public static String JPEG_MARKER = "01C34A46494600010101006000601D05";
 
+
+    public static String SENDER_DOMAIN = "teleportnow.cc";
+
+    public static int RAIDANUM_TO_QUERY_BY_DEFAULT = 14;
 }

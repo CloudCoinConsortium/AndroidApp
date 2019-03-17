@@ -6,6 +6,10 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+
 
 class DetectionAgent {
 
@@ -89,6 +93,8 @@ class DetectionAgent {
 
 		tsBefore = System.currentTimeMillis();
 
+		disableSSLCheck();
+
 		URL cloudCoinGlobal;
 		HttpURLConnection urlConnection = null;
 		try {
@@ -110,7 +116,7 @@ class DetectionAgent {
 			}
 
 			if (urlConnection.getResponseCode() != 200) {
-				logger.error(ltag, "Invalid response from server " + urlIn + ":" + urlConnection.getResponseCode());
+				logger.error(ltag, "Invalid response from server " + urlIn + " -> " + urlConnection.getResponseCode());
 				lastStatus = RAIDA.STATUS_FAILED;
 				return null;
 			}
@@ -141,6 +147,19 @@ class DetectionAgent {
 			if (urlConnection != null)
 				urlConnection.disconnect();
 		}
+	}
+
+
+	private void disableSSLCheck() {
+		HostnameVerifier allHostsValid = new HostnameVerifier() {
+			public boolean verify(String hostname, SSLSession session) {
+				return true;
+			}
+		};
+
+		// Install the all-trusting host verifier
+		HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
 	}
 
 }

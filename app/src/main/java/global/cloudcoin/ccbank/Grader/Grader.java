@@ -24,8 +24,6 @@ public class Grader extends Servant {
 
     public Grader(String rootDir, GLogger logger) {
         super("Grader", rootDir, logger);
-
-
     }
 
     public void launch(CallbackInterface icb) {

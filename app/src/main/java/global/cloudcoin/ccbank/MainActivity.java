@@ -74,8 +74,14 @@ import global.cloudcoin.ccbank.Exporter.Exporter;
 import global.cloudcoin.ccbank.Exporter.ExporterResult;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixerResult;
+import global.cloudcoin.ccbank.Receiver.Receiver;
+import global.cloudcoin.ccbank.Receiver.ReceiverResult;
+import global.cloudcoin.ccbank.Sender.Sender;
+import global.cloudcoin.ccbank.Sender.SenderResult;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoinsResult;
+import global.cloudcoin.ccbank.ShowEnvelopeCoins.ShowEnvelopeCoins;
+import global.cloudcoin.ccbank.ShowEnvelopeCoins.ShowEnvelopeCoinsResult;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.Config;
@@ -211,7 +217,10 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					"Authenticator",
 					"Grader",
 					"FrackFixer",
-					"Exporter"
+					"Exporter",
+					"Sender",
+					"ShowEnvelopeCoins",
+					"Receiver"
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
@@ -278,6 +287,24 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		FrackFixer ff = (FrackFixer) sr.getServant("FrackFixer");
 		ff.launch(new FrackFixererCb());
 	}
+
+	public void startSenderService() {
+
+
+		Sender s = (Sender) sr.getServant("Sender");
+		s.launch(Config.DIR_DEFAULT_USER, 12345, new int[] {1,0,0,0,1}, "My Envelopee", new SenderCb());
+	}
+
+	public void startShowEnvelopeCoinsService() {
+		ShowEnvelopeCoins s = (ShowEnvelopeCoins) sr.getServant("ShowEnvelopeCoins");
+		s.launch(Config.DIR_DEFAULT_USER, 127068, "My Envelopee", new ShowEnvelopeCoinsCb());
+	}
+
+	public void startReceiverService() {
+		Receiver r = (Receiver) sr.getServant("Receiver");
+		r.launch(Config.DIR_DEFAULT_USER, 127068, new int[]{1,1,1}, new int[] {10,20,30}, "My Envelopee", new ReceiverCb());
+	}
+
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode,
@@ -373,14 +400,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			public void onClick(View v) {
 				setImportState(IMPORT_STATE_INIT);
 
-				//Authenticator s = (Authenticator) sr.getServant("Authenticator")
-
 				if (sr.isRunning("Authenticator")) {
 					at.cancel();
 				}
-
-
-
 
 				dialog.dismiss();
 			}
@@ -826,6 +848,14 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				break;
 			case R.id.lbank:
                 requestedDialog= DIALOG_BANK;
+
+                if (1==1) {
+                	startReceiverService();
+					//startShowEnvelopeCoinsService();
+					//startSenderService();
+					return;
+				}
+
                 //showBankScreen();
 				showShortMessage("Loading");
 				startShowCoinsService();
@@ -1062,4 +1092,57 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			});
 		}
 	}
+
+
+	class SenderCb implements CallbackInterface {
+		public void callback(Object result) {
+			final Object fresult = result;
+
+			runOnUiThread(new Runnable() {
+				SenderResult sr = (SenderResult) fresult;
+
+				@Override
+				public void run() {
+					Log.v("XXXX", "SENDRERRR" + sr.status);
+				}
+			});
+		}
+	}
+
+	class ShowEnvelopeCoinsCb implements CallbackInterface {
+		public void callback(final Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ShowEnvelopeCoinsResult scresult = (ShowEnvelopeCoinsResult) fresult;
+
+					Log.v(ltag, "cn=" + scresult.coins.length);
+					//	if (requestedDialog == DIALOG_BANK)
+					//		showBankScreen(scresult.counters);
+					//	else if (requestedDialog == DIALOG_EXPORT)
+					//		showExportScreen(scresult.counters);
+				}
+			});
+		}
+	}
+
+	class ReceiverCb implements CallbackInterface {
+		public void callback(final Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ReceiverResult rresult = (ReceiverResult) fresult;
+
+					Log.v(ltag, "cn!");
+					//	if (requestedDialog == DIALOG_BANK)
+					//		showBankScreen(scresult.counters);
+					//	else if (requestedDialog == DIALOG_EXPORT)
+					//		showExportScreen(scresult.counters);
+				}
+			});
+		}
+	}
+
 }

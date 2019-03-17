@@ -75,10 +75,11 @@ public class AppCore {
             Config.DIR_RECEIPTS,
             Config.DIR_REQUESTS,
             Config.DIR_REQUESTRESPONSE,
+            Config.DIR_SENT,
             Config.DIR_SUSPECT,
             Config.DIR_TEMPLATES,
             Config.DIR_TRASH,
-            Config.DIR_TRUSTEDTRANSFER
+            Config.DIR_TRUSTEDTRANSFER,
         };
 
         createDirectory(Config.DIR_ACCOUNTS + File.separator + Config.DIR_DEFAULT_USER);
@@ -356,4 +357,6 @@ public class AppCore {
     public static String padString(String string, int length, char padding) {
         return String.format("%" + length + "s", string).replace(' ', padding);
     }
+
+
 }

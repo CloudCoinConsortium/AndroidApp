@@ -344,26 +344,45 @@ public class Servant {
             targetObject = c.newInstance();
             for (Field f : c.getDeclaredFields()) {
                 String name = f.getName();
-                String value = o.optString(name);
-
-                f.setAccessible(true);
-                f.set(targetObject, value);
+                if (f.getType() == int.class) {
+                    int value = o.optInt(name);
+                    f.setAccessible(true);
+                    f.set(targetObject, value);
+                } else if (f.getType() == String.class) {
+                    String value = o.optString(name);
+                    f.setAccessible(true);
+                    f.set(targetObject, value);
+                } else {
+                    logger.error(ltag, "Invalid type: " + f.getType());
+                    return null;
+                }
             }
 
             if (c.getSuperclass() != null && c.getSuperclass() == CommonResponse.class) {
                 for (Field f : c.getSuperclass().getDeclaredFields()) {
                     String name = f.getName();
-                    String value = o.optString(name);
-
-                    f.setAccessible(true);
-                    f.set(targetObject, value);
+                    if (f.getType() == int.class) {
+                        int value = o.optInt(name);
+                        f.setAccessible(true);
+                        f.set(targetObject, value);
+                    } else if (f.getType() == String.class) {
+                        String value = o.optString(name);
+                        f.setAccessible(true);
+                        f.set(targetObject, value);
+                    } else {
+                        logger.error(ltag, "Invalid type: " + f.getType());
+                        return null;
+                    }
                 }
             }
         } catch (IllegalAccessException e) {
-            logger.error(ltag, "Illegal access ex");
+            logger.error(ltag, "Illegal access exception");
             return null;
         } catch (InstantiationException e) {
             logger.error(ltag, "Illegal instantiation");
+            return null;
+        } catch (IllegalArgumentException e) {
+            logger.error(ltag, "Illegal argument: " + e.getMessage());
             return null;
         }
 
@@ -437,6 +456,44 @@ public class Servant {
     protected void cleanPrivateLogDir() {
         logger.info(ltag, "p="+privateLogDir);
         cleanDir(privateLogDir);
+    }
+
+    protected CloudCoin getIDcc(String user, int sn) {
+        String fullDirIDPath = AppCore.getUserDir(Config.DIR_ID, user);
+        CloudCoin cc = null;
+
+        File dirObj = new File(fullDirIDPath);
+        for (File file: dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
+
+            logger.debug(ltag, "Parsing " + file);
+
+            try {
+                cc = new CloudCoin(file.toString());
+            } catch (JSONException e) {
+                logger.error(ltag, "Failed to parse JSON: " + e.getMessage());
+                continue;
+            }
+
+            logger.info(ltag, "Found SN: " + cc.sn);
+            if (cc.sn != sn)
+                continue;
+
+            break;
+        }
+
+        return cc;
+    }
+
+    protected void setSenderRAIDA() {
+        String[] urls = new String[RAIDA.TOTAL_RAIDA_COUNT];
+
+        for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
+            urls[i] = "https://s" + i + "." + Config.SENDER_DOMAIN;
+        }
+
+        raida.setExactUrls(urls);
     }
 
 }
