@@ -124,12 +124,6 @@ public class Receiver extends Servant {
                 }
             }
 
-            results[i] = "[{            \"server\":\"RAIDA1\",                    \"status\":\"received\",                    \"sn\":152658,                    \"nn\":1,                                        \"an\":\"c18889d9028240b796ea2389d0e36219\",                    \"message\":\"Please record the an provided within a CloudCoin file\",                    \"time\":\"2016-44-19 7:44:PM\"        },     " +
-                    "{            \"server\":\"RAIDA1\",                    \"status\":\"received\",                    \"sn\":9955856,                    \"nn\":1,                                        \"an\":\"e56507ecd05945d990bf6655546bdeff\",                    \"message\":\"Please record the an provided within a CloudCoin file\",                    \"time\":\"2016-44-19 7:44:PM\"        }," +
-                    "{            \"server\":\"RAIDA1\",                    \"status\":\"missing\",                    \"sn\":6652154,                    \"nn\":1,                                        \"an\":\"e56507ecd05945d990bf6655546bdeff\",                    \"message\":\"Please record the an provided within a CloudCoin file\",                    \"time\":\"2016-44-19 7:44:PM\"        }]";
-
-
-
             o = parseArrayResponse(results[i], ReceiverResponse.class);
             if (o == null) {
                 errorResponse = (CommonResponse) parseResponse(results[i], CommonResponse.class);

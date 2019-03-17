@@ -849,12 +849,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			case R.id.lbank:
                 requestedDialog= DIALOG_BANK;
 
-                if (1==1) {
-                	startReceiverService();
+                //if (1==1) {
+                //	startReceiverService();
 					//startShowEnvelopeCoinsService();
 					//startSenderService();
-					return;
-				}
+				//	return;
+				//}
 
                 //showBankScreen();
 				showShortMessage("Loading");
