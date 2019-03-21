@@ -292,7 +292,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 
 		Sender s = (Sender) sr.getServant("Sender");
-		s.launch(Config.DIR_DEFAULT_USER, 12345, new int[] {1,0,0,0,1}, "My Envelopee", new SenderCb());
+		s.launch(Config.DIR_DEFAULT_USER, 12345, new int[] {1,0,0,0,1}, "Test transfer to Sean", new SenderCb());
 	}
 
 	public void startShowEnvelopeCoinsService() {
@@ -849,12 +849,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			case R.id.lbank:
                 requestedDialog= DIALOG_BANK;
 
-                //if (1==1) {
+                if (1==1) {
                 //	startReceiverService();
 					//startShowEnvelopeCoinsService();
-					//startSenderService();
-				//	return;
-				//}
+					startSenderService();
+					return;
+				}
 
                 //showBankScreen();
 				showShortMessage("Loading");
@@ -1103,7 +1103,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 				@Override
 				public void run() {
-					Log.v("XXXX", "SENDRERRR" + sr.status);
+					Log.v("XXXX", "SENDRE RESPONSE" + sr.status);
 				}
 			});
 		}

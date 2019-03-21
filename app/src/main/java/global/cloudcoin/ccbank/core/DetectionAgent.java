@@ -93,7 +93,7 @@ class DetectionAgent {
 
 		tsBefore = System.currentTimeMillis();
 
-		//disableSSLCheck();
+		disableSSLCheck();
 
 		URL cloudCoinGlobal;
 		HttpURLConnection urlConnection = null;
