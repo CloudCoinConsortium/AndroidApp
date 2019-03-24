@@ -92,4 +92,23 @@ public class Config {
     public static int RAIDANUM_TO_QUERY_BY_DEFAULT = 14;
 
     public static int MAX_COMMON_LOG_LENGTH_MB = 128;
+
+
+    final public static int CHANGE_METHOD_5A = 1;
+
+    final public static int CHANGE_METHOD_25A = 2;
+    final public static int CHANGE_METHOD_25B = 3;
+    final public static int CHANGE_METHOD_25C = 4;
+    final public static int CHANGE_METHOD_25D = 5;
+
+    final public static int CHANGE_METHOD_100A = 6;
+    final public static int CHANGE_METHOD_100B = 7;
+    final public static int CHANGE_METHOD_100C = 8;
+    final public static int CHANGE_METHOD_100D = 9;
+
+    final public static int CHANGE_METHOD_250A = 10;
+    final public static int CHANGE_METHOD_250B = 11;
+    final public static int CHANGE_METHOD_250C = 12;
+    final public static int CHANGE_METHOD_250D = 13;
+
 }

@@ -69,6 +69,8 @@ import java.util.Calendar;
 
 import global.cloudcoin.ccbank.Authenticator.Authenticator;
 import global.cloudcoin.ccbank.Authenticator.AuthenticatorResult;
+import global.cloudcoin.ccbank.ChangeMaker.ChangeMaker;
+import global.cloudcoin.ccbank.ChangeMaker.ChangeMakerResult;
 import global.cloudcoin.ccbank.Echoer.Echoer;
 import global.cloudcoin.ccbank.Exporter.Exporter;
 import global.cloudcoin.ccbank.Exporter.ExporterResult;
@@ -220,7 +222,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					"Exporter",
 					"Sender",
 					"ShowEnvelopeCoins",
-					"Receiver"
+					"Receiver",
+					"ChangeMaker"
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
@@ -305,6 +308,11 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		r.launch(Config.DIR_DEFAULT_USER, 127068, new int[]{1,1,1}, new int[] {10,20,30}, "My Envelopee", new ReceiverCb());
 	}
 
+	public void startChangeMakerService() {
+		ChangeMaker c = (ChangeMaker) sr.getServant("ChangeMaker");
+	//	c.launch(Config.DIR_DEFAULT_USER, Config.CHANGE_METHOD_5A, new ReceiverCb());
+		c.launch(Config.DIR_DEFAULT_USER, Config.CHANGE_METHOD_250D, new ReceiverCb());
+	}
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode,
@@ -852,7 +860,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
                 if (1==1) {
                 //	startReceiverService();
 					//startShowEnvelopeCoinsService();
-					startSenderService();
+				//	startSenderService();
+					startChangeMakerService();
 					return;
 				}
 
@@ -1075,8 +1084,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				public void run() {
 					ExporterResult er = (ExporterResult) fresult;
 
-					Log.v("XXX", "EXPORTER RETURNED");
-
 					if (er.status == ExporterResult.STATUS_ERROR) {
 						dialog.dismiss();
 						showError("Failed to fix coins");
@@ -1118,10 +1125,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					ShowEnvelopeCoinsResult scresult = (ShowEnvelopeCoinsResult) fresult;
 
 					Log.v(ltag, "cn=" + scresult.coins.length);
-					//	if (requestedDialog == DIALOG_BANK)
-					//		showBankScreen(scresult.counters);
-					//	else if (requestedDialog == DIALOG_EXPORT)
-					//		showExportScreen(scresult.counters);
+
 				}
 			});
 		}
@@ -1136,10 +1140,22 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					ReceiverResult rresult = (ReceiverResult) fresult;
 
 					Log.v(ltag, "cn!");
-					//	if (requestedDialog == DIALOG_BANK)
-					//		showBankScreen(scresult.counters);
-					//	else if (requestedDialog == DIALOG_EXPORT)
-					//		showExportScreen(scresult.counters);
+
+				}
+			});
+		}
+	}
+
+	class ChangeMakerCb implements CallbackInterface {
+		public void callback(final Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					ChangeMakerResult rresult = (ChangeMakerResult) fresult;
+
+					Log.v(ltag, "cn!");
+
 				}
 			});
 		}

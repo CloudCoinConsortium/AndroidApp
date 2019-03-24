@@ -337,42 +337,54 @@ public class Servant {
     }
 
 
+    private boolean doSetField(Field f, JSONObject o, Object targetObject) throws IllegalAccessException, JSONException {
+        String name = f.getName();
+        if (f.getType() == int.class) {
+            int value = o.optInt(name);
+            f.setAccessible(true);
+            f.set(targetObject, value);
+        } else if (f.getType() == String.class) {
+            String value = o.optString(name);
+            f.setAccessible(true);
+            f.set(targetObject, value);
+        } else if (f.getType() == int[].class) {
+            int length;
+            JSONArray a = o.optJSONArray(name);
+            f.setAccessible(true);
+
+            if (a != null)
+                length = a.length();
+            else
+                length = 0;
+
+            int[] ia = new int[length];
+            for (int i = 0; i < length; i++) {
+                ia[i] = a.getInt(i);
+            }
+
+            f.set(targetObject, ia);
+        } else {
+            logger.error(ltag, "Invalid type: " + f.getType());
+            return false;
+        }
+
+        return true;
+    }
+
     private Object setFields(Class c, JSONObject o) {
         Object targetObject;
 
         try {
             targetObject = c.newInstance();
             for (Field f : c.getDeclaredFields()) {
-                String name = f.getName();
-                if (f.getType() == int.class) {
-                    int value = o.optInt(name);
-                    f.setAccessible(true);
-                    f.set(targetObject, value);
-                } else if (f.getType() == String.class) {
-                    String value = o.optString(name);
-                    f.setAccessible(true);
-                    f.set(targetObject, value);
-                } else {
-                    logger.error(ltag, "Invalid type: " + f.getType());
+                if (!doSetField(f, o, targetObject))
                     return null;
-                }
             }
 
             if (c.getSuperclass() != null && c.getSuperclass() == CommonResponse.class) {
                 for (Field f : c.getSuperclass().getDeclaredFields()) {
-                    String name = f.getName();
-                    if (f.getType() == int.class) {
-                        int value = o.optInt(name);
-                        f.setAccessible(true);
-                        f.set(targetObject, value);
-                    } else if (f.getType() == String.class) {
-                        String value = o.optString(name);
-                        f.setAccessible(true);
-                        f.set(targetObject, value);
-                    } else {
-                        logger.error(ltag, "Invalid type: " + f.getType());
+                    if (!doSetField(f, o, targetObject))
                         return null;
-                    }
                 }
             }
         } catch (IllegalAccessException e) {
@@ -383,6 +395,9 @@ public class Servant {
             return null;
         } catch (IllegalArgumentException e) {
             logger.error(ltag, "Illegal argument: " + e.getMessage());
+            return null;
+        } catch (JSONException e) {
+            logger.error(ltag, "Failed to parse JSON: " + e.getMessage());
             return null;
         }
 
