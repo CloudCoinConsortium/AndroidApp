@@ -164,11 +164,17 @@ public class ChangeMaker extends Servant {
         if (sns == null) {
             logger.info(ltag, "No coins");
             cr.status = ChangeMakerResult.STATUS_ERROR;
-            return;
+       //     return;
         }
 
         for (int i = 0; i < sns.length; i++) {
             logger.info(ltag, "sn="+sns[i]);
+        }
+
+        if (!updateRAIDAStatus()) {
+            logger.error(ltag, "Failed to query RAIDA");
+            cr.status = ChangeMakerResult.STATUS_ERROR;
+            return;
         }
 
     }
@@ -384,7 +390,7 @@ public class ChangeMaker extends Servant {
             rsns[i + 14] = sns[i];
 
         sns = getA(sb, 4);
-        if (sns == null) 
+        if (sns == null)
             return null;
 
         for (int i = 0; i < 4; i++)
