@@ -2,9 +2,11 @@ package global.cloudcoin.ccbank.ChangeMaker;
 
 import org.json.JSONException;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import global.cloudcoin.ccbank.ChangeMaker.ChangeMakerResult;
+import global.cloudcoin.ccbank.Echoer.EchoResponse;
 import global.cloudcoin.ccbank.ShowEnvelopeCoins.ShowEnvelopeCoins;
 import global.cloudcoin.ccbank.ShowEnvelopeCoins.ShowEnvelopeCoinsResponse;
 import global.cloudcoin.ccbank.core.AppCore;
@@ -13,6 +15,7 @@ import global.cloudcoin.ccbank.core.CloudCoin;
 import global.cloudcoin.ccbank.core.CommonResponse;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
+import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.Servant;
 
 public class ChangeMaker extends Servant {
@@ -37,17 +40,16 @@ public class ChangeMaker extends Servant {
         launchThread(new Runnable() {
             @Override
             public void run() {
-                logger.info(ltag, "RUN Sender");
-                doSend(fuser, fmethod);
+            logger.info(ltag, "RUN ChangeMaker");
+            doChange(fuser, fmethod);
 
-
-                if (cb != null)
-                    cb.callback(cr);
+            if (cb != null)
+                cb.callback(cr);
             }
         });
     }
 
-    public void doSend(String user, int method) {
+    public void doChange(String user, int method) {
         logger.info(ltag, "Method " + method);
 
 
@@ -57,6 +59,8 @@ public class ChangeMaker extends Servant {
         Object[] o;
         CommonResponse cresponse;
         ShowEnvelopeCoinsResponse[] srs;
+
+        String[] requests;
 
         setSenderRAIDA();
 
@@ -79,11 +83,11 @@ public class ChangeMaker extends Servant {
         resultMain = "{\n" +
                 "  \"server\":\"RAIDA1\",\n" +
                 "  \"status\":\"shown\",\n" +
-                "  \"s250\":[16230602,16675880,16192311,15169770],\n" +
-                "  \"s100\":[13230602,13675880,16192311,15169770],\n" +
-                "  \"s25\":[10230602,10675880,10192311,15169770,3,4,5,6,7,8],\n" +
-                "  \"s5\":[8230602,8675880,6192311,15169770,1111,222,888,999,100,101,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7],\n" +
-                "  \"s1\":[230602,675880,192311,15169770,33,44,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50],\n" +
+                "  \"d250\":[16230602,16675880,16192311,15169770],\n" +
+                "  \"d100\":[13230602,13675880,16192311,15169770],\n" +
+                "  \"d25\":[10230602,10675880,10192311,15169770,3,4,5,6,7,8],\n" +
+                "  \"d5\":[8230602,8675880,6192311,15169770,1111,222,888,999,100,101,1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,4,4,5,5,5,5,5,6,6,6,6,6,7,7,7,7,7],\n" +
+                "  \"d1\":[230602,675880,192311,15169770,33,44,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50],\n" +
                 "  \"message\":\"Change:This report shows the serial numbers that are available to make change now.\",\n" +
                 "  \"version\":\"some version number here\",\n" +
                 "  \"time\":\"2016-44-19 7:44:PM\"\n" +
@@ -104,67 +108,71 @@ public class ChangeMaker extends Servant {
 
         ShowChangeResponse scr = (ShowChangeResponse) parseResponse(resultMain, ShowChangeResponse.class);
         int[] sns;
+        int rqDenom = 0;
 
-        logger.info(ltag, "sss="+scr.s5[1]);
-
-       // logger.info(ltag, "ss1s="+scr.s5[1] + " sns="+sns);
-        String r;
-        //try {
-            switch (method) {
-                case Config.CHANGE_METHOD_5A:
-                    sns = getA(scr.s1, 5);
-                    break;
-                case Config.CHANGE_METHOD_25A:
-                    sns = getA(scr.s5, 5);
-                    break;
-                case Config.CHANGE_METHOD_25B:
-                    sns = get25B(scr.s5, scr.s1);
-                    break;
-                case Config.CHANGE_METHOD_25C:
-                    sns = get25C(scr.s5, scr.s1);
-                    break;
-                case Config.CHANGE_METHOD_25D:
-                    sns = get25D(scr.s1);
-                    break;
-                case Config.CHANGE_METHOD_100A:
-                    sns = getA(scr.s25, 4);
-                    break;
-                case Config.CHANGE_METHOD_100B:
-                    sns = get100B(scr.s25, scr.s5);
-                    break;
-                case Config.CHANGE_METHOD_100C:
-                    sns = get100C(scr.s25, scr.s5, scr.s1);
-                    break;
-                case Config.CHANGE_METHOD_100D:
-                    sns = get100D(scr.s1);
-                    break;
-                case Config.CHANGE_METHOD_250A:
-                    sns = get250A(scr.s100, scr.s25);
-                    break;
-                case Config.CHANGE_METHOD_250B:
-                    sns = get250B(scr.s25, scr.s5, scr.s1);
-                    break;
-                case Config.CHANGE_METHOD_250C:
-                    sns = get250C(scr.s25, scr.s5, scr.s1);
-                    break;
-                case Config.CHANGE_METHOD_250D:
-                    sns = get250D(scr.s1);
-                    break;
-                default:
-                    logger.error(ltag, "Invalid method: " + method);
-                    cr.status = ChangeMakerResult.STATUS_ERROR;
-                    return;
-            }
-        /*} catch (JSONException e) {
-            logger.error(ltag, "JSON failed: " + e.getMessage());
-            cr.status = ChangeMakerResult.STATUS_ERROR;
-            return;
-        }*/
+        switch (method) {
+            case Config.CHANGE_METHOD_5A:
+                sns = getA(scr.d1, 5);
+                rqDenom = 5;
+                break;
+            case Config.CHANGE_METHOD_25A:
+                sns = getA(scr.d5, 5);
+                rqDenom = 25;
+                break;
+            case Config.CHANGE_METHOD_25B:
+                sns = get25B(scr.d5, scr.d1);
+                rqDenom = 25;
+                break;
+            case Config.CHANGE_METHOD_25C:
+                sns = get25C(scr.d5, scr.d1);
+                rqDenom = 25;
+                break;
+            case Config.CHANGE_METHOD_25D:
+                sns = get25D(scr.d1);
+                rqDenom = 25;
+                break;
+            case Config.CHANGE_METHOD_100A:
+                sns = getA(scr.d25, 4);
+                rqDenom = 100;
+                break;
+            case Config.CHANGE_METHOD_100B:
+                sns = get100B(scr.d25, scr.d5);
+                rqDenom = 100;
+                break;
+            case Config.CHANGE_METHOD_100C:
+                sns = get100C(scr.d25, scr.d5, scr.d1);
+                rqDenom = 100;
+                break;
+            case Config.CHANGE_METHOD_100D:
+                sns = get100D(scr.d1);
+                rqDenom = 100;
+                break;
+            case Config.CHANGE_METHOD_250A:
+                sns = get250A(scr.d100, scr.d25);
+                rqDenom = 250;
+                break;
+            case Config.CHANGE_METHOD_250B:
+                sns = get250B(scr.d25, scr.d5, scr.d1);
+                rqDenom = 250;
+                break;
+            case Config.CHANGE_METHOD_250C:
+                sns = get250C(scr.d25, scr.d5, scr.d1);
+                rqDenom = 250;
+                break;
+            case Config.CHANGE_METHOD_250D:
+                sns = get250D(scr.d1);
+                rqDenom = 250;
+                break;
+            default:
+                logger.error(ltag, "Invalid method: " + method);
+                cr.status = ChangeMakerResult.STATUS_ERROR;
+                return;
+        }
 
         if (sns == null) {
             logger.info(ltag, "No coins");
             cr.status = ChangeMakerResult.STATUS_ERROR;
-       //     return;
+            return;
         }
 
         for (int i = 0; i < sns.length; i++) {
@@ -177,7 +185,99 @@ public class ChangeMaker extends Servant {
             return;
         }
 
+        CloudCoin tcc = getTargetCoin(rqDenom);
+        if (tcc == null) {
+            logger.error(ltag, "Failed to get target coin");
+            cr.status = ChangeMakerResult.STATUS_ERROR;
+            return;
+        }
+
+        requests = new String[RAIDA.TOTAL_RAIDA_COUNT];
+        for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
+            requests[i] = "change?nn=" + tcc.nn + "&sn=" + tcc.sn + "&an=" + tcc.ans[i] + "&denomination=" + tcc.getDenomination();
+            for (int j = 0; j < sns.length; j++) {
+                requests[i] += "&sns[]=" + sns[i];
+            }
+        }
+
+        results = raida.query(requests);
+        if (results == null) {
+            logger.error(ltag, "Failed to query change");
+            cr.status = ChangeMakerResult.STATUS_ERROR;
+            return;
+        }
+
+        if (results == null) {
+            logger.error(ltag, "Failed to query change results");
+            cr.status = ChangeMakerResult.STATUS_ERROR;
+            return;
+        }
+
+        int cntErr = 0;
+        ChangeResponse[] crs = new ChangeResponse[RAIDA.TOTAL_RAIDA_COUNT];
+
+
+        for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
+            logger.info(ltag, "RAIDA " + i + ": " + results[i]);
+            if (results[i] == null) {
+                logger.error(ltag, "Failed to get result. RAIDA " + i);
+                cntErr++;
+                continue;
+            }
+
+            results[i] = "{\n" +
+                    "  \"server\":\"RAIDA1\",\n" +
+                    "  \"status\":\"pass\",\n" +
+                    "  \"nns\":[1,1,1,1],\n" +
+                    "  \"sns\":[13555555,5966558,5556665,8887372],\n" +
+                    "  \"ans\":[\"a91c5b6456b74217a27e5e3d518ab49b\",\"e58e8620310c4ea3bd4bb6c3999deb64\",\"0f915257f5cf40bca2e4f94e054bdd32\",\"6f24bd539ce941feaf4a01b10ac59559\"],\n" +
+                    "  \"message\":\"Change: 1-unit. Save these ANs to you CloudCoins.\",\n" +
+                    "  \"time\":\"2016-44-19 7:44:PM\"\n" +
+                    "}\n";
+
+            logger.info(ltag, "parsing " + i);
+            crs[i] = (ChangeResponse) parseResponse(results[i], ChangeResponse.class);
+            if (crs[i] == null) {
+                logger.error(ltag, "Failed to parse response");
+                cntErr++;
+                continue;
+            }
+
+            logger.info(ltag, "parsing2 " + crs[i]);
+            if (!crs[i].status.equals(Config.REQUEST_STATUS_PASS)) {
+                logger.error(ltag, "RAIDA " + i + ": wrong response: " + crs[i].status);
+                cntErr++;
+                continue;
+            }
+
+        }
+
     }
+
+    private CloudCoin getTargetCoin(int denomination) {
+        String fullPath = AppCore.getUserDir(Config.DIR_BANK);
+        CloudCoin cc;
+
+        File dirObj = new File(fullPath);
+        for (File file: dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
+
+            logger.debug(ltag, "Parsing " + file);
+            try {
+                cc = new CloudCoin(file.toString());
+            } catch (JSONException e) {
+                logger.error(ltag, "Failed to parse JSON: " + e.getMessage());
+                continue;
+            }
+
+            if (cc.getDenomination() == denomination)
+                return cc;
+        }
+
+        return null;
+    }
+
 
     private int[] getA(int[] a, int cnt) {
         int[] sns;

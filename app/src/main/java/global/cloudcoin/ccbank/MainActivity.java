@@ -311,7 +311,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	public void startChangeMakerService() {
 		ChangeMaker c = (ChangeMaker) sr.getServant("ChangeMaker");
 	//	c.launch(Config.DIR_DEFAULT_USER, Config.CHANGE_METHOD_5A, new ReceiverCb());
-		c.launch(Config.DIR_DEFAULT_USER, Config.CHANGE_METHOD_250D, new ReceiverCb());
+		c.launch(Config.DIR_DEFAULT_USER, Config.CHANGE_METHOD_250C, new ReceiverCb());
 	}
 
 	@Override

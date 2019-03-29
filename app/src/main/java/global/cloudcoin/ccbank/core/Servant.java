@@ -339,18 +339,17 @@ public class Servant {
 
     private boolean doSetField(Field f, JSONObject o, Object targetObject) throws IllegalAccessException, JSONException {
         String name = f.getName();
+
+        f.setAccessible(true);
         if (f.getType() == int.class) {
             int value = o.optInt(name);
-            f.setAccessible(true);
             f.set(targetObject, value);
         } else if (f.getType() == String.class) {
             String value = o.optString(name);
-            f.setAccessible(true);
             f.set(targetObject, value);
         } else if (f.getType() == int[].class) {
             int length;
             JSONArray a = o.optJSONArray(name);
-            f.setAccessible(true);
 
             if (a != null)
                 length = a.length();
@@ -363,10 +362,27 @@ public class Servant {
             }
 
             f.set(targetObject, ia);
+        } else if (f.getType() == String[].class) {
+            int length;
+            JSONArray a = o.optJSONArray(name);
+
+            if (a != null)
+                length = a.length();
+            else
+                length = 0;
+
+            String[] ia = new String[length];
+            for (int i = 0; i < length; i++) {
+                ia[i] = a.getString(i);
+            }
+
+            f.set(targetObject, ia);
         } else {
             logger.error(ltag, "Invalid type: " + f.getType());
             return false;
         }
+
+
 
         return true;
     }
