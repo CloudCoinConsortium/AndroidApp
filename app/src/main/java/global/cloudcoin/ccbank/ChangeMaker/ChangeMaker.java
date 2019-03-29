@@ -215,8 +215,8 @@ public class ChangeMaker extends Servant {
 
         int cntErr = 0;
         ChangeResponse[] crs = new ChangeResponse[RAIDA.TOTAL_RAIDA_COUNT];
-
-
+        CloudCoin[] ccs = new CloudCoin[sns.length];
+        
         for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             logger.info(ltag, "RAIDA " + i + ": " + results[i]);
             if (results[i] == null) {
@@ -224,16 +224,6 @@ public class ChangeMaker extends Servant {
                 cntErr++;
                 continue;
             }
-
-            results[i] = "{\n" +
-                    "  \"server\":\"RAIDA1\",\n" +
-                    "  \"status\":\"pass\",\n" +
-                    "  \"nns\":[1,1,1,1],\n" +
-                    "  \"sns\":[13555555,5966558,5556665,8887372],\n" +
-                    "  \"ans\":[\"a91c5b6456b74217a27e5e3d518ab49b\",\"e58e8620310c4ea3bd4bb6c3999deb64\",\"0f915257f5cf40bca2e4f94e054bdd32\",\"6f24bd539ce941feaf4a01b10ac59559\"],\n" +
-                    "  \"message\":\"Change: 1-unit. Save these ANs to you CloudCoins.\",\n" +
-                    "  \"time\":\"2016-44-19 7:44:PM\"\n" +
-                    "}\n";
 
             logger.info(ltag, "parsing " + i);
             crs[i] = (ChangeResponse) parseResponse(results[i], ChangeResponse.class);
@@ -250,8 +240,71 @@ public class ChangeMaker extends Servant {
                 continue;
             }
 
+            if (ccs.length != crs[i].sns.length || ccs.length != crs[i].ans.length || ccs.length != crs[i].nns.length) {
+                logger.error(ltag, "RAIDA " + i + ": wrong response cnt: " + crs[i].sns.length + "/" + crs[i].ans.length + "/" +crs[i].nns.length + " need " + ccs.length);
+                cntErr++;
+                continue;
+            }
+
+            for (int j = 0; j < crs[i].sns.length; j++) {
+                int rnn, rsn;
+                String ran;
+                boolean found;
+
+                rsn = crs[i].sns[j];
+                ran = crs[i].ans[j];
+                rnn = crs[i].nns[j];
+
+                logger.info(ltag, " sn="+ rsn + " nn="+rnn+ " an="+ran);
+                found = false;
+
+                for (int k = 0; k < ccs.length; k++) {
+                    if (ccs[k] == null)
+                        continue;
+
+                    if (ccs[k].sn == rsn) {
+                        ccs[k].ans[i] = ran;
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    for (int k = 0; k < ccs.length; k++) {
+                        if (ccs[k] == null) {
+                            found = true;
+                            ccs[k] = new CloudCoin(rnn, rsn);
+                            ccs[k].ans[i] = ran;
+                            break;
+                        }
+                    }
+
+                    if (!found) {
+                        logger.error(ltag, "Can't find a coin for rsn=" + rsn);
+                        continue;
+                    }
+                }
+            }
         }
 
+        String dir = AppCore.getUserDir(Config.DIR_IMPORT, user);
+        String file;
+        for (int i = 0; i < ccs.length; i++) {
+            if (ccs[i] == null)
+                continue;
+
+            file = dir + File.separator + ccs[i].getFileName();
+            logger.info(ltag, "Saving coin " + file);
+            if (!AppCore.saveFile(file, ccs[i].getJson(false))) {
+                logger.error(ltag, "Failed to move coin to Import: " + ccs[i].getFileName());
+                continue;
+            }
+
+            logger.info(ltag, "cc="+ccs[i].sn + " v=" + ccs[i].getJson(false));
+        }
+
+        AppCore.moveToFolder(tcc.originalFile, Config.DIR_SENT);
+        cr.status = ChangeMakerResult.STATUS_FINISHED;
     }
 
     private CloudCoin getTargetCoin(int denomination) {

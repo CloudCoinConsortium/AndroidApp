@@ -122,7 +122,6 @@ public class Sender extends Servant {
                     //AppCore.moveToFolder(cc.originalFile, Config.DIR_FRACKED);
                 }
             }
-
         }
     }
 
