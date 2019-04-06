@@ -154,7 +154,7 @@ public class FrackFixer extends Servant {
         cc.setPownStringFromDetectStatus();
         cc.calcExpirationDate();
 
-        AppCore.deleteFile(cc.originalFile);
+        AppCore.moveToFolder(cc.originalFile, Config.DIR_TRASH);
         if (!AppCore.saveFile(cc.originalFile, cc.getJson(false))) {
             logger.error(ltag, "Failed to save file: " + cc.originalFile);
             logger.error(ltag, "Coin details: " + cc.getJson());

@@ -53,9 +53,9 @@ public class ShowEnvelopeCoins extends Servant {
     public void doShowEnvelopeCoins(String user, int sn, String envelope) {
         CloudCoin cc;
         String[] results;
-        Object[] o;
+        Object o;
         CommonResponse errorResponse;
-        ShowEnvelopeCoinsResponse[] srs;
+        ShowEnvelopeCoinsResponse srs;
 
         setSenderRAIDA();
         cc = getIDcc(user, sn);
@@ -66,11 +66,13 @@ public class ShowEnvelopeCoins extends Servant {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("showcoinsinenvelope?nn=");
+        sb.append("show_coins_in_envelope?nn=");
         sb.append(cc.nn);
         sb.append("&sn=");
         sb.append(cc.sn);
         sb.append("&an=");
+        sb.append(cc.ans[Config.RAIDANUM_TO_QUERY_BY_DEFAULT]);
+        sb.append("&pan=");
         sb.append(cc.ans[Config.RAIDANUM_TO_QUERY_BY_DEFAULT]);
         sb.append("&denomination=");
         sb.append(cc.getDenomination());
@@ -91,7 +93,7 @@ public class ShowEnvelopeCoins extends Servant {
             return;
         }
 
-        o = parseArrayResponse(resultMain, ShowEnvelopeCoinsResponse.class);
+        o = parseResponse(resultMain, ShowEnvelopeCoinsResponse.class);
         if (o == null) {
             result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
             errorResponse = (CommonResponse) parseResponse(resultMain, CommonResponse.class);
@@ -104,20 +106,20 @@ public class ShowEnvelopeCoins extends Servant {
             return;
         }
 
-        result.coins = new int[o.length];
-        srs = new ShowEnvelopeCoinsResponse[o.length];
-        for (int j = 0; j < o.length; j++) {
-            String strStatus;
-
-            srs[j] = (ShowEnvelopeCoinsResponse) o[j];
-            strStatus = srs[j].status;
-            if (!strStatus.equals("success")) {
-                logger.info(ltag, "Warning: coin " + srs[j].sn + " is failed");
-            }
-
-            result.coins[j] = srs[j].sn;
-
+        srs = (ShowEnvelopeCoinsResponse) o;
+        if (!srs.status.equals("success")) {
+            result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
+            logger.error(ltag, "Error status: " + srs.status);
+            return;
         }
+
+        if (srs.owned_coins == null) {
+            result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
+            logger.error(ltag, "No owned coins");
+            return;
+        }
+
+        result.coins = srs.owned_coins;
 
         createResultFile(envelope, sn, result.coins);
         result.status = ShowEnvelopeCoinsResult.STATUS_FINISHED;

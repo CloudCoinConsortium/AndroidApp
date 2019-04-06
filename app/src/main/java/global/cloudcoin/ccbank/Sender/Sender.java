@@ -20,8 +20,6 @@ import global.cloudcoin.ccbank.core.Servant;
 public class Sender extends Servant {
     String ltag = "Sender";
     SenderResult sr;
-    int[] valuesPicked;
-    ArrayList<CloudCoin> coinsPicked;
 
     public Sender(String rootDir, GLogger logger) {
         super("Sender", rootDir, logger);
@@ -36,6 +34,7 @@ public class Sender extends Servant {
         final String fenvelope = envelope;
 
         sr = new SenderResult();
+
         coinsPicked = new ArrayList<CloudCoin>();
         valuesPicked = new int[AppCore.getDenominations().length];
 
@@ -82,6 +81,7 @@ public class Sender extends Servant {
 
         setSenderRAIDA();
 
+        logger.debug(ltag, "Sending to SN " + tosn);
         if (!processSend(coinsPicked, tosn, envelope)) {
             sr.status = SenderResult.STATUS_ERROR;
             return;
@@ -112,14 +112,14 @@ public class Sender extends Servant {
             logger.info(ltag, "Doing " + cc.originalFile + " pass="+passed + " f="+failed);
             if (passed >= Config.PASS_THRESHOLD) {
                 logger.info(ltag, "Moving to Sent: " + cc.sn);
-                //AppCore.moveToFolder(cc.originalFile, Config.DIR_SENT);
+                AppCore.moveToFolder(cc.originalFile, Config.DIR_SENT);
             } else if (failed > 0) {
                 if (failed >= RAIDA.TOTAL_RAIDA_COUNT - Config.PASS_THRESHOLD) {
                     logger.info(ltag, "Moving to Counterfeit: " + cc.sn);
-                    //AppCore.moveToFolder(cc.originalFile, Config.DIR_COUNTERFEIT);
+                    AppCore.moveToFolder(cc.originalFile, Config.DIR_COUNTERFEIT);
                 } else {
                     logger.info(ltag, "Moving to Fracked: " + cc.sn);
-                    //AppCore.moveToFolder(cc.originalFile, Config.DIR_FRACKED);
+                    AppCore.moveToFolder(cc.originalFile, Config.DIR_FRACKED);
                 }
             }
         }
@@ -144,13 +144,14 @@ public class Sender extends Servant {
         }
 
         for (CloudCoin cc : ccs) {
+            logger.debug(ltag, "Processing coin " + cc.sn);
             for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
                 if (!first) {
                     sbs[i].append("&");
                 } else {
                     sbs[i].append("to_sn=");
                     sbs[i].append(tosn);
-                    sbs[i].append("&envelope=");
+                    sbs[i].append("&envelope_name=");
                     sbs[i].append(URLEncoder.encode(envelope));
                     sbs[i].append("&");
                 }
@@ -201,6 +202,7 @@ public class Sender extends Servant {
 
         ar = new SenderResponse[RAIDA.TOTAL_RAIDA_COUNT][];
         for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
+            logger.debug(ltag, "Parsing result from RAIDA" + i + " r: " + results[i]);
             if (results[i] != null) {
                 if (results[i].equals("")) {
                     logger.error(ltag, "Skipped raida" + i);
@@ -250,64 +252,5 @@ public class Sender extends Servant {
         return true;
     }
 
-    private boolean collectedEnough(int[] values) {
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != valuesPicked[i]) {
-                return false;
-            }
-        }
 
-        return true;
-    }
-
-    private void pickCoin(int idx, int[] values, CloudCoin cc) {
-        if (values[idx] > valuesPicked[idx]) {
-            logger.debug(ltag, "Picking coin " + cc.sn);
-
-            valuesPicked[idx]++;
-            coinsPicked.add(cc);
-        }
-    }
-
-    public boolean pickCoinsInDir(String dir, int[] values) {
-        logger.debug(ltag, "Looking into dir: " + dir);
-
-        CloudCoin cc;
-        int denomination;
-
-        File dirObj = new File(dir);
-        for (File file: dirObj.listFiles()) {
-            if (file.isDirectory())
-                continue;
-
-            try {
-                cc = new CloudCoin(file.toString());
-            } catch (JSONException e) {
-                logger.error(ltag, "Failed to parse coin: " + file.toString() +
-                        " error: " + e.getMessage());
-
-                continue;
-            }
-
-            denomination = cc.getDenomination();
-            if (denomination == 1) {
-                pickCoin(Config.IDX_1, values, cc);
-            } else if (denomination == 5) {
-                pickCoin(Config.IDX_5, values, cc);
-            } else if (denomination == 25) {
-                pickCoin(Config.IDX_25, values, cc);
-            } else if (denomination == 100) {
-                pickCoin(Config.IDX_100, values, cc);
-            } else if (denomination == 250) {
-                pickCoin(Config.IDX_250, values, cc);
-            }
-
-            if (collectedEnough(values)) {
-                logger.debug(ltag, "Collected enough. Stop");
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

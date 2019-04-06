@@ -76,6 +76,8 @@ import global.cloudcoin.ccbank.Exporter.Exporter;
 import global.cloudcoin.ccbank.Exporter.ExporterResult;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixerResult;
+import global.cloudcoin.ccbank.LossFixer.LossFixer;
+import global.cloudcoin.ccbank.LossFixer.LossFixerResult;
 import global.cloudcoin.ccbank.Receiver.Receiver;
 import global.cloudcoin.ccbank.Receiver.ReceiverResult;
 import global.cloudcoin.ccbank.Sender.Sender;
@@ -85,6 +87,8 @@ import global.cloudcoin.ccbank.ShowCoins.ShowCoinsResult;
 import global.cloudcoin.ccbank.ShowEnvelopeCoins.ShowEnvelopeCoins;
 import global.cloudcoin.ccbank.ShowEnvelopeCoins.ShowEnvelopeCoinsResult;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
+import global.cloudcoin.ccbank.Vaulter.Vaulter;
+import global.cloudcoin.ccbank.Vaulter.VaulterResult;
 import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.RAIDA;
@@ -108,7 +112,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 	ServantRegistry sr;
 
 	TextView tv;
-	Button bt;
 	LinearLayout ll1, ll2, ll3;
 
 	ArrayList<String> exportedFilenames;
@@ -122,8 +125,6 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	NumberPicker[] nps;
 	TextView[] tvs;
-
-	Button button, emailButton;
 
 	EditText et;
 	TextView tvTotal, exportTv;
@@ -139,10 +140,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	ProgressBar pb;
 
-
-	public static final String APP_PREFERENCES_IMPORTDIR = "pref_importdir";
 	final static int MY_STORAGE_WRITE_CONSTANT = 1;
-
 
 	private int statToBankValue, statToBank, statFailed;
 
@@ -223,7 +221,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					"Sender",
 					"ShowEnvelopeCoins",
 					"Receiver",
-					"ChangeMaker"
+					"ChangeMaker",
+					"Vaulter",
+					"LossFixer"
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
@@ -291,21 +291,30 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		ff.launch(new FrackFixererCb());
 	}
 
+	public void startVaulterService() {
+		Vaulter v = (Vaulter) sr.getServant("Vaulter");
+		//v.vault(Config.DIR_DEFAULT_USER, "qwerty",361, null, new VaulterCb());
+		v.unvault(Config.DIR_DEFAULT_USER, "qwerty",361, null, new VaulterCb());
+	}
+
+	public void startLossFixerService() {
+		LossFixer l = (LossFixer) sr.getServant("LossFixer");
+		l.launch(Config.DIR_DEFAULT_USER, new LossFixerCb());
+	}
+
 	public void startSenderService() {
-
-
 		Sender s = (Sender) sr.getServant("Sender");
-		s.launch(Config.DIR_DEFAULT_USER, 12345, new int[] {1,0,0,0,1}, "Test transfer to Sean", new SenderCb());
+		s.launch(Config.DIR_DEFAULT_USER, 9830900, new int[] {0,0,0,2,0}, "Test transfer to Sean", new SenderCb());
 	}
 
 	public void startShowEnvelopeCoinsService() {
 		ShowEnvelopeCoins s = (ShowEnvelopeCoins) sr.getServant("ShowEnvelopeCoins");
-		s.launch(Config.DIR_DEFAULT_USER, 127068, "My Envelopee", new ShowEnvelopeCoinsCb());
+		s.launch(Config.DIR_DEFAULT_USER, 9830900, "Test transfer to Sean", new ShowEnvelopeCoinsCb());
 	}
 
 	public void startReceiverService() {
 		Receiver r = (Receiver) sr.getServant("Receiver");
-		r.launch(Config.DIR_DEFAULT_USER, 127068, new int[]{1,1,1}, new int[] {10,20,30}, "My Envelopee", new ReceiverCb());
+		r.launch(Config.DIR_DEFAULT_USER, 9830900, new int[]{1,1}, new int[] {7050330, 7050331}, "Test transfer to Sean", new ReceiverCb());
 	}
 
 	public void startChangeMakerService() {
@@ -858,10 +867,12 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
                 requestedDialog= DIALOG_BANK;
 
                 if (1==1) {
+                	startLossFixerService();
+                //	startVaulterService();
                 //	startReceiverService();
-					//startShowEnvelopeCoinsService();
+				//	startShowEnvelopeCoinsService();
 				//	startSenderService();
-					startChangeMakerService();
+				//	startChangeMakerService();
 					return;
 				}
 
@@ -1155,6 +1166,36 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					ChangeMakerResult rresult = (ChangeMakerResult) fresult;
 
 					Log.v(ltag, "cn!");
+
+				}
+			});
+		}
+	}
+
+	class VaulterCb implements CallbackInterface {
+		public void callback(final Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					VaulterResult vresult = (VaulterResult) fresult;
+
+					Log.v(ltag, "cnv!=" + vresult.status);
+
+				}
+			});
+		}
+	}
+
+	class LossFixerCb implements CallbackInterface {
+		public void callback(final Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					LossFixerResult lr = (LossFixerResult) fresult;
+
+					Log.v(ltag, "reees=" + lr.status);
 
 				}
 			});

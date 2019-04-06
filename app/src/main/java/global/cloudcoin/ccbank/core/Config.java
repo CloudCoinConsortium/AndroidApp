@@ -30,6 +30,7 @@ public class Config {
     public static String DIR_TRUSTEDTRANSFER = "TrustedTransfer";
     public static String DIR_CONFIG = "Config";
     public static String DIR_SENT = "Sent";
+    public static String DIR_VAULT = "Vault";
 
 
 
@@ -66,6 +67,7 @@ public class Config {
     public static int IDX_25 = 2;
     public static int IDX_100 = 3;
     public static int IDX_250 = 4;
+    public static int IDX_TOTAL = 5;
 
     public static int IDX_FOLDER_BANK = 0;
     public static int IDX_FOLDER_FRACKED = 1;
@@ -90,7 +92,7 @@ public class Config {
 
     public static String SENDER_DOMAIN = "teleportnow.cc";
 
-    public static int RAIDANUM_TO_QUERY_BY_DEFAULT = 14;
+    public static int RAIDANUM_TO_QUERY_BY_DEFAULT = 7;
 
     public static int MAX_COMMON_LOG_LENGTH_MB = 128;
 
@@ -112,4 +114,6 @@ public class Config {
     final public static int CHANGE_METHOD_250C = 12;
     final public static int CHANGE_METHOD_250D = 13;
 
+    final public static int VAULTER_OP_VAULT = 1;
+    final public static int VAULTER_OP_UNVAULT = 2;
 }

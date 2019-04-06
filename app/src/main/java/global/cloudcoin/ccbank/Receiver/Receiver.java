@@ -90,14 +90,16 @@ public class Receiver extends Servant {
             sbs[i].append(cc.sn);
             sbs[i].append("&an=");
             sbs[i].append(cc.ans[i]);
+            sbs[i].append("&pan=");
+            sbs[i].append(cc.ans[i]);
             sbs[i].append("&denomination=");
             sbs[i].append(cc.getDenomination());
             sbs[i].append("&envelope_name=");
             sbs[i].append(URLEncoder.encode(envelope));
             for (int j = 0; j < sns.length; j++) {
-                sbs[i].append("&nns=");
+                sbs[i].append("&nns[]=");
                 sbs[i].append(nns[j]);
-                sbs[i].append("&sns=");
+                sbs[i].append("&sns[]=");
                 sbs[i].append(sns[j]);
             }
 
@@ -110,8 +112,6 @@ public class Receiver extends Servant {
             rr.status = ReceiverResult.STATUS_ERROR;
             return;
         }
-
-
 
         ccs = new CloudCoin[sns.length];
         rrs = new ReceiverResponse[RAIDA.TOTAL_RAIDA_COUNT][];

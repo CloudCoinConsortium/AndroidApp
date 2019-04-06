@@ -216,7 +216,7 @@ public class ChangeMaker extends Servant {
         int cntErr = 0;
         ChangeResponse[] crs = new ChangeResponse[RAIDA.TOTAL_RAIDA_COUNT];
         CloudCoin[] ccs = new CloudCoin[sns.length];
-        
+
         for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             logger.info(ltag, "RAIDA " + i + ": " + results[i]);
             if (results[i] == null) {

@@ -17,10 +17,7 @@ import global.cloudcoin.ccbank.core.Servant;
 public class Exporter extends Servant {
     String ltag = "Exporter";
     ExporterResult er;
-    ArrayList<CloudCoin> coinsPicked;
 
-
-    int[] valuesPicked;
 
     public Exporter(String rootDir, GLogger logger) {
         super("Exporter", rootDir, logger);
@@ -41,6 +38,7 @@ public class Exporter extends Servant {
         er = new ExporterResult();
         coinsPicked = new ArrayList<CloudCoin>();
         valuesPicked = new int[AppCore.getDenominations().length];
+
         for (int i = 0; i < valuesPicked.length; i++)
             valuesPicked[i] = 0;
 
@@ -239,65 +237,4 @@ public class Exporter extends Servant {
         return true;
     }
 
-
-    private boolean collectedEnough(int[] values) {
-        for (int i = 0; i < values.length; i++) {
-            if (values[i] != valuesPicked[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private void pickCoin(int idx, int[] values, CloudCoin cc) {
-        if (values[idx] > valuesPicked[idx]) {
-            logger.debug(ltag, "Picking coin " + cc.sn);
-
-            valuesPicked[idx]++;
-            coinsPicked.add(cc);
-        }
-    }
-
-    public boolean pickCoinsInDir(String dir, int[] values) {
-        logger.debug(ltag, "Looking into dir: " + dir);
-
-        CloudCoin cc;
-        int denomination;
-
-        File dirObj = new File(dir);
-        for (File file: dirObj.listFiles()) {
-            if (file.isDirectory())
-                continue;
-
-            try {
-                cc = new CloudCoin(file.toString());
-            } catch (JSONException e) {
-                logger.error(ltag, "Failed to parse coin: " + file.toString() +
-                        " error: " + e.getMessage());
-
-                continue;
-            }
-
-            denomination = cc.getDenomination();
-            if (denomination == 1) {
-                pickCoin(Config.IDX_1, values, cc);
-            } else if (denomination == 5) {
-                pickCoin(Config.IDX_5, values, cc);
-            } else if (denomination == 25) {
-                pickCoin(Config.IDX_25, values, cc);
-            } else if (denomination == 100) {
-                pickCoin(Config.IDX_100, values, cc);
-            } else if (denomination == 250) {
-                pickCoin(Config.IDX_250, values, cc);
-            }
-
-            if (collectedEnough(values)) {
-                logger.debug(ltag, "Collected enough. Stop");
-                return true;
-            }
-        }
-
-        return false;
-    }
 }

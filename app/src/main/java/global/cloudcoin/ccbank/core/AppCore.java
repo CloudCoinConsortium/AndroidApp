@@ -80,6 +80,7 @@ public class AppCore {
             Config.DIR_TEMPLATES,
             Config.DIR_TRASH,
             Config.DIR_TRUSTEDTRANSFER,
+            Config.DIR_VAULT
         };
 
         createDirectory(Config.DIR_ACCOUNTS + File.separator + Config.DIR_DEFAULT_USER);
@@ -358,5 +359,7 @@ public class AppCore {
         return String.format("%" + length + "s", string).replace(' ', padding);
     }
 
-
+    public static int charCount(String pown, char character) {
+        return pown.length() - pown.replace(Character.toString(character), "").length();
+    }
 }
