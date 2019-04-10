@@ -69,9 +69,13 @@ import java.util.Calendar;
 
 import global.cloudcoin.ccbank.Authenticator.Authenticator;
 import global.cloudcoin.ccbank.Authenticator.AuthenticatorResult;
+import global.cloudcoin.ccbank.Backupper.Backupper;
+import global.cloudcoin.ccbank.Backupper.BackupperResult;
 import global.cloudcoin.ccbank.ChangeMaker.ChangeMaker;
 import global.cloudcoin.ccbank.ChangeMaker.ChangeMakerResult;
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.Eraser.Eraser;
+import global.cloudcoin.ccbank.Eraser.EraserResult;
 import global.cloudcoin.ccbank.Exporter.Exporter;
 import global.cloudcoin.ccbank.Exporter.ExporterResult;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
@@ -223,7 +227,9 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 					"Receiver",
 					"ChangeMaker",
 					"Vaulter",
-					"LossFixer"
+					"LossFixer",
+					"Backupper",
+                    "Eraser"
 			}, AppCore.getRootPath(), alogger);
 
 			startEchoService();
@@ -273,7 +279,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	public void startAuthenticatorService() {
 		at = (Authenticator) sr.getServant("Authenticator");
-		at.launch(new AuthenticatorCb());
+		at.launch(Config.DIR_DEFAULT_USER, new AuthenticatorCb());
 	}
 
 	public void startGraderService() {
@@ -302,9 +308,19 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		l.launch(Config.DIR_DEFAULT_USER, new LossFixerCb());
 	}
 
+	public void startBackupperService() {
+		Backupper b = (Backupper) sr.getServant("Backupper");
+		b.launch(Config.DIR_DEFAULT_USER, AppCore.getRootPath() + File.separator + "/Backup", new BackupperCb());
+	}
+
+	public void startEraserService() {
+		Eraser e = (Eraser) sr.getServant("Eraser");
+		e.launch(Config.DIR_DEFAULT_USER, new EraserCb());
+	}
+
 	public void startSenderService() {
 		Sender s = (Sender) sr.getServant("Sender");
-		s.launch(Config.DIR_DEFAULT_USER, 9830900, new int[] {0,0,0,2,0}, "Test transfer to Sean", new SenderCb());
+		s.launch(Config.DIR_DEFAULT_USER, 9830900, new int[] {0,0,0,2,0}, "Test transfer to Sean 2", new SenderCb());
 	}
 
 	public void startShowEnvelopeCoinsService() {
@@ -867,9 +883,11 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
                 requestedDialog= DIALOG_BANK;
 
                 if (1==1) {
-                	startLossFixerService();
+                	//startEraserService();
+				//	startBackupperService();
+                	//startLossFixerService();
                 //	startVaulterService();
-                //	startReceiverService();
+                	startReceiverService();
 				//	startShowEnvelopeCoinsService();
 				//	startSenderService();
 				//	startChangeMakerService();
@@ -1202,4 +1220,33 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		}
 	}
 
+	class BackupperCb implements CallbackInterface {
+		public void callback(final Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					BackupperResult br = (BackupperResult) fresult;
+
+					Log.v(ltag, "reees=" + br.status);
+
+				}
+			});
+		}
+	}
+
+	class EraserCb implements CallbackInterface {
+		public void callback(final Object result) {
+			final Object fresult = result;
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					EraserResult er = (EraserResult) fresult;
+
+					Log.v(ltag, "reees222=" + er.status);
+
+				}
+			});
+		}
+	}
 }

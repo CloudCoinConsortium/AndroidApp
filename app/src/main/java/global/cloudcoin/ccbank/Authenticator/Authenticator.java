@@ -21,13 +21,15 @@ public class Authenticator extends Servant {
     String ltag = "Authencticator";
     AuthenticatorResult globalResult;
     String email;
+    String user;
 
     public Authenticator(String rootDir, GLogger logger) {
         super("Authenticator", rootDir, logger);
     }
 
-    public void launch(CallbackInterface icb) {
+    public void launch(String user, CallbackInterface icb) {
         this.cb = icb;
+        this.user = user;
 
         globalResult = new AuthenticatorResult();
         launchThread(new Runnable() {
@@ -158,9 +160,9 @@ public class Authenticator extends Servant {
 
                 strStatus = ar[i][j].status;
 
-                if (strStatus.equals("pass")) {
+                if (strStatus.equals(Config.REQUEST_STATUS_PASS)) {
                     status = CloudCoin.STATUS_PASS;
-                } else if (strStatus.equals("fail")) {
+                } else if (strStatus.equals(Config.REQUEST_STATUS_FAIL)) {
                     status = CloudCoin.STATUS_FAIL;
                 } else {
                     status = CloudCoin.STATUS_ERROR;
@@ -178,10 +180,19 @@ public class Authenticator extends Servant {
     }
 
     private void moveCoinsToLost(ArrayList<CloudCoin> ccs) {
+        String dir = AppCore.getUserDir(Config.DIR_LOST, this.user);
+        String file;
+
         for (CloudCoin cc : ccs) {
             if (!cc.originalFile.equals("")) {
-                logger.debug(ltag, "Moving to Lost " + cc.sn);
-                AppCore.moveToLost(cc.originalFile);
+                file = dir + File.separator + cc.getFileName();
+                logger.info(ltag, "Saving coin to Lost " + file);
+                if (!AppCore.saveFile(file, cc.getJson())) {
+                    logger.error(ltag, "Failed to move coin to move to Lost: " + cc.getFileName());
+                }
+
+                logger.debug(ltag, "Moving to Trash " + cc.sn);
+                AppCore.moveToTrash(cc.originalFile);
             }
         }
     }
@@ -196,8 +207,7 @@ public class Authenticator extends Servant {
             logger.info(ltag, "Saving " + ccFile);
             if (!AppCore.saveFile(ccFile, cc.getJson())) {
                 logger.error(ltag, "Failed to save file: " + ccFile);
-                if (!cc.originalFile.equals(""))
-                    AppCore.moveToLost(cc.originalFile);
+                continue;
             }
 
             AppCore.deleteFile(cc.originalFile);

@@ -70,7 +70,6 @@ public class CloudCoin {
 		originalFile = fileName;
 
 		initCommon();
-
 		if (pownString != null && !pownString.isEmpty())
 			setDetectStatusFromPownString();
 

@@ -78,14 +78,15 @@ public class Unpacker extends Servant {
             } else if (extension.equals("coin")) {
                 rv = doUnpackBinary(file.toString());
             } else {
-                    logger.error(ltag, "Unknown file: " + fileName);
-                    AppCore.moveToTrash(file.toString());
-                    continue;
+                rv = doUnpackStack(file.toString());
+                //    logger.error(ltag, "Unknown file: " + fileName);
+                //    AppCore.moveToTrash(file.toString());
+                //    continue;
             }
 
             if (!rv) {
                 logger.error(ltag, "Error processing file: " + fileName);
-                //AppCore.moveToTrash(file.toString());
+                AppCore.moveToTrash(file.toString());
             }
         }
         //privateLogDir

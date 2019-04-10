@@ -56,6 +56,7 @@ public class Config {
 
     public static String RAIDA_STATUS_READY = "ready";
     public static String REQUEST_STATUS_PASS = "pass";
+    public static String REQUEST_STATUS_FAIL = "fail";
 
 
 
