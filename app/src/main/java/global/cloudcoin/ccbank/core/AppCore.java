@@ -42,7 +42,6 @@ public class AppCore {
     }
 
     static public void initFolders(File path, GLogger logger) throws Exception {
-
         rootPath = path;
         AppCore.logger = logger;
 
@@ -53,7 +52,9 @@ public class AppCore {
         createDirectory(Config.DIR_MAIN_LOGS);
         createDirectory("Receipts");
         createDirectory("Commands");
-
+    }
+   
+    static public void initUserFolders(String user) throws Exception {
         String[] folders = new String[]{
             Config.DIR_BANK,
             Config.DIR_COUNTERFEIT,
@@ -84,22 +85,22 @@ public class AppCore {
             Config.DIR_VAULT
         };
 
-        createDirectory(Config.DIR_ACCOUNTS + File.separator + Config.DIR_DEFAULT_USER);
+        createDirectory(Config.DIR_ACCOUNTS + File.separator + user);
 
         for (String dir : folders) {
-            createDirectory(Config.DIR_ACCOUNTS + File.separator + Config.DIR_DEFAULT_USER + File.separator + dir);
+            createDirectory(Config.DIR_ACCOUNTS + File.separator + user + File.separator + dir);
         }
     }
 
     static public String getRootPath() {
        return rootPath.toString();
     }
-
-    static public String getConfigDir() {
+  
+    static public String getUserConfigDir(String user) {
        File f;
 
        f = new File(rootPath, "Accounts");
-       f = new File(f, "DefaultUser");
+       f = new File(f, user);
        f = new File(f, Config.DIR_CONFIG);
 
        return f.toString();
@@ -125,11 +126,11 @@ public class AppCore {
        return f.toString();
    }
 
-   static public String getPrivateLogDir() {
+   static public String getPrivateLogDir(String user) {
        File f;
 
        f = new File(rootPath, Config.DIR_ACCOUNTS);
-       f = new File(f, Config.DIR_DEFAULT_USER);
+       f = new File(f, user);
        f = new File(f, Config.DIR_LOGS);
 
        return f.toString();
@@ -145,9 +146,9 @@ public class AppCore {
         return f.toString();
    }
 
-   static public String getUserDir(String folder) {
-       return getUserDir(folder, Config.DIR_DEFAULT_USER);
-   }
+   //static public String getUserDir(String folder) {
+   //    return getUserDir(folder, Config.DIR_DEFAULT_USER);
+   //}
 
    static public int getTotal(int[] counters) {
        return counters[Config.IDX_1] + counters[Config.IDX_5] * 5 +
@@ -161,12 +162,12 @@ public class AppCore {
         return denominations;
     }
 
-    static public void moveToFolder(String fileName, String folder) {
+    static public void moveToFolder(String fileName, String folder, String user) {
         logger.info(ltag, "Moving to " + folder + " -> " + fileName);
 
         try {
             File fsource = new File(fileName);
-            String target = AppCore.getUserDir(folder) + File.separator +
+            String target = AppCore.getUserDir(folder, user) + File.separator +
                     System.currentTimeMillis() + "-" + fsource.getName();
 
             File ftarget = new File(target);
@@ -177,18 +178,20 @@ public class AppCore {
         }
     }
 
-    static public void moveToTrash(String fileName) {
-        moveToFolder(fileName, Config.DIR_TRASH);
+    static public void moveToTrash(String fileName, String user) {
+        moveToFolder(fileName, Config.DIR_TRASH, user);
     }
 
-    static public void moveToLost(String fileName) {
-        moveToFolder(fileName, Config.DIR_LOST);
+    static public void moveToLost(String fileName, String user) {
+        moveToFolder(fileName, Config.DIR_LOST, user);
     }
 
-    static public void moveToBank(String fileName) { moveToFolder(fileName, Config.DIR_BANK); }
+    static public void moveToBank(String fileName, String user) { 
+        moveToFolder(fileName, Config.DIR_BANK, user); 
+    }
 
-    static public void moveToImported(String fileName) {
-        moveToFolder(fileName, Config.DIR_IMPORTED);
+    static public void moveToImported(String fileName, String user) {
+        moveToFolder(fileName, Config.DIR_IMPORTED, user);
     }
 
     static public boolean copyFile(String fsrc, String fdst) {
@@ -316,8 +319,8 @@ public class AppCore {
         f.delete();
     }
 
-    static public int getFilesCount(String dir) {
-       String path = getUserDir(dir);
+    static public int getFilesCount(String dir, String user) {
+       String path = getUserDir(dir, user);
        File rFile;
        int rv;
 
@@ -395,4 +398,30 @@ public class AppCore {
     public static int charCount(String pown, char character) {
         return pown.length() - pown.replace(Character.toString(character), "").length();
     }
+    
+    public static String[] getDirs() {
+        String[] rv;
+        int c = 0;
+
+        File dirObj = new File(rootPath + File.separator + Config.DIR_ACCOUNTS);
+        for (File file: dirObj.listFiles()) {
+            if (!file.isDirectory())
+                continue;
+            
+            c++;
+        }
+        
+        rv = new String[c];
+        c = 0;
+        for (File file: dirObj.listFiles()) {
+            if (!file.isDirectory())
+                continue;
+            
+            rv[c++] = file.getName();
+        }
+        
+        return rv;    
+        
+    }
+    
 }

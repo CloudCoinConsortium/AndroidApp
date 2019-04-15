@@ -53,7 +53,7 @@ public class ShowCoins extends Servant {
     }
 
     public void showCoinsInFolder(int idx, String folder) {
-        String fullPath = AppCore.getUserDir(folder);
+        String fullPath = AppCore.getUserDir(folder, user);
 
         CloudCoin cc;
 

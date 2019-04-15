@@ -117,7 +117,7 @@ public class FrackFixer extends Servant {
             return;
         }
 
-        String fullPath = AppCore.getUserDir(Config.DIR_FRACKED);
+        String fullPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
         CloudCoin cc;
         ArrayList<CloudCoin> ccall = new ArrayList<CloudCoin>();
 
@@ -455,7 +455,7 @@ public class FrackFixer extends Servant {
         cc.setPownStringFromDetectStatus();
         cc.calcExpirationDate();
 
-        AppCore.moveToFolder(cc.originalFile, Config.DIR_TRASH);
+        AppCore.moveToFolder(cc.originalFile, Config.DIR_TRASH, user);
         if (!AppCore.saveFile(cc.originalFile, cc.getJson(false))) {
             logger.error(ltag, "Failed to save file: " + cc.originalFile);
             logger.debug(ltag, "Coin details: " + cc.getJson());
@@ -510,7 +510,7 @@ public class FrackFixer extends Servant {
 
         if (cnt == RAIDA.TOTAL_RAIDA_COUNT) {
             logger.info(ltag, "Coin " + cc.sn + " is fixed. Moving to bank");
-            AppCore.moveToBank(cc.originalFile);
+            AppCore.moveToBank(cc.originalFile, user);
             fr.fixed++;
             return;
         }

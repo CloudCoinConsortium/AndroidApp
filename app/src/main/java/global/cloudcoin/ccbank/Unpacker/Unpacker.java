@@ -45,7 +45,7 @@ public class Unpacker extends Servant {
     }
 
     public void doUnpack() {
-        String importFolder = AppCore.getUserDir(Config.DIR_IMPORT);
+        String importFolder = AppCore.getUserDir(Config.DIR_IMPORT, user);
         String fileName, extension;
         int index;
 
@@ -60,7 +60,7 @@ public class Unpacker extends Servant {
             index = fileName.lastIndexOf('.');
             if (index <= 0) {
                 logger.error(ltag, "Skipping filename " + fileName + ". No extension found");
-                AppCore.moveToTrash(file.toString());
+                AppCore.moveToTrash(file.toString(), user);
                 continue;
             }
 
@@ -86,7 +86,7 @@ public class Unpacker extends Servant {
 
             if (!rv) {
                 logger.error(ltag, "Error processing file: " + fileName);
-                AppCore.moveToTrash(file.toString());
+                AppCore.moveToTrash(file.toString(), user);
             }
         }
         //privateLogDir
@@ -98,7 +98,7 @@ public class Unpacker extends Servant {
         String json = cc.getJson();
         String path;
 
-        path = AppCore.getUserDir(Config.DIR_SUSPECT) + File.separator + fileName;
+        path = AppCore.getUserDir(Config.DIR_SUSPECT, user) + File.separator + fileName;
 
         logger.info(ltag, "Saving " + path + ": " + json);
 
@@ -138,7 +138,7 @@ public class Unpacker extends Servant {
         if (!saveCoin(cc))
             return false;
 
-        AppCore.moveToImported(fileName);
+        AppCore.moveToImported(fileName, user);
 
         return true;
     }
@@ -163,7 +163,7 @@ public class Unpacker extends Servant {
                 return false;
         }
 
-        AppCore.moveToImported(fileName);
+        AppCore.moveToImported(fileName, user);
 
         return true;
     }
@@ -189,7 +189,7 @@ public class Unpacker extends Servant {
                 return false;
         }
 
-        AppCore.moveToImported(fileName);
+        AppCore.moveToImported(fileName, user);
 
         return true;
     }

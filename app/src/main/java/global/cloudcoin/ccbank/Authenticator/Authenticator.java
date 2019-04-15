@@ -21,16 +21,14 @@ public class Authenticator extends Servant {
     String ltag = "Authencticator";
     AuthenticatorResult globalResult;
     String email;
-    String user;
 
     public Authenticator(String rootDir, GLogger logger) {
         super("Authenticator", rootDir, logger);
     }
 
-    public void launch(String user, CallbackInterface icb) {
+    public void launch(CallbackInterface icb) {
         this.cb = icb;
-        this.user = user;
-
+    
         globalResult = new AuthenticatorResult();
         launchThread(new Runnable() {
             @Override
@@ -180,7 +178,7 @@ public class Authenticator extends Servant {
     }
 
     private void moveCoinsToLost(ArrayList<CloudCoin> ccs) {
-        String dir = AppCore.getUserDir(Config.DIR_LOST, this.user);
+        String dir = AppCore.getUserDir(Config.DIR_LOST, user);
         String file;
 
         for (CloudCoin cc : ccs) {
@@ -192,7 +190,7 @@ public class Authenticator extends Servant {
                 }
 
                 logger.debug(ltag, "Moving to Trash " + cc.sn);
-                AppCore.moveToTrash(cc.originalFile);
+                AppCore.moveToTrash(cc.originalFile, user);
             }
         }
     }
@@ -201,7 +199,7 @@ public class Authenticator extends Servant {
         for (CloudCoin cc : ccs) {
             cc.setPownStringFromDetectStatus();
 
-            String ccFile = AppCore.getUserDir(Config.DIR_DETECTED) +
+            String ccFile = AppCore.getUserDir(Config.DIR_DETECTED, user) +
                     File.separator + cc.getFileName();
 
             logger.info(ltag, "Saving " + ccFile);
@@ -226,7 +224,7 @@ public class Authenticator extends Servant {
             return;
         }
 
-        String fullPath = AppCore.getUserDir(Config.DIR_SUSPECT);
+        String fullPath = AppCore.getUserDir(Config.DIR_SUSPECT, user);
 
         CloudCoin cc;
         ArrayList<CloudCoin> ccs;
@@ -243,7 +241,7 @@ public class Authenticator extends Servant {
         else
             this.email = "";
 
-        globalResult.totalFiles = AppCore.getFilesCount(Config.DIR_SUSPECT);
+        globalResult.totalFiles = AppCore.getFilesCount(Config.DIR_SUSPECT, user);
         if (globalResult.totalFiles == 0) {
             logger.error(ltag, "The Suspect folder is empty");
             globalResult.status = AuthenticatorResult.STATUS_FINISHED;
@@ -264,7 +262,7 @@ public class Authenticator extends Servant {
                 logger.error(ltag, "Failed to parse coin: " + file.toString() +
                         " error: " + e.getMessage());
 
-                AppCore.moveToTrash(file.toString());
+                AppCore.moveToTrash(file.toString(), user);
                 continue;
             }
 

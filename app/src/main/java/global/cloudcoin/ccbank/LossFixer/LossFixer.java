@@ -246,6 +246,6 @@ public class LossFixer extends Servant {
             return;
         }
 
-        AppCore.moveToImported(cc.originalFile);
+        AppCore.moveToImported(cc.originalFile, user);
     }
 }

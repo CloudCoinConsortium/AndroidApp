@@ -47,7 +47,7 @@ public class Grader extends Servant {
     }
 
     public void doGrade() {
-        String fullPath = AppCore.getUserDir(Config.DIR_DETECTED);
+        String fullPath = AppCore.getUserDir(Config.DIR_DETECTED, user);
         CloudCoin cc;
         boolean graded = false;
 
@@ -105,7 +105,7 @@ public class Grader extends Servant {
         rsb.append(sb);
         rsb.append("]}");
 
-        String fileName = AppCore.getUserDir(Config.DIR_RECEIPTS) + File.separator + receiptId + ".txt";
+        String fileName = AppCore.getUserDir(Config.DIR_RECEIPTS, user) + File.separator + receiptId + ".txt";
         if (!AppCore.saveFile(fileName, rsb.toString())) {
             logger.error(ltag, "Failed to save file " + fileName);
         }
@@ -174,7 +174,7 @@ public class Grader extends Servant {
 
             cc.calcExpirationDate();
 
-            ccFile = AppCore.getUserDir(dstFolder) + File.separator + cc.getFileName();
+            ccFile = AppCore.getUserDir(dstFolder, user) + File.separator + cc.getFileName();
         } else {
             if (passed + counterfeit > Config.PASS_THRESHOLD) {
                 logger.debug(ltag, "Coin " + cc.sn + " is counterfeit");
@@ -193,7 +193,7 @@ public class Grader extends Servant {
                 includePans = true;
             }
 
-            ccFile = AppCore.getUserDir(dstFolder) + File.separator +
+            ccFile = AppCore.getUserDir(dstFolder, user) + File.separator +
                 + System.currentTimeMillis() + "-" + cc.getFileName();
         }
 

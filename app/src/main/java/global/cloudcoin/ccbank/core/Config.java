@@ -117,4 +117,6 @@ public class Config {
 
     final public static int VAULTER_OP_VAULT = 1;
     final public static int VAULTER_OP_UNVAULT = 2;
+    
+    final public static int MAX_WALLET_LENGTH = 64;
 }

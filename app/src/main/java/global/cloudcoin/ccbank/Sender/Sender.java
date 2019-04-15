@@ -112,14 +112,14 @@ public class Sender extends Servant {
             logger.info(ltag, "Doing " + cc.originalFile + " pass="+passed + " f="+failed);
             if (passed >= Config.PASS_THRESHOLD) {
                 logger.info(ltag, "Moving to Sent: " + cc.sn);
-                AppCore.moveToFolder(cc.originalFile, Config.DIR_SENT);
+                AppCore.moveToFolder(cc.originalFile, Config.DIR_SENT, user);
             } else if (failed > 0) {
                 if (failed >= RAIDA.TOTAL_RAIDA_COUNT - Config.PASS_THRESHOLD) {
                     logger.info(ltag, "Moving to Counterfeit: " + cc.sn);
-                    AppCore.moveToFolder(cc.originalFile, Config.DIR_COUNTERFEIT);
+                    AppCore.moveToFolder(cc.originalFile, Config.DIR_COUNTERFEIT, user);
                 } else {
                     logger.info(ltag, "Moving to Fracked: " + cc.sn);
-                    AppCore.moveToFolder(cc.originalFile, Config.DIR_FRACKED);
+                    AppCore.moveToFolder(cc.originalFile, Config.DIR_FRACKED, user);
                 }
             }
         }

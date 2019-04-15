@@ -21,6 +21,8 @@ public class Servant {
     private String ltag = "Servant";
 
     private String rootDir;
+    public  String user;
+    
     private String name;
 
     protected RAIDA raida;
@@ -50,19 +52,22 @@ public class Servant {
         this.config = null;
         this.cancelRequest = false;
 
+        File f = new File(rootDir);
+        this.user = f.getName();
+        
         configHT = new Hashtable<String, String>();
 
         AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
         AppCore.createDirectory(Config.DIR_ACCOUNTS + File.separator +
-                Config.DIR_DEFAULT_USER + File.separator + Config.DIR_LOGS + File.separator + name);
+                this.user + File.separator + Config.DIR_LOGS + File.separator + name);
 
         this.logDir = AppCore.getLogDir() + File.separator + name;
-        this.privateLogDir = AppCore.getPrivateLogDir() + File.separator + name;
+        this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
 
         this.raida = new RAIDA(logger);
 
 
-        logger.info(ltag, "Instantiated servant " + name);
+        logger.info(ltag, "Instantiated servant " + name + " for " + user);
 
         readConfig();
     }
@@ -183,8 +188,27 @@ public class Servant {
         return true;
     }
 
+    public void putConfigValue(String key, String value) {
+        configHT.put(key, value);
+    }
+    
+    private boolean writeConfig(String key, String value) {
+        String data = "<" + name.toUpperCase() + ">";
+        
+        Set<String> keys = configHT.keySet();
+        for (String v : keys) {
+            data += v + ":" + configHT.get(v) + "\n";
+        }
+        
+        data += "</" +name.toUpperCase() + ">";
+        
+        System.out.println("xxx="+data);
+        
+        return true;
+    }
+    
     private boolean readConfig() {
-        String configFilename = AppCore.getConfigDir() + File.separator + "config.txt";
+        String configFilename = AppCore.getUserConfigDir(user) + File.separator + "config.txt";
         byte[] data;
         String xmlData;
 

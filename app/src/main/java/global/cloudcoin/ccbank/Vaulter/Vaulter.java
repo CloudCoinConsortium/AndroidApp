@@ -134,7 +134,7 @@ public class Vaulter extends Servant {
                 return;
             }
 
-            AppCore.moveToFolder(tcc.originalFile, Config.DIR_TRASH);
+            AppCore.moveToFolder(tcc.originalFile, Config.DIR_TRASH, user);
         }
 
         vr.status = VaulterResult.STATUS_FINISHED;
@@ -226,7 +226,7 @@ public class Vaulter extends Servant {
                 return;
             }
 
-            AppCore.moveToFolder(tcc.originalFile, Config.DIR_TRASH);
+            AppCore.moveToFolder(tcc.originalFile, Config.DIR_TRASH, user);
         }
     }
 

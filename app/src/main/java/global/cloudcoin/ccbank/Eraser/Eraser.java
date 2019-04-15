@@ -11,19 +11,16 @@ import global.cloudcoin.ccbank.core.Servant;
 public class Eraser extends Servant {
     String ltag = "Eraser";
     EraserResult er;
-    String user;
 
 
     public Eraser(String rootDir, GLogger logger) {
         super("Eraser", rootDir, logger);
     }
 
-    public void launch(String user, CallbackInterface icb) {
+    public void launch(CallbackInterface icb) {
         this.cb = icb;
 
         er = new EraserResult();
-        this.user = user;
-
         launchThread(new Runnable() {
             @Override
             public void run() {
@@ -47,7 +44,7 @@ public class Eraser extends Servant {
 
 
     public void emptyDir(String dir) {
-        String fullPath = AppCore.getUserDir(dir);
+        String fullPath = AppCore.getUserDir(dir, user);
 
         File d = new File(fullPath);
         for (File file : d.listFiles()) {

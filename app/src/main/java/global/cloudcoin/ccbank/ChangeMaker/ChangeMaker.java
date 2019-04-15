@@ -303,12 +303,12 @@ public class ChangeMaker extends Servant {
             logger.info(ltag, "cc="+ccs[i].sn + " v=" + ccs[i].getJson(false));
         }
 
-        AppCore.moveToFolder(tcc.originalFile, Config.DIR_SENT);
+        AppCore.moveToFolder(tcc.originalFile, Config.DIR_SENT, user);
         cr.status = ChangeMakerResult.STATUS_FINISHED;
     }
 
     private CloudCoin getTargetCoin(int denomination) {
-        String fullPath = AppCore.getUserDir(Config.DIR_BANK);
+        String fullPath = AppCore.getUserDir(Config.DIR_BANK, user);
         CloudCoin cc;
 
         File dirObj = new File(fullPath);
