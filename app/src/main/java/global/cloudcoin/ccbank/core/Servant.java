@@ -212,8 +212,6 @@ public class Servant {
         
         data += "</" +name.toUpperCase() + ">";
         
-        System.out.println("xxx="+data);
-        
         return data;
     }
     

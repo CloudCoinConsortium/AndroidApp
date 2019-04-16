@@ -457,24 +457,7 @@ public class AppCore {
         
     }
     
-    public static boolean writeConfig(String user, ServantRegistry sr) {
-        String config = "", ct;
-        for (String name : sr.getServantKeySet()) {
-            ct = sr.getServant(name).getConfigText();
-            
-            config += ct;
-            System.out.println("ct="+ct);
-        }
-        
-        String configFilename = AppCore.getUserConfigDir(user) + File.separator + "config.txt";
-        
-        if (!AppCore.saveFile(configFilename, config)) {
-            logger.error(ltag, "Failed to save config");
-            return false;
-        }
-        
-        return true;
-    }
+    
     
     
     
