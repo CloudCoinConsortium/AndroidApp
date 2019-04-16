@@ -22,6 +22,10 @@ public class ServantRegistry {
         return (Servant) this.servants.get(name);
     }
 
+    public Set<String> getServantKeySet() {
+        return servants.keySet();
+    }
+    
     public boolean registerServants(String[] servants, String rootDir, GLogger logger) {
         for (String servant : servants) {
             if (!registerServant(servant, rootDir, logger)) {
@@ -64,6 +68,29 @@ public class ServantRegistry {
         return true;
     }
 
+    public void changeUser(String user) {
+        Set<String> keys = servants.keySet();
+        for (String k : keys) {
+            Servant s = servants.get(k);
+            
+            System.out.println("sss=" + s);
+            
+            if (isRunning(k))
+                s.cancel();
+            
+            while (isRunning(k)) {
+                System.out.println("isRunning " + k);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                
+                }
+            }
+            
+            s.changeUser(user);
+        }
+    }
+    
     public boolean isRunning(String name) {
         String packageName = getClass().getPackage().getName();
         String targetClass;

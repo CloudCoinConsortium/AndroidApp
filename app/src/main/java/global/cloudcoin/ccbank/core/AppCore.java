@@ -194,14 +194,47 @@ public class AppCore {
         moveToFolder(fileName, Config.DIR_IMPORTED, user);
     }
 
+    static public boolean copyFile(InputStream is, String fdst) {
+        File dest = new File(fdst);
+        OutputStream os = null;
+        
+        try {
+            os = new FileOutputStream(dest);
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = is.read(buffer)) > 0) {
+                os.write(buffer, 0, length);
+            }
+        } catch (IOException e) {
+            logger.error(ltag, "Failed to copy file: " + e.getMessage());
+            return false;
+        } finally {
+            try {
+                if (is != null)
+                    is.close();
+
+                if (os != null)
+                    os.close();
+
+            } catch (IOException e) {
+
+            }
+        }
+        
+        return true;
+    }
+    
     static public boolean copyFile(String fsrc, String fdst) {
         File source = new File(fsrc);
         File dest = new File(fdst);
         InputStream is = null;
         OutputStream os = null;
+        
         try {
             is = new FileInputStream(source);
             os = new FileOutputStream(dest);
+
             byte[] buffer = new byte[1024];
             int length;
             while ((length = is.read(buffer)) > 0) {
@@ -423,5 +456,26 @@ public class AppCore {
         return rv;    
         
     }
+    
+    public static boolean writeConfig(String user, ServantRegistry sr) {
+        String config = "", ct;
+        for (String name : sr.getServantKeySet()) {
+            ct = sr.getServant(name).getConfigText();
+            
+            config += ct;
+            System.out.println("ct="+ct);
+        }
+        
+        String configFilename = AppCore.getUserConfigDir(user) + File.separator + "config.txt";
+        
+        if (!AppCore.saveFile(configFilename, config)) {
+            logger.error(ltag, "Failed to save config");
+            return false;
+        }
+        
+        return true;
+    }
+    
+    
     
 }

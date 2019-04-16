@@ -20,7 +20,6 @@ public class Servant {
 
     private String ltag = "Servant";
 
-    private String rootDir;
     public  String user;
     
     private String name;
@@ -47,13 +46,11 @@ public class Servant {
 
     public Servant(String name, String rootDir, GLogger logger) {
         this.name = name;
-        this.rootDir = rootDir;
         this.logger = logger;
         this.config = null;
         this.cancelRequest = false;
 
-        File f = new File(rootDir);
-        this.user = f.getName();
+        
         
         configHT = new Hashtable<String, String>();
 
@@ -62,14 +59,16 @@ public class Servant {
                 this.user + File.separator + Config.DIR_LOGS + File.separator + name);
 
         this.logDir = AppCore.getLogDir() + File.separator + name;
-        this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
+        
 
         this.raida = new RAIDA(logger);
 
+        File f = new File(rootDir);
+        changeUser(f.getName());
+        
+        logger.info(ltag, "Instantiated servant " + name + " for " + this.user);
 
-        logger.info(ltag, "Instantiated servant " + name + " for " + user);
-
-        readConfig();
+        
     }
 
     public void cancel() {
@@ -88,6 +87,15 @@ public class Servant {
         launch(null);
     }
 
+    public void changeUser(String user) {
+        logger.debug(ltag, "Changing user to " + user);
+        
+        this.user = user;
+        this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
+        
+        readConfig();
+    }
+    
     public void launch(CallbackInterface cb) {}
 
     public void launchDetachedThread(Runnable runnable) {
@@ -192,19 +200,21 @@ public class Servant {
         configHT.put(key, value);
     }
     
-    private boolean writeConfig(String key, String value) {
+    
+    
+    public String getConfigText() {
         String data = "<" + name.toUpperCase() + ">";
         
         Set<String> keys = configHT.keySet();
         for (String v : keys) {
-            data += v + ":" + configHT.get(v) + "\n";
+            data += v + ":" + configHT.get(v) + "\r\n";
         }
         
         data += "</" +name.toUpperCase() + ">";
         
         System.out.println("xxx="+data);
         
-        return true;
+        return data;
     }
     
     private boolean readConfig() {
@@ -215,6 +225,8 @@ public class Servant {
         File file = new File(configFilename);
         try {
             if (!file.exists()) {
+                System.out.println("No config file");
+                /*
                 xmlData = getDefaultConfig();
                 if (!file.createNewFile()) {
                     logger.error(ltag, "Failed to create config file");
@@ -222,7 +234,8 @@ public class Servant {
                 }
                 PrintWriter out = new PrintWriter(configFilename);
                 out.print(xmlData);
-                out.close();
+                out.close();*/
+                return false;
             } else {
                 data = Files.readAllBytes(Paths.get(configFilename));
                 xmlData = new String(data);
@@ -774,5 +787,6 @@ public class Servant {
         return true;
     }
 
+    
 
 }
