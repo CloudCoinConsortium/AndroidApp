@@ -5,7 +5,11 @@
  */
 package global.cloudcoin.ccbank.ServantManager;
 
+import global.cloudcoin.ccbank.Authenticator.Authenticator;
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
+import global.cloudcoin.ccbank.Grader.Grader;
+import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.core.AppCore;
 import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.Config;
@@ -90,8 +94,10 @@ public class ServantManager {
         if (!password.equals(""))
             sr.getServant("Vaulter").putConfigValue("status", "on");
         
-        if (!writeConfig(user))
+        if (!writeConfig(user)) {
+            System.exit(1);
             return false;
+        }
         
         return true;
     }
@@ -106,6 +112,8 @@ public class ServantManager {
             System.out.println("ct="+ct);
         }
         
+        System.out.println("ct1=" + config);
+        System.exit(1);
         String configFilename = AppCore.getUserConfigDir(user) + File.separator + "config.txt";
         
         if (!AppCore.saveFile(configFilename, config)) {
@@ -125,5 +133,27 @@ public class ServantManager {
         return sr.isRunning("Echoer");
     }
     
+    public void startFrackFixerService(CallbackInterface cb) {
+        if (sr.isRunning("FrackFixer"))
+            return;
+        
+        FrackFixer ff = (FrackFixer) sr.getServant("FrackFixer");
+	ff.launch(cb);
+    }
+    
+    public void startUnpackerService(CallbackInterface cb) {
+	Unpacker up = (Unpacker) sr.getServant("Unpacker");
+	up.launch(cb);
+    }
+     
+    public void startAuthenticatorService(CallbackInterface cb) {
+	Authenticator at = (Authenticator) sr.getServant("Authenticator");
+	at.launch(cb);
+    }
+    
+    public void startGraderService(CallbackInterface cb) {
+	Grader gd = (Grader) sr.getServant("Grader");
+	gd.launch(cb);
+    }
     
 }

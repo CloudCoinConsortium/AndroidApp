@@ -11,11 +11,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.security.MessageDigest;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 public class AppCore {
 
@@ -300,15 +307,19 @@ public class AppCore {
     }
 
     static public boolean saveFile(String path, String data) {
+        return saveFileAppend(path, data, false);
+    }
+    
+    static public boolean saveFileAppend(String path, String data, boolean isAppend) {
         File f = new File(path);
-        if (f.exists()) {
+        if (f.exists() && !isAppend) {
             logger.error(ltag, "File " + path + " already exists");
             return false;
         }
 
         BufferedWriter writer = null;
         try {
-            writer = new BufferedWriter(new FileWriter(path));
+            writer = new BufferedWriter(new FileWriter(path, isAppend));
             writer.write(data);
         } catch (IOException e){
             logger.error(ltag, "Failed to write file: " + e.getMessage());
@@ -458,7 +469,54 @@ public class AppCore {
     }
     
     
+    public static void copyTemplatesFromJar(String user) {
+        int d;
+        String templateDir, fileName;
+
+	templateDir = AppCore.getUserDir(Config.DIR_TEMPLATES, user);
+	fileName = templateDir + File.separator + "jpeg1.jpg";
+	File f = new File(fileName);
+	if (!f.exists()) {
+            for (int i = 0; i < AppCore.getDenominations().length; i++) {
+                d = AppCore.getDenominations()[i];
+                fileName = "jpeg" + d + ".jpg";
+                   
+                URL u = AppCore.class.getClassLoader().getResource("resources/" + fileName);
+                if (u == null)
+                    continue;
+                
+                String url = u.toString();
+                int bang = url.indexOf("!");
+                String JAR_URI_PREFIX = "jar:file:";
+                JarFile jf;
+                
+                try {
+                    jf = new JarFile(url.substring(JAR_URI_PREFIX.length(), bang)) ;
+                
+                    for (Enumeration<JarEntry> entries = jf.entries(); entries.hasMoreElements();) {
+                        JarEntry entry = entries.nextElement();
+                    
+                        if (entry.getName().equals("resources/" + fileName)) {
+                            InputStream in = jf.getInputStream(entry);
+                            String dst = AppCore.getUserDir(Config.DIR_TEMPLATES, user);
+                            dst += File.separator + fileName;
+
+                            AppCore.copyFile(in, dst);
+                        }
+                    }
+                } catch (IOException e) {
+                    return ;
+                }          
+            }
+        }
+    }
     
     
+    public static String getCurrentDate() {
+        DateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy");
+	Date date = new Date();
+        
+        return dateFormat.format(date);
+    }
     
 }
