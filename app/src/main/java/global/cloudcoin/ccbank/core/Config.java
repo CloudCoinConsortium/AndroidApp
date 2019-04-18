@@ -73,7 +73,9 @@ public class Config {
     public static int IDX_FOLDER_BANK = 0;
     public static int IDX_FOLDER_FRACKED = 1;
     public static int IDX_FOLDER_LOST = 2;
-    public static int IDX_FOLDER_LAST = 3;
+    public static int IDX_FOLDER_VAULT = 3;
+    public static int IDX_FOLDER_LAST = 4;
+    
 
     public static int DEFAULT_NN = 1;
 

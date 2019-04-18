@@ -49,26 +49,21 @@ public class Servant {
         this.logger = logger;
         this.config = null;
         this.cancelRequest = false;
-
-        
-        
+      
         configHT = new Hashtable<String, String>();
-
-        AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
-        AppCore.createDirectory(Config.DIR_ACCOUNTS + File.separator +
-                this.user + File.separator + Config.DIR_LOGS + File.separator + name);
-
-        this.logDir = AppCore.getLogDir() + File.separator + name;
-        
 
         this.raida = new RAIDA(logger);
 
+        logger.debug(ltag, "dir="+rootDir);
         File f = new File(rootDir);
         changeUser(f.getName());
         
-        logger.info(ltag, "Instantiated servant " + name + " for " + this.user);
+        AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
 
+                
+        this.logDir = AppCore.getLogDir() + File.separator + name;
         
+        logger.info(ltag, "Instantiated servant " + name + " for " + this.user); 
     }
 
     public void cancel() {
@@ -88,12 +83,17 @@ public class Servant {
     }
 
     public void changeUser(String user) {
-        logger.debug(ltag, "Changing user to " + user);
+        logger.debug(ltag, "Servant " + name + " changing user to " + user);
         
         this.user = user;
         this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
         
+        AppCore.createDirectoryPath(this.privateLogDir);
+        
+        configHT = new Hashtable<String, String>();
+        
         readConfig();
+        setConfig();
     }
     
     public void launch(CallbackInterface cb) {}
@@ -220,6 +220,7 @@ public class Servant {
         byte[] data;
         String xmlData;
 
+        logger.debug(ltag, "reading " + configFilename);
         File file = new File(configFilename);
         try {
             if (!file.exists()) {
@@ -235,6 +236,7 @@ public class Servant {
                 out.close();*/
                 return false;
             } else {
+                logger.debug(ltag, "read " + configFilename);
                 data = Files.readAllBytes(Paths.get(configFilename));
                 xmlData = new String(data);
             }
@@ -247,7 +249,11 @@ public class Servant {
     }
 
     private boolean parseConfigData(String xmlData) {
+        
         String tagName = this.name.toUpperCase();
+        if (xmlData.indexOf("<" + tagName + ">") == -1)
+            return true;
+        
         String regex = ".*?<" + tagName + ">(.*)</" + tagName + ">.*";
 
         xmlData = xmlData.replaceAll("\\n", "");
@@ -257,11 +263,15 @@ public class Servant {
         xmlData = xmlData.replaceAll(regex, "$1");
 
         String[] parts = xmlData.split("\n");
+        
         for (String item : parts) {
+            if (item.equals(""))
+                continue;
+            
             String[] subParts = item.split(":");
             if (subParts.length < 2) {
-                logger.error(ltag, "Failed to parse config");
-                return false;
+                logger.error(ltag, "Failed to parse config value " + item);
+                continue;
             }
 
             String k, rest = "";
@@ -272,13 +282,19 @@ public class Servant {
             for (int i = 2; i < subParts.length; i++)
                 rest += ":" + subParts[i].trim();
 
+            logger.debug(ltag, "serv " + name + "-> " + k + ":" + rest);
             configHT.put(k, rest);
         }
 
         return true;
     }
+    
+    public void setConfig() {
+        logger.debug(ltag, "Set parent config");
+    }
 
     public String getConfigValue(String key) {
+        System.out.println("GEt config key " + key + " for user " + user);
         return configHT.get(key);
     }
 
@@ -295,82 +311,6 @@ public class Servant {
         }
 
         return value;
-    }
-
-
-    private String getDefaultConfig() {
-        String config = "    <AUTHENTICATOR>\n" +
-                "    \tmax-coins-to-multi-detect:400\n" +
-                "     </AUTHENTICATOR>\n" +
-                "\n" +
-                "    <BACKUPER>\n" +
-                "    </BACKUPER>\n" +
-                "    \n" +
-                "    <DEPOSITOR>\n" +
-                "        combroker-url:https://bank.cloudcoin.global\n" +
-                "    </DEPOSITOR>\n" +
-                "    \n" +
-                "    <DIRECTORYMONITOR>\n" +
-                "    </DIRECTORYMONITOR>\n" +
-                "    \n" +
-                "    <ECHOER>\n" +
-                "    \tstart:https://raida1.CloudCoin.global\n" +
-                "    </ECHOER>\n" +
-                "    \n" +
-                "    <EMAILER>\n" +
-                "    \tsmtp-server:mail.cloudcoin.global\n" +
-                "    \tusername:dummy\n" +
-                "    \tpassword:dummy\n" +
-                "    </EMAILER>\n" +
-                "    \n" +
-                "    <EXPORTER>\n" +
-                "    </EXPORTER>\n" +
-                "    \n" +
-                "    <FRACKFIXER>\n" +
-                "    </FACKFIXER>\n" +
-                "\n" +
-                "    <GALLERIST>\n" +
-                "    </GALLERIST>\n" +
-                "    \n" +
-                "    <GRADER>\n" +
-                "    </GRADER>\n" +
-                "    \n" +
-                "    <LOSSFIXER>\n" +
-                "    </LOSSFIXER>\n" +
-                "    \n" +
-                "    <MINDER>\n" +
-                "    </MINDER>\n" +
-                "    \n" +
-                "    <PAYFORWARD>\n" +
-                "    </PAYFORWARD>\n" +
-                "    \n" +
-                "    <SHOWCOINS>\n" +
-                "    </SHOWCOINS>\n" +
-                "    \n" +
-                "    <TRANSFERER>\n" +
-                "    </TRANSFERER>\n" +
-                "    \n" +
-                "    <TRANSLATOR>\n" +
-                "    \tlanguage:english\n" +
-                "    </TRANSLATOR>\n" +
-                "    \n" +
-                "    <UNPACKER>\n" +
-                "    </UNPACKER>\n" +
-                "    \n" +
-                "    <VAULTER>\n" +
-                "    </VAULTER>\n" +
-                "\n" +
-                "    <FOLDERS>\n" +
-                "        home:\n" +
-                "        bank:default\n" +
-                "        import:default\n" +
-                "        imported:default\n" +
-                "        export:default\n" +
-                "        trash:default\n" +
-                "        suspect:default\n" +
-                "    </FOLDERS>";
-
-        return config;
     }
 
     public void setLogger(GLogger logger) {
@@ -526,6 +466,7 @@ public class Servant {
     }
 
     protected void cleanPrivateLogDir() {
+        System.out.println("ss="+privateLogDir);
         logger.info(ltag, "p="+privateLogDir);
         cleanDir(privateLogDir);
     }

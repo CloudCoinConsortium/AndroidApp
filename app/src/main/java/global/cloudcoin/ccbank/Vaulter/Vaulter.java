@@ -24,10 +24,9 @@ public class Vaulter extends Servant {
         super("Vaulter", rootDir, logger);
     }
 
-    public void launch(final int operation, String user, String password, int amount, CloudCoin cc, CallbackInterface icb) {
+    public void launch(final int operation, String password, int amount, CloudCoin cc, CallbackInterface icb) {
         this.cb = icb;
 
-        final String fuser = user;
         final int famount = amount;
         final String fpassword = password;
         final CloudCoin fcc = cc;
@@ -42,9 +41,9 @@ public class Vaulter extends Servant {
                 logger.info(ltag, "RUN Vaulter " + operation);
 
                 if (operation == Config.VAULTER_OP_VAULT)
-                    doVault(fuser, fpassword, famount, fcc);
+                    doVault(fpassword, famount, fcc);
                 if (operation == Config.VAULTER_OP_UNVAULT)
-                    doUnvault(fuser, fpassword, famount, fcc);
+                    doUnvault(fpassword, famount, fcc);
                 else
                     vr.status = VaulterResult.STATUS_ERROR;
 
@@ -54,15 +53,15 @@ public class Vaulter extends Servant {
         });
     }
 
-    public void vault(String user, String password, int amount, CloudCoin cc, CallbackInterface icb) {
-        launch(Config.VAULTER_OP_VAULT, user, password, amount, cc, icb);
+    public void vault(String password, int amount, CloudCoin cc, CallbackInterface icb) {
+        launch(Config.VAULTER_OP_VAULT, password, amount, cc, icb);
     }
 
-    public void unvault(String user, String password, int amount, CloudCoin cc, CallbackInterface icb) {
-        launch(Config.VAULTER_OP_UNVAULT, user, password, amount, cc, icb);
+    public void unvault(String password, int amount, CloudCoin cc, CallbackInterface icb) {
+        launch(Config.VAULTER_OP_UNVAULT, password, amount, cc, icb);
     }
 
-    public void doVault(String user, String password, int amount, CloudCoin cc) {
+    public void doVault(String password, int amount, CloudCoin cc) {
         String fullVaultPath = AppCore.getUserDir(Config.DIR_VAULT, user);
 
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
@@ -141,7 +140,7 @@ public class Vaulter extends Servant {
 
     }
 
-    public void doUnvault(String user, String password, int amount, CloudCoin cc) {
+    public void doUnvault(String password, int amount, CloudCoin cc) {
         String fullVaultPath = AppCore.getUserDir(Config.DIR_VAULT, user);
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
 

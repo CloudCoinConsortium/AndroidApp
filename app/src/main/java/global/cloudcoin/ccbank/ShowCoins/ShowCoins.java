@@ -49,7 +49,8 @@ public class ShowCoins extends Servant {
         showCoinsInFolder(Config.IDX_FOLDER_BANK, Config.DIR_BANK);
         showCoinsInFolder(Config.IDX_FOLDER_FRACKED, Config.DIR_FRACKED);
         showCoinsInFolder(Config.IDX_FOLDER_LOST, Config.DIR_LOST);
-
+        showCoinsInFolder(Config.IDX_FOLDER_VAULT, Config.DIR_VAULT);
+     
     }
 
     public void showCoinsInFolder(int idx, String folder) {

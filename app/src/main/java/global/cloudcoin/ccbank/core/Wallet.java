@@ -18,13 +18,32 @@ public class Wallet {
     GLogger logger;
     String name;
     String lsep;
+    String password;
+    boolean isEncrypted;
+    String email;
     
-    public Wallet(String name, GLogger logger) {
+    public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
+        this.email = email;
+        this.isEncrypted = isEncrypted;
+        this.password = password;
         this.ltag += name;
         this.logger = logger;
         
+        logger.debug(ltag, "wallet " + name + " e=" + email + " is="+isEncrypted+ " p="+password);
         lsep = System.getProperty("line.separator");
+    }
+    
+    public boolean isEncrypted() {
+        return this.isEncrypted;
+    }
+    
+    public String getPassword() {
+        return this.password;
+    }
+    
+    public void setPassword(String password) {
+        this.password = password;
     }
     
     public String[][] getTransactions() {

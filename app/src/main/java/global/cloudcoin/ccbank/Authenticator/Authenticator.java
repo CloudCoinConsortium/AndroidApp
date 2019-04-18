@@ -25,7 +25,7 @@ public class Authenticator extends Servant {
     public Authenticator(String rootDir, GLogger logger) {
         super("Authenticator", rootDir, logger);
         
-        putConfigValue("max-coins-to-multi-detect", "" + Config.DEFAULT_MAX_COINS_MULTIDETECT);
+        
     }
 
     public void launch(CallbackInterface icb) {
@@ -41,7 +41,11 @@ public class Authenticator extends Servant {
         });
     }
 
-
+    public void setConfig() {
+        logger.debug(ltag, "Setting config");
+        putConfigValue("max-coins-to-multi-detect", "" + Config.DEFAULT_MAX_COINS_MULTIDETECT);
+    }
+    
     private void copyFromGlobalResult(AuthenticatorResult aResult) {
         aResult.totalFilesProcessed = globalResult.totalFilesProcessed;
         aResult.totalRAIDAProcessed = globalResult.totalRAIDAProcessed;

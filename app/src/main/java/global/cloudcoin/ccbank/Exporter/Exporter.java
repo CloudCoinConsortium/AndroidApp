@@ -27,10 +27,28 @@ public class Exporter extends Servant {
         this.cb = icb;
     }
 
-    public void launch(String user, int type, int[] values, String tag, CallbackInterface icb) {
+    public void launch(int type, int amount, String tag, CallbackInterface icb) {
         this.cb = icb;
 
-        final String fuser = user;
+        final int ftype = type;
+        final int famount = amount;
+        final String ftag = tag;
+
+        er = new ExporterResult();
+        coinsPicked = new ArrayList<CloudCoin>();
+        launchThread(new Runnable() {
+            @Override
+            public void run() {
+                logger.info(ltag, "RUN Exporter");
+
+                doExport(ftype, null, amount, ftag);
+            }
+        });
+    }
+    
+    public void launch(int type, int[] values, String tag, CallbackInterface icb) {
+        this.cb = icb;
+
         final int ftype = type;
         final int[] fvalues = values;
         final String ftag = tag;
@@ -45,14 +63,14 @@ public class Exporter extends Servant {
         launchThread(new Runnable() {
             @Override
             public void run() {
-                logger.info(ltag, "RUN Exporter +" + fuser + " t="+ftag);
+                logger.info(ltag, "RUN Exporter");
 
-                doExport(fuser, ftype, fvalues, ftag);
+                doExport(ftype, fvalues, 0, ftag);
             }
         });
     }
 
-    public void doExport(String user, int type, int[] values, String tag) {
+    public void doExport(int type, int[] values, int amount, String tag) {
         if (tag.equals(""))
             tag = Config.DEFAULT_TAG;
 
@@ -67,24 +85,44 @@ public class Exporter extends Servant {
         String fullFrackedPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
 
-        if (values.length != AppCore.getDenominations().length) {
-            logger.error(ltag, "Invalid params");
-            er.status = ExporterResult.STATUS_ERROR;
-            if (cb != null)
-                cb.callback(er);
-
-            return;
-        }
-
-        if (!pickCoinsInDir(fullBankPath, values)) {
-            logger.debug(ltag, "Not enough coins in the bank dir");
-            if (!pickCoinsInDir(fullFrackedPath, values)) {
-                logger.error(ltag, "Not enough coins in the Fracked dir");
+        System.out.println("xxx"+amount);
+        if (values != null) {
+            if (values.length != AppCore.getDenominations().length) {
+                logger.error(ltag, "Invalid params");
                 er.status = ExporterResult.STATUS_ERROR;
                 if (cb != null)
                     cb.callback(er);
 
                 return;
+            }
+
+            if (!pickCoinsInDir(fullBankPath, values)) {
+                logger.debug(ltag, "Not enough coins in the bank dir");
+                if (!pickCoinsInDir(fullFrackedPath, values)) {
+                    logger.error(ltag, "Not enough coins in the Fracked dir");
+                    er.status = ExporterResult.STATUS_ERROR;
+                    if (cb != null)
+                        cb.callback(er);
+
+                    return;
+                }
+            }
+        } else {
+            if (!pickCoinsAmountInDir(fullBankPath, amount)) {
+                logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
+                er.status = ExporterResult.STATUS_ERROR;
+                    if (cb != null)
+                        cb.callback(er);
+                    
+              /*  if (!pickCoinsAmountInDir(fullFrackedPath, amount)) {
+                    logger.error(ltag, "Not enough coins in the Fracked dir");
+                    er.status = ExporterResult.STATUS_ERROR;
+                    if (cb != null)
+                        cb.callback(er);
+
+                    return;
+                }  
+                      */
             }
         }
 

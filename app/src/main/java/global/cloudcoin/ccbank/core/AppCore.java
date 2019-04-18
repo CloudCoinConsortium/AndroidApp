@@ -48,6 +48,17 @@ public class AppCore {
         logger.info(ltag, "CREATED " + idPath);
     }
 
+    static public void createDirectoryPath(String path) {
+        File idPathFile = new File(path);
+        if (idPathFile.exists())
+            return;
+        
+        if (!idPathFile.mkdirs()) {
+            logger.error(ltag, "Can not create directory " + path);
+            return;
+        }
+    }
+   
     static public void initFolders(File path, GLogger logger) throws Exception {
         rootPath = path;
         AppCore.logger = logger;

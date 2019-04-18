@@ -7,16 +7,22 @@ package global.cloudcoin.ccbank.ServantManager;
 
 import global.cloudcoin.ccbank.Authenticator.Authenticator;
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.Exporter.Exporter;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
 import global.cloudcoin.ccbank.Grader.Grader;
+import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
+import global.cloudcoin.ccbank.Vaulter.Vaulter;
 import global.cloudcoin.ccbank.core.AppCore;
 import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.ServantRegistry;
+import global.cloudcoin.ccbank.core.Wallet;
 import java.io.File;
+import java.util.Hashtable;
 import pbank.Pbank;
+
 
 /**
  *
@@ -28,21 +34,28 @@ public class ServantManager {
     GLogger logger;
     String home;
     String user;
+    private Hashtable<String, Wallet> wallets;
     
     public ServantManager(GLogger logger, String home) {
         this.logger = logger;
         this.home = home;
         this.sr = new ServantRegistry();
         this.user = Config.DIR_DEFAULT_USER;
+        this.wallets = new Hashtable<String, Wallet>();
     }
     
-    public String getActiveWallet() {
-        return this.user;
+    public Wallet getActiveWallet() {
+        if (!wallets.containsKey(user)) 
+            return null;
+        
+        return wallets.get(user);
     }
     
-    public void setActiveWallet(String user) {
-        this.user = user;
-        sr.changeUser(user);
+    public void setActiveWallet(String wallet) {        
+        this.user = wallet;
+        sr.changeUser(wallet);
+        
+        initWallet(wallet, "");     
     }
     
     public boolean init() {
@@ -72,21 +85,44 @@ public class ServantManager {
                 "Vaulter",
                 "ShowEnvelopeCoins"
         }, AppCore.getRootPath() + File.separator + user, logger);
-        
+   
         return true;
     }
     
-    public boolean initUser(String user, String email, String password) {
-        logger.debug(ltag, "Init user " + user);
+    public void initWallet(String wallet, String password) {
+        if (wallets.containsKey(wallet)) 
+            return;
+        
+        logger.debug(ltag, "Initializing wallet " + wallet);
+        Authenticator au = (Authenticator) sr.getServant("Authenticator");
+        String email = au.getConfigValue("email");
+        if (email == null)
+            email = "";
+            
+        Vaulter v = (Vaulter) sr.getServant("Vaulter");
+        String encStatus = v.getConfigValue("status");
+        if (encStatus == null)
+            encStatus = "off";
+            
+        System.out.println("wwwwall=" + wallet + " em="+email + " st="+ encStatus.equals("on")+ " p="+password);
+        
+        Wallet wobj = new Wallet(wallet, email, encStatus.equals("on"), password, logger);
+        wallets.put(wallet, wobj);    
+        
+    }
+    
+    public boolean initUser(String wallet, String email, String password) {
+        logger.debug(ltag, "Init user " + wallet);
         
         try {
-            AppCore.initUserFolders(user);
+            AppCore.initUserFolders(wallet);
         } catch (Exception e) {
             logger.error(ltag, "Error: " + e.getMessage());
             return false;
         }
         
-        setActiveWallet(user);
+        this.user = wallet;
+        sr.changeUser(wallet);
         
         if (!email.equals(""))
             sr.getServant("Authenticator").putConfigValue("email", email);
@@ -94,11 +130,13 @@ public class ServantManager {
         if (!password.equals(""))
             sr.getServant("Vaulter").putConfigValue("status", "on");
         
-        if (!writeConfig(user)) {
+        if (!writeConfig(wallet)) {
             System.exit(1);
             return false;
         }
         
+        initWallet(wallet, password);
+              
         return true;
     }
     
@@ -111,9 +149,7 @@ public class ServantManager {
             config += ct;
             System.out.println("ct="+ct);
         }
-        
-        System.out.println("ct1=" + config);
-        System.exit(1);
+
         String configFilename = AppCore.getUserConfigDir(user) + File.separator + "config.txt";
         
         if (!AppCore.saveFile(configFilename, config)) {
@@ -154,6 +190,24 @@ public class ServantManager {
     public void startGraderService(CallbackInterface cb) {
 	Grader gd = (Grader) sr.getServant("Grader");
 	gd.launch(cb);
+    }
+    
+    public void startShowCoinsService(CallbackInterface cb) {
+	ShowCoins sc = (ShowCoins) sr.getServant("ShowCoins");
+	sc.launch(cb);
+    }
+    
+    public void startVaulterService(CallbackInterface cb) {
+        String password = getActiveWallet().getPassword();
+        
+        logger.debug(ltag, "Vaulter password " + password);
+	Vaulter v = (Vaulter) sr.getServant("Vaulter");
+	v.vault(password, 0, null, cb);
+    }
+    
+    public void startExporterService(int exportType, int amount, String tag, CallbackInterface cb) {
+        Exporter ex = (Exporter) sr.getServant("Exporter");
+	ex.launch(exportType, amount, tag, cb);
     }
     
 }
