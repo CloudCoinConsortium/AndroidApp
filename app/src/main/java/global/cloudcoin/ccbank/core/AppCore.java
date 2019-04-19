@@ -180,7 +180,7 @@ public class AppCore {
         return denominations;
     }
 
-    static public void moveToFolder(String fileName, String folder, String user) {
+    static public boolean moveToFolder(String fileName, String folder, String user) {
         logger.info(ltag, "Moving to " + folder + " -> " + fileName);
 
         try {
@@ -189,11 +189,16 @@ public class AppCore {
                     System.currentTimeMillis() + "-" + fsource.getName();
 
             File ftarget = new File(target);
-            if (!fsource.renameTo(ftarget))
+            if (!fsource.renameTo(ftarget)) {
                 logger.error(ltag, "Failed to rename file " + fileName);
+                return false;
+            }
         } catch (Exception e) {
-            logger.error(ltag, "Failed to move file to trash: " + e.getMessage());
+            logger.error(ltag, "Failed to move file: " + e.getMessage());
+            return false;
         }
+        
+        return true;
     }
 
     static public void moveToTrash(String fileName, String user) {
@@ -454,6 +459,36 @@ public class AppCore {
         return pown.length() - pown.replace(Character.toString(character), "").length();
     }
     
+    public static String[] getFilesInDir(String dir, String user) {
+        String path = AppCore.getUserDir(Config.DIR_ID, user);
+        
+        String[] rv;
+        int c = 0;
+
+        File dirObj = new File(path);
+        if (!dirObj.exists()) {
+            return new String[0];
+        }
+        
+        for (File file: dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
+            
+            c++;
+        }
+        
+        rv = new String[c];
+        c = 0;
+        for (File file: dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
+            
+            rv[c++] = file.getName();
+        }
+        
+        return rv;       
+    }
+    
     public static String[] getDirs() {
         String[] rv;
         int c = 0;
@@ -475,8 +510,7 @@ public class AppCore {
             rv[c++] = file.getName();
         }
         
-        return rv;    
-        
+        return rv;       
     }
     
     

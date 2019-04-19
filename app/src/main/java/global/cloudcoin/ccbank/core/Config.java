@@ -123,4 +123,6 @@ public class Config {
     final public static int MAX_WALLET_LENGTH = 64;
     
     final public static String TRANSACTION_FILENAME = "transactions.txt";
+    
+    final public static int FIX_PROTOCOL_VERSION = 4;
 }

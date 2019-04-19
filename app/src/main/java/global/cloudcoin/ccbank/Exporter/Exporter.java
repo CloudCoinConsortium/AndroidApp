@@ -85,7 +85,6 @@ public class Exporter extends Servant {
         String fullFrackedPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
 
-        System.out.println("xxx"+amount);
         if (values != null) {
             if (values.length != AppCore.getDenominations().length) {
                 logger.error(ltag, "Invalid params");
@@ -232,6 +231,7 @@ public class Exporter extends Servant {
                 return false;
             }
 
+            er.totalExported += cc.getDenomination();
             er.exportedFileNames.add(fileName);
         }
 
@@ -271,6 +271,8 @@ public class Exporter extends Servant {
         er.exportedFileNames.add(fileName);
 
         deletePickedCoins();
+        
+        er.totalExported = total;
 
         return true;
     }

@@ -47,6 +47,7 @@ public class ServantRegistry {
             ClassLoader classLoader = this.getClass().getClassLoader();
 
             classBinName += "." + name + "." + name;
+
             Class loadedMyClass = classLoader.loadClass(classBinName);
 
             Constructor constructor = loadedMyClass.getDeclaredConstructor(String.class, GLogger.class);
@@ -72,8 +73,6 @@ public class ServantRegistry {
         Set<String> keys = servants.keySet();
         for (String k : keys) {
             Servant s = servants.get(k);
-            
-            System.out.println("sss=" + s);
             
             if (isRunning(k))
                 s.cancel();

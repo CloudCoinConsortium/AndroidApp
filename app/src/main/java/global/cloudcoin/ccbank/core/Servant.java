@@ -224,22 +224,12 @@ public class Servant {
         File file = new File(configFilename);
         try {
             if (!file.exists()) {
-                System.out.println("No config file");
-                /*
-                xmlData = getDefaultConfig();
-                if (!file.createNewFile()) {
-                    logger.error(ltag, "Failed to create config file");
-                    return false;
-                }
-                PrintWriter out = new PrintWriter(configFilename);
-                out.print(xmlData);
-                out.close();*/
+                logger.error(ltag, "No config found for user " + user);
                 return false;
-            } else {
-                logger.debug(ltag, "read " + configFilename);
-                data = Files.readAllBytes(Paths.get(configFilename));
-                xmlData = new String(data);
-            }
+            } 
+            
+            data = Files.readAllBytes(Paths.get(configFilename));
+            xmlData = new String(data);
         } catch (IOException e) {
             logger.error(ltag, "Failed to read config file: " + e.getMessage());
             return false;
@@ -249,25 +239,24 @@ public class Servant {
     }
 
     private boolean parseConfigData(String xmlData) {
-        
         String tagName = this.name.toUpperCase();
         if (xmlData.indexOf("<" + tagName + ">") == -1)
             return true;
         
         String regex = ".*?<" + tagName + ">(.*)</" + tagName + ">.*";
 
-        xmlData = xmlData.replaceAll("\\n", "");
+        xmlData = xmlData.replaceAll("\\n", "***");
         xmlData = xmlData.replaceAll("\\r", "");
         xmlData = xmlData.replaceAll("\\t", "");
         xmlData = xmlData.replaceAll(" ", "");
-        xmlData = xmlData.replaceAll(regex, "$1");
-
-        String[] parts = xmlData.split("\n");
         
+        xmlData = xmlData.replaceAll(regex, "$1");
+        
+        String[] parts = xmlData.split("\\*\\*\\*");   
         for (String item : parts) {
             if (item.equals(""))
                 continue;
-            
+
             String[] subParts = item.split(":");
             if (subParts.length < 2) {
                 logger.error(ltag, "Failed to parse config value " + item);
@@ -294,7 +283,6 @@ public class Servant {
     }
 
     public String getConfigValue(String key) {
-        System.out.println("GEt config key " + key + " for user " + user);
         return configHT.get(key);
     }
 

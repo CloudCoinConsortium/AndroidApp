@@ -26,7 +26,7 @@ public class Unpacker extends Servant {
     String ltag = "Unpacker";
 
     public Unpacker(String rootDir, GLogger logger) {
-        super("ShowCoins", rootDir, logger);
+        super("Unpacker", rootDir, logger);
     }
 
     public void launch(CallbackInterface icb) {

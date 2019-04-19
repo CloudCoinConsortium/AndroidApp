@@ -21,6 +21,7 @@ public class Wallet {
     String password;
     boolean isEncrypted;
     String email;
+    CloudCoin cc;
     
     public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
@@ -34,6 +35,14 @@ public class Wallet {
         lsep = System.getProperty("line.separator");
     }
     
+    public boolean isSkyWallet() {
+        return this.cc != null;
+    }
+    
+    public void setIDCoin(CloudCoin cc) {
+        this.cc = cc;
+    }
+    
     public boolean isEncrypted() {
         return this.isEncrypted;
     }
@@ -44,6 +53,14 @@ public class Wallet {
     
     public void setPassword(String password) {
         this.password = password;
+    }
+    
+    public String getName() {
+        return this.name;
+    }
+    
+    public String getEmail() {
+        return this.email;
     }
     
     public String[][] getTransactions() {

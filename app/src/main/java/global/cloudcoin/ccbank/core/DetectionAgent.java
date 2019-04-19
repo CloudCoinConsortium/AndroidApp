@@ -32,6 +32,7 @@ class DetectionAgent {
 		// TODO: remove +2 seconds. Now it is a workaround for slow RAIDAs
 		this.readTimeout = timeout + 2000;
 		this.connectionTimeout = timeout;
+                this.ltag += "" + this.RAIDANumber;
 
 		this.logger = logger;
 
@@ -145,7 +146,7 @@ class DetectionAgent {
 			return null;
 		} finally {
 			if (urlConnection != null)
-				urlConnection.disconnect();
+                            urlConnection.disconnect();
 		}
 	}
 

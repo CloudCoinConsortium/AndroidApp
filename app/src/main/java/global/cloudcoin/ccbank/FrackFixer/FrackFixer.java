@@ -78,10 +78,19 @@ public class FrackFixer extends Servant {
             trustedServers[i][7] = getNeightbour(i, sideSize + 1);
 
             trustedTriads[i] = new int[4][];
-            trustedTriads[i][0] = new int[] { trustedServers[i][0], trustedServers[i][1], trustedServers[i][3] };
-            trustedTriads[i][1] = new int[] { trustedServers[i][1], trustedServers[i][2], trustedServers[i][4] };
-            trustedTriads[i][2] = new int[] { trustedServers[i][3], trustedServers[i][5], trustedServers[i][6] };
-            trustedTriads[i][3] = new int[] { trustedServers[i][4], trustedServers[i][6], trustedServers[i][7] };
+            
+            if (Config.FIX_PROTOCOL_VERSION == 4) {
+                trustedTriads[i][0] = new int[] { trustedServers[i][0], trustedServers[i][1], trustedServers[i][3], trustedServers[i][7] };
+                trustedTriads[i][1] = new int[] { trustedServers[i][1], trustedServers[i][2], trustedServers[i][4], trustedServers[i][5] };
+                trustedTriads[i][2] = new int[] { trustedServers[i][3], trustedServers[i][5], trustedServers[i][6], trustedServers[i][2] };
+                trustedTriads[i][3] = new int[] { trustedServers[i][4], trustedServers[i][6], trustedServers[i][7], trustedServers[i][0] };
+            } else {   
+                trustedTriads[i][0] = new int[] { trustedServers[i][0], trustedServers[i][1], trustedServers[i][3] };
+                trustedTriads[i][1] = new int[] { trustedServers[i][1], trustedServers[i][2], trustedServers[i][4] };
+                trustedTriads[i][2] = new int[] { trustedServers[i][3], trustedServers[i][5], trustedServers[i][6] };
+                trustedTriads[i][3] = new int[] { trustedServers[i][4], trustedServers[i][6], trustedServers[i][7] };
+            }
+            
 
         }
 
@@ -96,10 +105,27 @@ public class FrackFixer extends Servant {
         nfr.status = fr.status;
     }
 
-    public void doFrackFix() {
-        if (1==1)
-            return;
+    
+    public void doMove(ArrayList<CloudCoin> ccs) {
+        int cnt = 0;
+        for (CloudCoin cc : ccs) {
+            for (int i = RAIDA.TOTAL_RAIDA_COUNT - 1; i >= 0; i--) {
+                if (cc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
+                    cnt++;
+            }
 
+            if (cnt == RAIDA.TOTAL_RAIDA_COUNT) {
+                logger.info(ltag, "Coin " + cc.sn + " is fixed. Moving to bank");
+                AppCore.moveToBank(cc.originalFile, user);
+                fr.fixed++;
+                return;
+            }
+        }
+
+        fr.failed++;
+    }
+    
+    public void doFrackFix() {
         if (!initNeighbours()) {
             fr.status = FrackFixerResult.STATUS_ERROR;
             if (cb != null)
@@ -138,29 +164,6 @@ public class FrackFixer extends Servant {
 
             ccall.add(cc);
 
-/*
-            if (isCancelled()) {
-                logger.info(ltag, "Cancelled");
-
-                resume();
-
-                FrackFixerResult nfr = new FrackFixerResult();
-                fr.status = FrackFixerResult.STATUS_CANCELLED;
-                copyFromMainFr(nfr);
-                if (cb != null)
-                    cb.callback(nfr);
-
-                return;
-            }
-            */
-
-         //   logger.info(ltag, "doing cc=" + cc.sn);
-         //   doFixCoin(cc);
-
-         //   FrackFixerResult nfr = new FrackFixerResult();
-         //   copyFromMainFr(nfr);
-         //   if (cb != null)
-         //       cb.callback(nfr);
         }
 
         int maxCoins = getIntConfigValue("max-coins-to-multi-detect");
@@ -168,6 +171,8 @@ public class FrackFixer extends Servant {
             maxCoins = Config.DEFAULT_MAX_COINS_MULTIDETECT;
 
         logger.debug(ltag, "maxcoins="+maxCoins);
+        System.out.println("xxx="+maxCoins);
+        maxCoins = 2;
 
         ArrayList<CloudCoin> ccactive = new ArrayList<CloudCoin>();;
         int corner, i, c;
@@ -184,43 +189,34 @@ public class FrackFixer extends Servant {
                 c++;
                 if (c == maxCoins) {
                     logger.info(ltag, "Doing fix. maxCoins " + maxCoins);
+                    System.out.println("Doing fix=" + maxCoins);
                     doRealFix(i, ccactive);
+                    doMove(ccactive);
                     ccactive.clear();
                     c = 0;
+                }
+                
+                if (isCancelled()) {
+                    logger.info(ltag, "Cancelled");
+
+                    resume();
+
+                    FrackFixerResult nfr = new FrackFixerResult();
+                    fr.status = FrackFixerResult.STATUS_CANCELLED;
+                    copyFromMainFr(nfr);
+                    if (cb != null)
+                        cb.callback(nfr);
+
+                    return;
                 }
             }
 
             if (ccactive.size() > 0) {
                 doRealFix(i, ccactive);
+                doMove(ccactive);
                 ccactive.clear();
             }
-
-
-            /*
-                logger.debug(ltag, "Fixing cc " + cc.sn + " on RAIDA" + i);
-                for (corner = 0; corner < 4; corner++) {
-                    logger.debug(ltag, "corner=" + corner);
-
-                    if (fixCoinInCorner(i, corner, cc)) {
-                        logger.debug(ltag, "Fixed successfully");
-                        syncCoin(i, cc);
-                        break;
-                    }
-                }
-            }*/
         }
-
-
-
-
-
-
-
-
-
-
-
-
 
         FrackFixerResult nfr = new FrackFixerResult();
         fr.status = FrackFixerResult.STATUS_FINISHED;
@@ -238,7 +234,7 @@ public class FrackFixer extends Servant {
 
             if (fixCoinsInCorner(raidaIdx, corner, ccs)) {
                 logger.debug(ltag, "Fixed successfully");
-              //  syncCoins(raidaIdx, ccs);
+                syncCoins(raidaIdx, ccs);
                 break;
             }
         }
@@ -349,9 +345,6 @@ public class FrackFixer extends Servant {
                 return false;
             }
 
-            if (i != 0)
-                posts[0] += "&";
-
             if (o.length != ccs.size()) {
                 logger.error(ltag, "Return size mismatch: " + o.length + " vs " + ccs.size());
                 raida.setFailed(triad[i]);
@@ -381,7 +374,9 @@ public class FrackFixer extends Servant {
                     return false;
                 }
 
-
+                if (i != 0 || j != 0)
+                    posts[0] += "&";
+                    
                 posts[0] += "fromserver" + (i + 1) + "[]=" + triad[i] + "&message" + (i + 1) + "[]=" + message;
 
 
@@ -394,7 +389,8 @@ public class FrackFixer extends Servant {
             posts[0] += "&pans[]=" + cc.ans[raidaIdx];
         }
 
-        logger.debug(ltag, "Doing actual fix on raida " + raidaIdx + " post " + posts[0]);
+        logger.debug(ltag, "Doing actual fix on raida " + raidaFix[0] + " post " + posts[0]);
+        System.out.println("Do fix on raida " + raidaFix[0] + " rqs=" + requests[0] + " p="+ posts[0]);
         results = raida.query(requests, posts, null, raidaFix);
         if (results == null) {
             logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx);
@@ -428,7 +424,14 @@ public class FrackFixer extends Servant {
 
             strStatus = fresp[j].status;
             message = fresp[j].message;
+            if (!strStatus.equals("success")) {
+                System.out.println("Failed to fix on RAIDA" + raidaIdx + ": " + message);
+                logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx + ": " + message);
+                raida.setFailed(raidaIdx);
+                return false;
+            }
 
+            System.out.println("result " + strStatus +  " mes " + message);
             logger.debug(ltag, "result " + strStatus +  " mes " + message);
         }
 
@@ -448,6 +451,11 @@ public class FrackFixer extends Servant {
 
     }
 
+    private void syncCoins(int raidaIdx, ArrayList<CloudCoin> ccs) {
+        for (CloudCoin cc : ccs)
+            syncCoin(raidaIdx, cc);
+    }
+    
     private void syncCoin(int raidaIdx, CloudCoin cc) {
         logger.info(ltag, "Syncing " + cc.originalFile);
 

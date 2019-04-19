@@ -10,6 +10,7 @@ public class ExporterResult {
     public static int STATUS_ERROR = 3;
 
     public ArrayList<String> exportedFileNames;
+    public int totalExported;
 
     public ExporterResult() {
         status = STATUS_PROCESSING;
