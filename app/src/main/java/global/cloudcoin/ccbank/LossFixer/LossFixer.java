@@ -15,27 +15,23 @@ import global.cloudcoin.ccbank.core.Servant;
 public class LossFixer extends Servant {
     String ltag = "LossFixer";
     LossFixerResult lr;
-    String user;
-
 
     public LossFixer(String rootDir, GLogger logger) {
         super("LossFixer", rootDir, logger);
     }
 
-    public void launch(String user, CallbackInterface icb) {
+    public void launch(CallbackInterface icb) {
         this.cb = icb;
 
         lr = new LossFixerResult();
 
-        final String fuser = user;
-        this.user = user;
 
         launchThread(new Runnable() {
             @Override
             public void run() {
                 logger.info(ltag, "RUN LossFixer");
 
-                doLossFix(fuser);
+                doLossFix();
             }
         });
     }
@@ -46,7 +42,7 @@ public class LossFixer extends Servant {
         nlr.status = lr.status;
     }
 
-    public void doLossFix(String user) {
+    public void doLossFix() {
         logger.debug(ltag, "Lossfix started");
 
         String fullLostPath = AppCore.getUserDir(Config.DIR_LOST, user);
@@ -68,7 +64,7 @@ public class LossFixer extends Servant {
                 continue;
             }
 
-            logger.info(ltag, "doing cc=" + cc.sn);
+            logger.info(ltag, "doing recovery " + cc.sn);
             doRecoverCoin(cc);
 
             LossFixerResult lfr = new LossFixerResult();
@@ -101,7 +97,7 @@ public class LossFixer extends Servant {
         for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             int status = cc.getDetectStatus(i);
 
-            logger.debug(ltag, " i="+i+" status="+status);
+            logger.debug(ltag, " i " + i + " status=" + status);
 
             if (status == CloudCoin.STATUS_PASS)
                 continue;
@@ -120,14 +116,14 @@ public class LossFixer extends Servant {
 
         if (failed > RAIDA.TOTAL_RAIDA_COUNT - Config.PASS_THRESHOLD) {
             logger.error(ltag, "Too many counterfeit responses");
-            //AppCore.moveToTrash(cc.originalFile);
+            AppCore.moveToTrash(cc.originalFile, user);
             lr.failed++;
             return;
         }
 
         if (rcnt == 0) {
             logger.error(ltag, "Coin can not be recovered: " + cc.sn);
-            //AppCore.moveToTrash(cc.originalFile);
+            AppCore.moveToTrash(cc.originalFile, user);
             lr.failed++;
             return;
         }

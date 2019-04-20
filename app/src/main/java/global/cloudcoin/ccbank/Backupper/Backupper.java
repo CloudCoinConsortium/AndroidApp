@@ -11,23 +11,21 @@ import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.Servant;
+import java.util.Locale;
 
 public class Backupper extends Servant {
     String ltag = "Backupper";
     BackupperResult br;
-    String user;
-
 
     public Backupper(String rootDir, GLogger logger) {
         super("Backupper", rootDir, logger);
     }
 
-    public void launch(String user, String destDir, CallbackInterface icb) {
+    public void launch(String destDir, CallbackInterface icb) {
         this.cb = icb;
 
         final String fdestDir = destDir;
         br = new BackupperResult();
-        this.user = user;
 
         launchThread(new Runnable() {
             @Override
@@ -52,7 +50,7 @@ public class Backupper extends Servant {
             return;
         }
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-d h:mma");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-d h-mma", Locale.US);
         Date date = new Date();
         String bdir = destDir + File.separator + user + File.separator + "CloudCoinBackup-" + dateFormat.format(date);
 

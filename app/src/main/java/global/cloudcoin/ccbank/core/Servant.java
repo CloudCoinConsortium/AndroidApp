@@ -54,7 +54,6 @@ public class Servant {
 
         this.raida = new RAIDA(logger);
 
-        logger.debug(ltag, "dir="+rootDir);
         File f = new File(rootDir);
         changeUser(f.getName());
         

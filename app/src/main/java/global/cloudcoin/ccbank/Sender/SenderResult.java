@@ -7,7 +7,12 @@ public class SenderResult {
 
     public int status;
 
+    public int amount;
+    public String memo;
+    
     public SenderResult() {
+        memo = "Send";
+        amount = 0;
         status = STATUS_PROCESSING;
     }
 }

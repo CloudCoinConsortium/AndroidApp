@@ -90,6 +90,21 @@ public class ServantRegistry {
         }
     }
     
+    public void changeServantUser(String servant, String user) {
+        Servant s = servants.get(servant);
+        while (isRunning(servant)) {
+            System.out.println("isxRunning " + servant);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                
+            }
+        }
+            
+        s.changeUser(user);
+    }
+    
+    
     public boolean isRunning(String name) {
         String packageName = getClass().getPackage().getName();
         String targetClass;

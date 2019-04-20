@@ -6,8 +6,7 @@
 package global.cloudcoin.ccbank.core;
 
 import java.io.File;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 
 /**
  *
@@ -43,6 +42,10 @@ public class Wallet {
         this.cc = cc;
     }
     
+    public CloudCoin getIDCoin() {
+        return this.cc;
+    }
+    
     public boolean isEncrypted() {
         return this.isEncrypted;
     }
@@ -64,9 +67,12 @@ public class Wallet {
     }
     
     public String[][] getTransactions() {
+        String tfFileName = Config.TRANSACTION_FILENAME;
         
+        if (isSkyWallet()) 
+            tfFileName += "-" + cc.sn;
         
-        String fileName = AppCore.getUserDir(Config.TRANSACTION_FILENAME, name);
+        String fileName = AppCore.getUserDir(tfFileName, name);
         String data = AppCore.loadFile(fileName);
         if (data == null)
             return null;
@@ -84,16 +90,16 @@ public class Wallet {
             rv[i][3] = rv[i][3].replace("-", "");
         }
         
-        return rv;
-   
-       
-       
+        return rv;            
     }
     
-    public void appendTransaction(String memo, int amount) {
+    public void appendTransaction(String memo, int amount) {  
+        String tfFileName = Config.TRANSACTION_FILENAME;
         
+        if (isSkyWallet()) 
+            tfFileName += "-" + cc.sn;
         
-        String fileName = AppCore.getUserDir(Config.TRANSACTION_FILENAME, name);
+        String fileName = AppCore.getUserDir(tfFileName, name);
         
         String date = AppCore.getCurrentDate(); 
         String rMemo = memo.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll(",", " ");
@@ -112,12 +118,7 @@ public class Wallet {
             
             System.out.println("rest="+rest);
         }
-        
-        
-        
-        
-        
-        
+                
         String result = rMemo + "," + date + ",";
         if (amount > 0) {
             result += amount + ",,";
@@ -125,16 +126,11 @@ public class Wallet {
             result += "," + amount + ",";
         }
         
-        rest += amount;
-        
+        rest += amount;   
         result += rest + lsep;
         
         logger.debug(ltag, "Saving " + result);
-        AppCore.saveFileAppend(fileName, result, true);
-        
-        System.out.println("r=" + result);
-        
-        
+        AppCore.saveFileAppend(fileName, result, true);              
     }
     
     
