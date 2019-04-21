@@ -61,6 +61,10 @@ public class ServantManager {
         return wallets.get(user);
     }
     
+    public ServantRegistry getSR() {
+        return this.sr;
+    }
+    
     public Wallet getWallet(String wallet) {
         return wallets.get(wallet);
     }
@@ -110,9 +114,7 @@ public class ServantManager {
             setActiveWallet(wallets[i]);
             initWallet(wallets[i], "");
             
-            System.out.println("Checking " + wallets[i]);
             checkIDCoins(wallets[i]);
-            
         }
         
         setActiveWallet(user);
@@ -133,9 +135,7 @@ public class ServantManager {
             }
             
             initCloudWallet(root, cc);
-            System.out.println("x="+idCoins[i]+ " c="+cc.sn);
-        }
-        
+        }     
     }
     
     public void initCloudWallet(String wallet, CloudCoin cc) {
@@ -164,11 +164,8 @@ public class ServantManager {
         if (encStatus == null)
             encStatus = "off";
             
-        System.out.println("wallet " + wallet + " em="+email + " st="+ encStatus.equals("on")+ " p="+password);
-        
         Wallet wobj = new Wallet(wallet, email, encStatus.equals("on"), password, logger);
         wallets.put(wallet, wobj);    
-        
     }
     
     public boolean initUser(String wallet, String email, String password) {
@@ -204,10 +201,7 @@ public class ServantManager {
         String config = "", ct;
         
         for (String name : sr.getServantKeySet()) {
-            System.out.println("na="+name);
             ct = sr.getServant(name).getConfigText();
-            
-            System.out.println("ct="+ct);
             config += ct;
         }
 
@@ -297,6 +291,7 @@ public class ServantManager {
     public void startReceiverService(int sn, String dstFolder, int amount, String memo, CallbackInterface cb) {
 	Receiver r = (Receiver) sr.getServant("Receiver");
 	r.launch(, new int[]{1,1}, new int[] {7050330, 7050331}, memo, cb);
+        r.launch(sn, dstFolder, amount, memo, cb);
     }
     */
     

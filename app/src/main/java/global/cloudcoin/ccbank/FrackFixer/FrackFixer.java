@@ -170,15 +170,11 @@ public class FrackFixer extends Servant {
         if (maxCoins == -1)
             maxCoins = Config.DEFAULT_MAX_COINS_MULTIDETECT;
 
-        logger.debug(ltag, "maxcoins="+maxCoins);
-        System.out.println("xxx="+maxCoins);
-        maxCoins = 2;
+        logger.debug(ltag, "maxcoins " + maxCoins);
 
         ArrayList<CloudCoin> ccactive = new ArrayList<CloudCoin>();;
         int corner, i, c;
 
-        maxCoins = 2;
-       // logger.debug(ltag, "Round1 for cc " + cc.sn);
         for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             c = 0;
             for (CloudCoin tcc : ccall) {
@@ -189,7 +185,6 @@ public class FrackFixer extends Servant {
                 c++;
                 if (c == maxCoins) {
                     logger.info(ltag, "Doing fix. maxCoins " + maxCoins);
-                    System.out.println("Doing fix=" + maxCoins);
                     doRealFix(i, ccactive);
                     doMove(ccactive);
                     ccactive.clear();
@@ -390,7 +385,6 @@ public class FrackFixer extends Servant {
         }
 
         logger.debug(ltag, "Doing actual fix on raida " + raidaFix[0] + " post " + posts[0]);
-        System.out.println("Do fix on raida " + raidaFix[0] + " rqs=" + requests[0] + " p="+ posts[0]);
         results = raida.query(requests, posts, null, raidaFix);
         if (results == null) {
             logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx);
@@ -425,25 +419,13 @@ public class FrackFixer extends Servant {
             strStatus = fresp[j].status;
             message = fresp[j].message;
             if (!strStatus.equals("success")) {
-                System.out.println("Failed to fix on RAIDA" + raidaIdx + ": " + message);
                 logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx + ": " + message);
                 raida.setFailed(raidaIdx);
                 return false;
             }
 
-            System.out.println("result " + strStatus +  " mes " + message);
             logger.debug(ltag, "result " + strStatus +  " mes " + message);
         }
-
-
-        /*
-        FixResponse fresp = (FixResponse) parseResponse(results[0], FixResponse.class);
-
-        if (!fresp.status.equals("success")) {
-            logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx + ": " + fresp.message);
-            raida.setFailed(raidaIdx);
-            return false;
-        }*/
 
         logger.debug(ltag, "Fixed on RAIDA" + raidaIdx);
 

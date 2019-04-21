@@ -125,4 +125,8 @@ public class Config {
     final public static String TRANSACTION_FILENAME = "transactions.txt";
     
     final public static int FIX_PROTOCOL_VERSION = 4;
+    
+    final public static String DDNS_DOMAIN = "skywallet.cc";
+    
+    final public static String DDNSSN_SERVER = "https://cloudcoin.global";
 }

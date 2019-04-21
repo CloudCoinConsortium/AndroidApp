@@ -78,7 +78,6 @@ public class ServantRegistry {
                 s.cancel();
             
             while (isRunning(k)) {
-                System.out.println("isRunning " + k);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -93,7 +92,6 @@ public class ServantRegistry {
     public void changeServantUser(String servant, String user) {
         Servant s = servants.get(servant);
         while (isRunning(servant)) {
-            System.out.println("isxRunning " + servant);
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {

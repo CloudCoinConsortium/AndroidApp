@@ -453,8 +453,6 @@ public class Servant {
     }
 
     protected void cleanPrivateLogDir() {
-        System.out.println("ss="+privateLogDir);
-        logger.info(ltag, "p="+privateLogDir);
         cleanDir(privateLogDir);
     }
 
