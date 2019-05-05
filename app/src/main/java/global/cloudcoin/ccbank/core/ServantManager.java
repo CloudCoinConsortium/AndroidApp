@@ -327,11 +327,17 @@ public class ServantManager {
         
         if (dstWalletObj == null) {
             sn = getRemoteSn(dstWallet);
-            logger.debug(ltag, "Remote SkyWallet " + dstWalletObj + " got SN " + sn);
+            logger.debug(ltag, "Remote SkyWallet got SN " + sn);
             if (sn == 0) {
                 logger.error(ltag, "Invalid dst wallet");
                 return false;
             }
+            
+            if (srcWalletObj.isSkyWallet()) {
+                logger.error(ltag, "We can't transfer from SKY to SKY");
+                return false;
+            }
+            
             dstWallet = null;
         } else {
             if (srcWalletObj.isSkyWallet()) {
@@ -339,8 +345,7 @@ public class ServantManager {
                 sn = cc.sn;
             }
         }
-        
-        
+                
         if (srcWalletObj.isSkyWallet()) {
             logger.debug(ltag, "Receiving from SkyWallet");
             setActiveWallet(dstWallet);
@@ -354,9 +359,8 @@ public class ServantManager {
                 
             }
             
-            logger.debug(ltag, "send sn " + sn + " dstWallet " + dstWallet);
+            logger.debug(ltag, "send to sn " + sn + " dstWallet " + dstWallet);
             startSenderService(sn, dstWallet, amount, memo, scb);
-
         }
         
         return true;

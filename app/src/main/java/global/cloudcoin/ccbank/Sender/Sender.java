@@ -99,13 +99,13 @@ public class Sender extends Servant {
         String fullFrackedPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
 
-        if (values.length != AppCore.getDenominations().length) {
-            logger.error(ltag, "Invalid params");
-            sr.status = SenderResult.STATUS_ERROR;
-            return;
-        }
-
         if (values != null) {
+            if (values.length != AppCore.getDenominations().length) {
+                logger.error(ltag, "Invalid params");
+                sr.status = SenderResult.STATUS_ERROR;
+                return;
+            }
+
             if (!pickCoinsInDir(fullBankPath, values)) {
                 logger.debug(ltag, "Not enough coins in the bank dir");
                 if (!pickCoinsInDir(fullFrackedPath, values)) {
@@ -195,7 +195,7 @@ public class Sender extends Servant {
                 } else {
                     sbs[i].append("to_sn=");
                     sbs[i].append(tosn);
-                    sbs[i].append("&envelope_name=");
+                    sbs[i].append("&tag=");
                     sbs[i].append(URLEncoder.encode(envelope));
                     sbs[i].append("&");
                 }

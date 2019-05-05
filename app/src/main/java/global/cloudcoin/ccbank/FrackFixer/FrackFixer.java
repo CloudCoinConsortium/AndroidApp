@@ -108,7 +108,11 @@ public class FrackFixer extends Servant {
     
     public void doMove(ArrayList<CloudCoin> ccs) {
         int cnt = 0;
+        
+        logger.info(ltag, "Moving " + ccs.size() + " coins");
         for (CloudCoin cc : ccs) {
+            logger.debug(ltag, "Moving coin " + cc.sn);
+            cnt = 0;
             for (int i = RAIDA.TOTAL_RAIDA_COUNT - 1; i >= 0; i--) {
                 if (cc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
                     cnt++;
@@ -118,10 +122,13 @@ public class FrackFixer extends Servant {
                 logger.info(ltag, "Coin " + cc.sn + " is fixed. Moving to bank");
                 AppCore.moveToBank(cc.originalFile, user);
                 fr.fixed++;
+            } else {
+                logger.debug(ltag, "Failed to fix. Only passed:" + cnt);
+                fr.failed++;
             }
         }
 
-        fr.failed++;
+       
     }
     
     public void doFrackFix() {

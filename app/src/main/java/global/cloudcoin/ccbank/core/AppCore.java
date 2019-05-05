@@ -188,7 +188,7 @@ public class AppCore {
             String target = AppCore.getUserDir(folder, user) + File.separator + newFileName;
             File ftarget = new File(target);
             if (!fsource.renameTo(ftarget)) {
-                logger.error(ltag, "Failed to rename file " + fileName);
+                logger.error(ltag, "Failed to rename file " + fileName + " to " + ftarget.getAbsolutePath());
                 return false;
             }
         } catch (Exception e) {
