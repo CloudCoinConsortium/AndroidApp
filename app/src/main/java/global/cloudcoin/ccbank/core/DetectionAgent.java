@@ -5,11 +5,16 @@ import java.net.URL;
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
-
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.cert.X509Certificate;
 
 class DetectionAgent {
 
@@ -46,7 +51,8 @@ class DetectionAgent {
     }
 
     public void setDefaultFullUrl() {
-        this.fullURL = "https://RAIDA" + this.RAIDANumber + ".cloudcoin.global";
+       // this.fullURL = "https://RAIDA" + this.RAIDANumber + ".cloudcoin.global";
+        this.fullURL = "https://RAIDA" + this.RAIDANumber + ".lab.shurafom.eu";
     }
 
     public void setFullUrl(String ip, int basePortArg) {
@@ -95,6 +101,7 @@ class DetectionAgent {
 
 	tsBefore = System.currentTimeMillis();
 
+        System.out.println("DISABLE");
 	disableSSLCheck();
 
 	URL cloudCoinGlobal;
@@ -153,6 +160,34 @@ class DetectionAgent {
 
 
     private void disableSSLCheck() {
+        TrustManager[] trustAllCerts = new TrustManager[] {
+            new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {  }
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {  }
+
+            }
+        };
+        
+        SSLContext sc;
+        try {
+            sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+        } catch (NoSuchAlgorithmException e) {
+            logger.error(ltag, "Failed to get SSL context: " + e.getMessage());
+            return;
+        } catch (KeyManagementException e) {
+             logger.error(ltag, "Failed to get SSL (KM) context: " + e.getMessage());
+            return;
+        }
+        
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        
     	HostnameVerifier allHostsValid = new HostnameVerifier() {
             public boolean verify(String hostname, SSLSession session) {
 		return true;
