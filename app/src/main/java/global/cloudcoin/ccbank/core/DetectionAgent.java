@@ -51,8 +51,8 @@ class DetectionAgent {
     }
 
     public void setDefaultFullUrl() {
-       // this.fullURL = "https://RAIDA" + this.RAIDANumber + ".cloudcoin.global";
-        this.fullURL = "https://RAIDA" + this.RAIDANumber + ".lab.shurafom.eu";
+        this.fullURL = "https://RAIDA" + this.RAIDANumber + ".cloudcoin.global";
+       // this.fullURL = "https://RAIDA" + this.RAIDANumber + ".lab.shurafom.eu";
     }
 
     public void setFullUrl(String ip, int basePortArg) {
@@ -101,7 +101,6 @@ class DetectionAgent {
 
 	tsBefore = System.currentTimeMillis();
 
-        System.out.println("DISABLE");
 	disableSSLCheck();
 
 	URL cloudCoinGlobal;
@@ -158,7 +157,6 @@ class DetectionAgent {
 	}
     }
 
-
     private void disableSSLCheck() {
         TrustManager[] trustAllCerts = new TrustManager[] {
             new X509TrustManager() {
@@ -186,7 +184,6 @@ class DetectionAgent {
         }
         
         HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-
         
     	HostnameVerifier allHostsValid = new HostnameVerifier() {
             public boolean verify(String hostname, SSLSession session) {
