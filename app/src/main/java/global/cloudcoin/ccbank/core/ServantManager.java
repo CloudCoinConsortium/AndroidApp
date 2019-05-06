@@ -432,7 +432,7 @@ public class ServantManager {
             final Object fresult = result;
             VaulterResult vresult = (VaulterResult) fresult;
             
-            if (fresult == VaulterResult.STATUS_ERROR) {
+            if (vresult.status == VaulterResult.STATUS_ERROR) {
                 logger.error(ltag, "Error on Vaulter");
                 return;
             }
