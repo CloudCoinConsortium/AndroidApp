@@ -54,7 +54,6 @@ public class Servant {
 
         this.raida = new RAIDA(logger);
 
-        logger.debug(ltag, "dir="+rootDir);
         File f = new File(rootDir);
         changeUser(f.getName());
         
@@ -454,8 +453,6 @@ public class Servant {
     }
 
     protected void cleanPrivateLogDir() {
-        System.out.println("ss="+privateLogDir);
-        logger.info(ltag, "p="+privateLogDir);
         cleanDir(privateLogDir);
     }
 
@@ -488,6 +485,9 @@ public class Servant {
     }
 
     protected void setSenderRAIDA() {
+        if (1==1)
+            return;
+        
         String[] urls = new String[RAIDA.TOTAL_RAIDA_COUNT];
 
         for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {

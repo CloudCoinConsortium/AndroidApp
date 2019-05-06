@@ -179,6 +179,26 @@ public class AppCore {
 
         return denominations;
     }
+    
+    static public boolean moveToFolderNewName(String fileName, String folder, String user, String newFileName) {
+        logger.info(ltag, "Moving to " + folder + " -> " + fileName + " new " + newFileName);
+        
+        try {
+            File fsource = new File(fileName);
+            String target = AppCore.getUserDir(folder, user) + File.separator + newFileName;
+            File ftarget = new File(target);
+            if (!fsource.renameTo(ftarget)) {
+                logger.error(ltag, "Failed to rename file " + fileName + " to " + ftarget.getAbsolutePath());
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error(ltag, "Failed to move file: " + e.getMessage());
+            return false;
+        }
+        
+        return true;
+        
+    }
 
     static public boolean moveToFolder(String fileName, String folder, String user) {
         logger.info(ltag, "Moving to " + folder + " -> " + fileName);

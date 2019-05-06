@@ -25,15 +25,17 @@ public class Sender extends Servant {
         super("Sender", rootDir, logger);
     }
 
-    public void launch(String user, int tosn, int[] values, String envelope, CallbackInterface icb) {
+    public void launch(int tosn, String dstFolder, int[] values, int amount, String envelope, CallbackInterface icb) {
         this.cb = icb;
 
-        final String fuser = user;
         final int ftosn = tosn;
         final int[] fvalues = values;
         final String fenvelope = envelope;
+        final int famount = amount;
+        final String fdstFolder = dstFolder;
 
         sr = new SenderResult();
+        sr.memo = envelope;
 
         coinsPicked = new ArrayList<CloudCoin>();
         valuesPicked = new int[AppCore.getDenominations().length];
@@ -42,7 +44,12 @@ public class Sender extends Servant {
             @Override
             public void run() {
                 logger.info(ltag, "RUN Sender");
-                doSend(fuser, ftosn, fvalues, fenvelope);
+                
+                if (fdstFolder != null) {
+                    doSendLocal(famount, fdstFolder);
+                } else {
+                    doSend(ftosn, null, famount, fenvelope);
+                }
 
 
                 if (cb != null)
@@ -51,7 +58,36 @@ public class Sender extends Servant {
         });
     }
 
-    public void doSend(String user, int tosn, int[] values, String envelope) {
+    public void doSendLocal(int amount, String dstUser) {
+        logger.debug(ltag, "Sending " + amount + " to " + dstUser);
+        
+        String dstPath = AppCore.getUserDir(Config.DIR_BANK, dstUser);
+        String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
+        if (!pickCoinsAmountInDir(fullBankPath, amount)) {
+            logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
+            sr.status = SenderResult.STATUS_ERROR;
+            return;
+        }
+        
+        for (CloudCoin cc : coinsPicked) {
+            String ccFile = cc.originalFile;
+        
+            if (!AppCore.moveToFolder(cc.originalFile, Config.DIR_BANK, dstUser)) {
+                logger.error(ltag, "Failed to move coin " + cc.originalFile);
+                sr.status = SenderResult.STATUS_ERROR;
+                continue;
+            }
+            
+            sr.amount += cc.getDenomination();
+        }
+        
+        if (sr.status != SenderResult.STATUS_ERROR)
+            sr.status = SenderResult.STATUS_FINISHED;
+        
+        System.out.println("ss="+dstUser+ " dstpath="+dstPath);
+    }
+    
+    public void doSend(int tosn, int[] values, int amount, String envelope) {
         /*
         if (!updateRAIDAStatus()) {
             sr.status = SenderResult.STATUS_ERROR;
@@ -63,18 +99,25 @@ public class Sender extends Servant {
         String fullFrackedPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
 
-        if (values.length != AppCore.getDenominations().length) {
-            logger.error(ltag, "Invalid params");
-            sr.status = SenderResult.STATUS_ERROR;
-            return;
-        }
-
-        if (!pickCoinsInDir(fullBankPath, values)) {
-            logger.debug(ltag, "Not enough coins in the bank dir");
-            if (!pickCoinsInDir(fullFrackedPath, values)) {
-                logger.error(ltag, "Not enough coins in the Fracked dir");
+        if (values != null) {
+            if (values.length != AppCore.getDenominations().length) {
+                logger.error(ltag, "Invalid params");
                 sr.status = SenderResult.STATUS_ERROR;
+                return;
+            }
 
+            if (!pickCoinsInDir(fullBankPath, values)) {
+                logger.debug(ltag, "Not enough coins in the bank dir");
+                if (!pickCoinsInDir(fullFrackedPath, values)) {
+                   logger.error(ltag, "Not enough coins in the Fracked dir");
+                   sr.status = SenderResult.STATUS_ERROR;
+                   return;
+                }
+            }
+        } else {
+            if (!pickCoinsAmountInDir(fullBankPath, amount)) {
+                logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
+                sr.status = SenderResult.STATUS_ERROR;
                 return;
             }
         }
@@ -112,6 +155,7 @@ public class Sender extends Servant {
             logger.info(ltag, "Doing " + cc.originalFile + " pass="+passed + " f="+failed);
             if (passed >= Config.PASS_THRESHOLD) {
                 logger.info(ltag, "Moving to Sent: " + cc.sn);
+                sr.amount += cc.getDenomination();
                 AppCore.moveToFolder(cc.originalFile, Config.DIR_SENT, user);
             } else if (failed > 0) {
                 if (failed >= RAIDA.TOTAL_RAIDA_COUNT - Config.PASS_THRESHOLD) {
@@ -151,7 +195,7 @@ public class Sender extends Servant {
                 } else {
                     sbs[i].append("to_sn=");
                     sbs[i].append(tosn);
-                    sbs[i].append("&envelope_name=");
+                    sbs[i].append("&tag=");
                     sbs[i].append(URLEncoder.encode(envelope));
                     sbs[i].append("&");
                 }

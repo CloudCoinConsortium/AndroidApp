@@ -9,8 +9,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class RAIDA {
-	static String ltag = "RAIDA";
+        static String ltag = "RAIDA";
 	public static int TOTAL_RAIDA_COUNT = 25;
+        static int TOTAL_RAIDA_CNT;
 
 	public DetectionAgent[] agents;
 	ExecutorService service;
@@ -130,9 +131,10 @@ public class RAIDA {
 
 			Future f = service.submit(new Runnable() {
 				public void run() {
-					results[iFinal] = agents[rIdxFinal].doRequest(request, post);
-					if (myCb != null)
-						myCb.callback(null);
+                                    String url = "/service/" + request;
+                                    results[iFinal] = agents[rIdxFinal].doRequest(url, post);
+                                    if (myCb != null)
+					myCb.callback(null);
 				}
 			});
 			futures.add(f);

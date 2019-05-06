@@ -6,10 +6,15 @@
 package global.cloudcoin.ccbank.ServantManager;
 
 import global.cloudcoin.ccbank.Authenticator.Authenticator;
+import global.cloudcoin.ccbank.Backupper.Backupper;
 import global.cloudcoin.ccbank.Echoer.Echoer;
+import global.cloudcoin.ccbank.Eraser.Eraser;
 import global.cloudcoin.ccbank.Exporter.Exporter;
 import global.cloudcoin.ccbank.FrackFixer.FrackFixer;
 import global.cloudcoin.ccbank.Grader.Grader;
+import global.cloudcoin.ccbank.LossFixer.LossFixer;
+import global.cloudcoin.ccbank.Receiver.Receiver;
+import global.cloudcoin.ccbank.Sender.Sender;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.Vaulter.Vaulter;
@@ -54,9 +59,21 @@ public class ServantManager {
         return wallets.get(user);
     }
     
+    public ServantRegistry getSR() {
+        return this.sr;
+    }
+    
+    public Wallet getWallet(String wallet) {
+        return wallets.get(wallet);
+    }
+    
     public void setActiveWallet(String wallet) {        
         this.user = wallet;
         sr.changeUser(wallet);   
+    }
+    
+    public void changeServantUser(String servant, String wallet) {
+        sr.changeServantUser(servant, wallet);
     }
     
     public boolean init() {
@@ -84,7 +101,9 @@ public class ServantManager {
                 "LossFixer",
                 "ChangeMaker",
                 "Vaulter",
-                "ShowEnvelopeCoins"
+                "ShowEnvelopeCoins",
+                "Eraser",
+                "Backupper"
         }, AppCore.getRootPath() + File.separator + user, logger);
    
         
@@ -93,9 +112,7 @@ public class ServantManager {
             setActiveWallet(wallets[i]);
             initWallet(wallets[i], "");
             
-            System.out.println("Checking " + wallets[i]);
             checkIDCoins(wallets[i]);
-            
         }
         
         setActiveWallet(user);
@@ -116,9 +133,7 @@ public class ServantManager {
             }
             
             initCloudWallet(root, cc);
-            System.out.println("x="+idCoins[i]+ " c="+cc.sn);
-        }
-        
+        }     
     }
     
     public void initCloudWallet(String wallet, CloudCoin cc) {
@@ -147,11 +162,8 @@ public class ServantManager {
         if (encStatus == null)
             encStatus = "off";
             
-        System.out.println("wallet " + wallet + " em="+email + " st="+ encStatus.equals("on")+ " p="+password);
-        
         Wallet wobj = new Wallet(wallet, email, encStatus.equals("on"), password, logger);
         wallets.put(wallet, wobj);    
-        
     }
     
     public boolean initUser(String wallet, String email, String password) {
@@ -187,10 +199,7 @@ public class ServantManager {
         String config = "", ct;
         
         for (String name : sr.getServantKeySet()) {
-            System.out.println("na="+name);
             ct = sr.getServant(name).getConfigText();
-            
-            System.out.println("ct="+ct);
             config += ct;
         }
 
@@ -256,6 +265,107 @@ public class ServantManager {
 	sc.launch(cb);
     }
     
+    public void startLossFixerService(CallbackInterface cb) {
+        LossFixer l = (LossFixer) sr.getServant("LossFixer");
+	l.launch(cb);
+    }
+    
+    public void startEraserService(CallbackInterface cb) {
+	Eraser e = (Eraser) sr.getServant("Eraser");
+	e.launch(cb);
+    }
+    
+    public void startBackupperService(String dstDir, CallbackInterface cb) {
+	Backupper b = (Backupper) sr.getServant("Backupper");
+	b.launch(dstDir, cb);
+    }
+    
+    public void startSenderService(int sn, String dstFolder, int amount, String memo, CallbackInterface cb) {
+	Sender s = (Sender) sr.getServant("Sender");
+	s.launch(sn, dstFolder, null, amount, memo, cb);
+    }
+     
+    /*
+    public void startReceiverService(int sn, String dstFolder, int amount, String memo, CallbackInterface cb) {
+	Receiver r = (Receiver) sr.getServant("Receiver");
+	r.launch(, new int[]{1,1}, new int[] {7050330, 7050331}, memo, cb);
+        r.launch(sn, dstFolder, amount, memo, cb);
+    }
+    */
+    
+    public int getRemoteSn(String dstWallet) {
+        int sn;
+        
+        try {
+            sn = Integer.parseInt(dstWallet);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+        
+        if (sn <= 0)
+            return 0;
+        
+        return sn;
+    }
+    
+    public boolean transferCoins(String srcWallet, String dstWallet, CloudCoin cc, int amount, 
+            String memo, CallbackInterface scb, CallbackInterface rcb) {
+        
+        logger.debug(ltag, "Transferring " + amount + " from " + srcWallet + " to " + dstWallet);
+        int sn = 0;
+        
+        Wallet srcWalletObj, dstWalletObj; 
+        
+        srcWalletObj = wallets.get(srcWallet);
+        dstWalletObj = wallets.get(dstWallet);
+        if (srcWalletObj == null) {
+            logger.error(ltag, "Wallet not found");
+            return false;
+        }
+        
+        if (dstWalletObj == null) {
+            sn = getRemoteSn(dstWallet);
+            logger.debug(ltag, "Remote SkyWallet got SN " + sn);
+            if (sn == 0) {
+                logger.error(ltag, "Invalid dst wallet");
+                return false;
+            }
+            
+            if (srcWalletObj.isSkyWallet()) {
+                logger.error(ltag, "We can't transfer from SKY to SKY");
+                return false;
+            }
+            
+            dstWallet = null;
+        } else {
+            if (srcWalletObj.isSkyWallet()) {
+                dstWallet = null;
+                sn = cc.sn;
+            }
+        }
+                
+        if (srcWalletObj.isSkyWallet()) {
+            logger.debug(ltag, "Receiving from SkyWallet");
+            setActiveWallet(dstWallet);
+            //startReceiverService(cc.sn, dstWalletObj.getName(), amount, memo, rcb);
+        } else {
+            if (srcWalletObj.isEncrypted()) {
+                logger.debug(ltag, "Src wallet is encrypted");
+                Vaulter v = (Vaulter) sr.getServant("Vaulter");
+                v.unvault(srcWalletObj.getPassword(), amount, null, 
+                        new rVaulterCb(sn, dstWallet, amount, memo, scb));
+                
+            }
+            
+            logger.debug(ltag, "send to sn " + sn + " dstWallet " + dstWallet);
+            startSenderService(sn, dstWallet, amount, memo, scb);
+        }
+        
+        return true;
+        
+    }
+
+    
     public void startVaulterService(CallbackInterface cb) {
         String password = getActiveWallet().getPassword();
         
@@ -299,6 +409,36 @@ public class ServantManager {
 
             Exporter ex = (Exporter) sr.getServant("Exporter");
             ex.launch(exportType, amount, tag, cb);
+	}
+    }
+    
+    class rVaulterCb implements CallbackInterface {
+        CallbackInterface cb;
+        int amount;
+        String memo;
+        String dstFolder;
+        int sn;
+    
+        public rVaulterCb(int sn, String dstFolder, int amount, 
+                String memo, CallbackInterface cb) {
+            this.cb = cb;
+            this.amount = amount;
+            this.memo = memo;
+            this.sn = sn;
+            this.dstFolder = dstFolder;
+        }
+        
+	public void callback(final Object result) {
+            final Object fresult = result;
+            VaulterResult vresult = (VaulterResult) fresult;
+            
+            if (fresult == VaulterResult.STATUS_ERROR) {
+                logger.error(ltag, "Error on Vaulter");
+                return;
+            }
+            
+            logger.debug(ltag, "send sn " + sn + " dstWallet " + dstFolder);
+            startSenderService(sn, dstFolder, amount, memo, cb);
 	}
     }
     

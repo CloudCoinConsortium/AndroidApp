@@ -78,7 +78,6 @@ public class ServantRegistry {
                 s.cancel();
             
             while (isRunning(k)) {
-                System.out.println("isRunning " + k);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -89,6 +88,20 @@ public class ServantRegistry {
             s.changeUser(user);
         }
     }
+    
+    public void changeServantUser(String servant, String user) {
+        Servant s = servants.get(servant);
+        while (isRunning(servant)) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                
+            }
+        }
+            
+        s.changeUser(user);
+    }
+    
     
     public boolean isRunning(String name) {
         String packageName = getClass().getPackage().getName();

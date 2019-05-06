@@ -41,7 +41,7 @@ public class Exporter extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Exporter");
 
-                doExport(ftype, null, amount, ftag);
+                doExport(ftype, null, famount, ftag);
             }
         });
     }
@@ -113,15 +113,7 @@ public class Exporter extends Servant {
                     if (cb != null)
                         cb.callback(er);
                     
-              /*  if (!pickCoinsAmountInDir(fullFrackedPath, amount)) {
-                    logger.error(ltag, "Not enough coins in the Fracked dir");
-                    er.status = ExporterResult.STATUS_ERROR;
-                    if (cb != null)
-                        cb.callback(er);
-
                     return;
-                }  
-                      */
             }
         }
 

@@ -108,7 +108,11 @@ public class FrackFixer extends Servant {
     
     public void doMove(ArrayList<CloudCoin> ccs) {
         int cnt = 0;
+        
+        logger.info(ltag, "Moving " + ccs.size() + " coins");
         for (CloudCoin cc : ccs) {
+            logger.debug(ltag, "Moving coin " + cc.sn);
+            cnt = 0;
             for (int i = RAIDA.TOTAL_RAIDA_COUNT - 1; i >= 0; i--) {
                 if (cc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
                     cnt++;
@@ -118,11 +122,13 @@ public class FrackFixer extends Servant {
                 logger.info(ltag, "Coin " + cc.sn + " is fixed. Moving to bank");
                 AppCore.moveToBank(cc.originalFile, user);
                 fr.fixed++;
-                return;
+            } else {
+                logger.debug(ltag, "Failed to fix. Only passed:" + cnt);
+                fr.failed++;
             }
         }
 
-        fr.failed++;
+       
     }
     
     public void doFrackFix() {
@@ -142,7 +148,7 @@ public class FrackFixer extends Servant {
 
             return;
         }
-
+        
         String fullPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
         CloudCoin cc;
         ArrayList<CloudCoin> ccall = new ArrayList<CloudCoin>();
@@ -170,15 +176,11 @@ public class FrackFixer extends Servant {
         if (maxCoins == -1)
             maxCoins = Config.DEFAULT_MAX_COINS_MULTIDETECT;
 
-        logger.debug(ltag, "maxcoins="+maxCoins);
-        System.out.println("xxx="+maxCoins);
-        maxCoins = 2;
+        logger.debug(ltag, "maxcoins " + maxCoins);
 
         ArrayList<CloudCoin> ccactive = new ArrayList<CloudCoin>();;
         int corner, i, c;
 
-        maxCoins = 2;
-       // logger.debug(ltag, "Round1 for cc " + cc.sn);
         for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             c = 0;
             for (CloudCoin tcc : ccall) {
@@ -189,7 +191,6 @@ public class FrackFixer extends Servant {
                 c++;
                 if (c == maxCoins) {
                     logger.info(ltag, "Doing fix. maxCoins " + maxCoins);
-                    System.out.println("Doing fix=" + maxCoins);
                     doRealFix(i, ccactive);
                     doMove(ccactive);
                     ccactive.clear();
@@ -263,6 +264,10 @@ public class FrackFixer extends Servant {
         posts = new String[triadSize];
         sbs = new StringBuilder[triadSize];
         triad = trustedTriads[raidaIdx][corner];
+        
+        int nn, prevnn;
+        nn = prevnn = 0;
+        
         for (int i = 0; i < triadSize; i++) {
             neighIdx = triad[i];
 
@@ -289,6 +294,15 @@ public class FrackFixer extends Servant {
                 sbs[i].append("&denomination[]=");
                 sbs[i].append(cc.getDenomination());
 
+                if (nn == 0) {
+                    nn = cc.nn;
+                } else {
+                    if (nn != cc.nn) {
+                        logger.error(ltag, "We do not support multi nn[] for the time being");
+                        return false;
+                    }
+                }
+                    
                 first = false;
             }
 
@@ -323,6 +337,8 @@ public class FrackFixer extends Servant {
         posts = new String[1];
         posts[0] = "";
 
+  
+        
         gtr = new GetTicketResponse[triadSize][];
         for (int i = 0; i < results.length; i++) {
             logger.info(ltag, "res=" + results[i]);
@@ -377,8 +393,8 @@ public class FrackFixer extends Servant {
                 if (i != 0 || j != 0)
                     posts[0] += "&";
                     
-                posts[0] += "fromserver" + (i + 1) + "[]=" + triad[i] + "&message" + (i + 1) + "[]=" + message;
-
+                //posts[0] += "fromserver" + (i + 1) + "[]=" + triad[i] + "&message" + (i + 1) + "[]=" + message;
+                posts[0] += "message" + (i + 1) + "[]=" + message;
 
                 logger.info(ltag, "raida" + triad[i] + " v=" + strStatus + " m="+message);
             }
@@ -389,8 +405,13 @@ public class FrackFixer extends Servant {
             posts[0] += "&pans[]=" + cc.ans[raidaIdx];
         }
 
+              
+        posts[0] += "&nn=" + nn;
+        for (int i = 0; i < results.length; i++) {
+            posts[0] += "&fromserver" + (i + 1) + "=" + triad[i];
+        }
+                
         logger.debug(ltag, "Doing actual fix on raida " + raidaFix[0] + " post " + posts[0]);
-        System.out.println("Do fix on raida " + raidaFix[0] + " rqs=" + requests[0] + " p="+ posts[0]);
         results = raida.query(requests, posts, null, raidaFix);
         if (results == null) {
             logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx);
@@ -424,26 +445,14 @@ public class FrackFixer extends Servant {
 
             strStatus = fresp[j].status;
             message = fresp[j].message;
-            if (!strStatus.equals("success")) {
-                System.out.println("Failed to fix on RAIDA" + raidaIdx + ": " + message);
+            if (!strStatus.equals(Config.REQUEST_STATUS_PASS)) {
                 logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx + ": " + message);
                 raida.setFailed(raidaIdx);
                 return false;
             }
 
-            System.out.println("result " + strStatus +  " mes " + message);
             logger.debug(ltag, "result " + strStatus +  " mes " + message);
         }
-
-
-        /*
-        FixResponse fresp = (FixResponse) parseResponse(results[0], FixResponse.class);
-
-        if (!fresp.status.equals("success")) {
-            logger.error(ltag, "Failed to fix on RAIDA" + raidaIdx + ": " + fresp.message);
-            raida.setFailed(raidaIdx);
-            return false;
-        }*/
 
         logger.debug(ltag, "Fixed on RAIDA" + raidaIdx);
 
