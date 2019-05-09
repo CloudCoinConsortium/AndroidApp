@@ -15,6 +15,9 @@ import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.Servant;
+//import global.cloudcoin.ccbank.Authenticator.AuthenticatorResult;
+
+//import global.cloudcoin.ccbank.common.core.Authenticator.AuthenticatorResult;
 
 public class Authenticator extends Servant {
 

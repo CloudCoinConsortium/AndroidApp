@@ -241,7 +241,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		int d;
 		String templateDir, fileName;
 
-		templateDir = AppCore.getUserDir(Config.DIR_TEMPLATES);
+		templateDir = AppCore.getUserDir(Config.DIR_TEMPLATES, Config.DIR_DEFAULT_USER);
 		fileName = templateDir + File.separator + "jpeg1.jpg";
 		File f = new File(fileName);
 		if (!f.exists()) {
@@ -251,7 +251,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 				try {
 					fileName = "jpeg" + d + ".jpg";
 					copyAssetFile("jpegs" + File.separator + fileName,
-							AppCore.getUserDir(Config.DIR_TEMPLATES) +
+							AppCore.getUserDir(Config.DIR_TEMPLATES, Config.DIR_DEFAULT_USER) +
 									File.separator + fileName);
 				} catch (IOException e) {
 					Log.e(ltag, "Failed to copy file: " + e.getMessage());
@@ -279,7 +279,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	public void startAuthenticatorService() {
 		at = (Authenticator) sr.getServant("Authenticator");
-		at.launch(Config.DIR_DEFAULT_USER, new AuthenticatorCb());
+		at.launch(new AuthenticatorCb());
 	}
 
 	public void startGraderService() {
@@ -299,28 +299,28 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 	public void startVaulterService() {
 		Vaulter v = (Vaulter) sr.getServant("Vaulter");
-		//v.vault(Config.DIR_DEFAULT_USER, "qwerty",361, null, new VaulterCb());
-		v.unvault(Config.DIR_DEFAULT_USER, "qwerty",361, null, new VaulterCb());
+		//v.vault( "qwerty",361, null, new VaulterCb());
+		v.unvault( "qwerty",361, null, new VaulterCb());
 	}
 
 	public void startLossFixerService() {
 		LossFixer l = (LossFixer) sr.getServant("LossFixer");
-		l.launch(Config.DIR_DEFAULT_USER, new LossFixerCb());
+		l.launch(new LossFixerCb());
 	}
 
 	public void startBackupperService() {
 		Backupper b = (Backupper) sr.getServant("Backupper");
-		b.launch(Config.DIR_DEFAULT_USER, AppCore.getRootPath() + File.separator + "/Backup", new BackupperCb());
+		b.launch(AppCore.getRootPath() + File.separator + "/Backup", new BackupperCb());
 	}
 
 	public void startEraserService() {
 		Eraser e = (Eraser) sr.getServant("Eraser");
-		e.launch(Config.DIR_DEFAULT_USER, new EraserCb());
+		e.launch(new EraserCb());
 	}
 
 	public void startSenderService() {
 		Sender s = (Sender) sr.getServant("Sender");
-		s.launch(Config.DIR_DEFAULT_USER, 9830900, new int[] {0,0,0,2,0}, "Test transfer to Sean 2", new SenderCb());
+		s.launch(9830900, null, new int[] {0,0,0,2,0}, 0, "Test transfer to Sean 2", new SenderCb());
 	}
 
 	public void startShowEnvelopeCoinsService() {
@@ -533,7 +533,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			return;
 
 		Exporter ex = (Exporter) sr.getServant("Exporter");
-		ex.launch(Config.DIR_DEFAULT_USER, type, values, exportTag, new ExporterCb());
+		ex.launch(type, values, exportTag, new ExporterCb());
 	}
 
 	public void showExportResult() {
@@ -625,7 +625,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 			pb = (ProgressBar) dialog.findViewById(R.id.firstBar);
 			pb.setMax(RAIDA.TOTAL_RAIDA_COUNT);
 
-			setRAIDAProgress(0, 0, AppCore.getFilesCount(Config.DIR_SUSPECT));
+			setRAIDAProgress(0, 0, AppCore.getFilesCount(Config.DIR_SUSPECT, Config.DIR_DEFAULT_USER));
 			dialog.show();
 			return;
 		}
@@ -671,8 +671,8 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 
 		tv = (TextView) dialog.findViewById(R.id.infotext);
 
-		String importDir = AppCore.getUserDir(Config.DIR_IMPORT);
-		int totalFiles = AppCore.getFilesCount(Config.DIR_IMPORT);
+		String importDir = Config.DIR_IMPORT;
+		int totalFiles = AppCore.getFilesCount(Config.DIR_IMPORT, Config.DIR_DEFAULT_USER);
 
 		if (totalFiles == 0) {
 			result = String.format(getResources().getString(R.string.erremptyimport), importDir);
@@ -769,7 +769,7 @@ public class MainActivity extends Activity implements NumberPicker.OnValueChange
 		});
 
 		String msg = String.format(getResources().getString(R.string.exportnotice),
-				AppCore.getUserDir(Config.DIR_EXPORT));
+				Config.DIR_EXPORT);
 
 		TextView eNotice = (TextView) dialog.findViewById(R.id.en);
 		eNotice.setText(msg);
