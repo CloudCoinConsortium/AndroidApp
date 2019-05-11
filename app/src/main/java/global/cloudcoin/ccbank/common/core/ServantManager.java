@@ -86,6 +86,10 @@ public class ServantManager {
             return false;
         }   
         
+        return true;
+    }
+    
+    public boolean initServants() {
         sr.registerServants(new String[]{
                 "Echoer",
                 "Authenticator",
