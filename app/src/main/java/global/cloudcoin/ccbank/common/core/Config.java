@@ -35,7 +35,7 @@ public class Config {
 
 
     public static String DIR_ACCOUNTS = "Accounts";
-    public static String DIR_DEFAULT_USER = "DefaultUser";
+    public static String DIR_DEFAULT_USER = "Default Wallet";
     public static String DIR_MAIN_LOGS = "Logs";
 
     public static int THREAD_POOL_SIZE = 8;

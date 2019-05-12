@@ -28,6 +28,7 @@ import global.cloudcoin.ccbank.core.ServantRegistry;
 import global.cloudcoin.ccbank.core.Wallet;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.Iterator;
 import org.json.JSONException;
@@ -86,6 +87,8 @@ public class ServantManager {
             return false;
         }   
         
+        initServants();
+        
         return true;
     }
     
@@ -110,7 +113,7 @@ public class ServantManager {
                 "Backupper"
         }, AppCore.getRootPath() + File.separator + user, logger);
    
-        
+
         String[] wallets = AppCore.getDirs();
         for (int i = 0; i < wallets.length; i++) {
             setActiveWallet(wallets[i]);
@@ -119,8 +122,7 @@ public class ServantManager {
             checkIDCoins(wallets[i]);
         }
         
-        setActiveWallet(user);
-        
+        //setActiveWallet(user);  
         return true;
     }
     
@@ -172,7 +174,7 @@ public class ServantManager {
     
     public boolean initUser(String wallet, String email, String password) {
         logger.debug(ltag, "Init user " + wallet);
-        
+               
         try {
             AppCore.initUserFolders(wallet);
         } catch (Exception e) {
@@ -182,15 +184,16 @@ public class ServantManager {
         
         this.user = wallet;
         sr.changeUser(wallet);
+
         
         if (!email.equals(""))
             sr.getServant("Authenticator").putConfigValue("email", email);
-        
+
         if (!password.equals(""))
             sr.getServant("Vaulter").putConfigValue("status", "on");
         
         if (!writeConfig(wallet)) {
-            System.exit(1);
+            logger.error(ltag, "Failed to write conifg");
             return false;
         }
               
@@ -454,8 +457,22 @@ public class ServantManager {
         int i = 0;
         Iterator itr = c.iterator();
         while (itr.hasNext()) {
-            ws[i++] = (Wallet) itr.next();
+            Wallet tw = (Wallet) itr.next();
+            if (tw.getName().equals(Config.DIR_DEFAULT_USER)) {
+                ws[i++] = tw;
+                break;
+            }
         }
+        
+        itr = c.iterator();
+        while (itr.hasNext()) {
+            Wallet tw = (Wallet) itr.next();
+            if (tw.getName().equals(Config.DIR_DEFAULT_USER))
+                continue;
+            
+            ws[i++] = tw;
+        }
+        
         
         return ws;
     }

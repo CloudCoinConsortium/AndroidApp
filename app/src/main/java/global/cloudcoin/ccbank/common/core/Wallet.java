@@ -21,6 +21,7 @@ public class Wallet {
     boolean isEncrypted;
     String email;
     CloudCoin cc;
+    Object uiRef;
     
     public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
@@ -32,6 +33,14 @@ public class Wallet {
         
         logger.debug(ltag, "wallet " + name + " e=" + email + " is="+isEncrypted+ " p="+password);
         lsep = System.getProperty("line.separator");
+    }
+    
+    public void setuiRef(Object uiRef) {
+        this.uiRef = uiRef;
+    }
+    
+    public Object getuiRef() {
+        return uiRef;
     }
     
     public boolean isSkyWallet() {

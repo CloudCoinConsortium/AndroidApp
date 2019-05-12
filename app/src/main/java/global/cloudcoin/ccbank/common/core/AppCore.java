@@ -11,16 +11,21 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.security.MessageDigest;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -164,9 +169,13 @@ public class AppCore {
         return f.toString();
    }
 
-   //static public String getUserDir(String folder) {
-   //    return getUserDir(folder, Config.DIR_DEFAULT_USER);
-   //}
+   static public String formatNumber(int number) {
+       NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
+       DecimalFormat formatter = (DecimalFormat) nf;
+       formatter.applyPattern("#,###,###");
+
+       return formatter.format(number);
+   }
 
    static public int getTotal(int[] counters) {
        return counters[Config.IDX_1] + counters[Config.IDX_5] * 5 +
@@ -550,17 +559,29 @@ public class AppCore {
                 if (u == null)
                     continue;
                 
-                String url = u.toString();
+                String url;
+                try {
+                    url = URLDecoder.decode(u.toString(), "UTF-8");
+                }  catch (UnsupportedEncodingException e) {
+                    logger.error(ltag, "Failed to decode url");
+                    return;
+                }
+
                 int bang = url.indexOf("!");
                 String JAR_URI_PREFIX = "jar:file:";
                 JarFile jf;
                 
                 try {
-                    jf = new JarFile(url.substring(JAR_URI_PREFIX.length(), bang)) ;
+                    if (url.startsWith(JAR_URI_PREFIX) && bang != -1) {
+                        jf = new JarFile(url.substring(JAR_URI_PREFIX.length(), bang)) ;
+                    } else {
+                        logger.error(ltag, "Invalid jar");
+                        return;
+                    }
                 
                     for (Enumeration<JarEntry> entries = jf.entries(); entries.hasMoreElements();) {
                         JarEntry entry = entries.nextElement();
-                    
+
                         if (entry.getName().equals("resources/" + fileName)) {
                             InputStream in = jf.getInputStream(entry);
                             String dst = AppCore.getUserDir(Config.DIR_TEMPLATES, user);
@@ -570,6 +591,7 @@ public class AppCore {
                         }
                     }
                 } catch (IOException e) {
+                    logger.error(ltag, "Failed to copy templates: " + e.getMessage());
                     return ;
                 }          
             }

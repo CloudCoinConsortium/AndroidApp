@@ -55,7 +55,8 @@ public class Servant {
         this.raida = new RAIDA(logger);
 
         File f = new File(rootDir);
-        changeUser(f.getName());
+        //changeUser(f.getName());
+        this.user = f.getName();
         
         AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
 
