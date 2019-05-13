@@ -28,6 +28,7 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import org.json.JSONException;
 
 public class AppCore {
 
@@ -605,5 +606,19 @@ public class AppCore {
         
         return dateFormat.format(date);
     }
+    
+    
+    public static boolean isCoinOk(String path) {
+        try {
+            CloudCoin cc = new CloudCoin(path);
+        } catch (JSONException e) {
+            logger.error(ltag, "Failed to parse coin: " + path + " error: " + e.getMessage());
+            return false;
+        }
+        
+        return true;
+    }
+    
+    
     
 }

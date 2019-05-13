@@ -39,7 +39,6 @@ public class DNSSn {
             logger.debug(ltag, "Host not found");
             return false;
         }
-        //System.out.println("x="+address.getHostAddress());
         
         return true;
     }

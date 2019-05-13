@@ -22,6 +22,7 @@ public class Wallet {
     String email;
     CloudCoin cc;
     Object uiRef;
+    int total;
     
     public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
@@ -33,6 +34,14 @@ public class Wallet {
         
         logger.debug(ltag, "wallet " + name + " e=" + email + " is="+isEncrypted+ " p="+password);
         lsep = System.getProperty("line.separator");
+    }
+    
+    public void setTotal(int total) {
+        this.total = total;
+    }
+    
+    public int getTotal() {
+        return this.total;
     }
     
     public void setuiRef(Object uiRef) {
