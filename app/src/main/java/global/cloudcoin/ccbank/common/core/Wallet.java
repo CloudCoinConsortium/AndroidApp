@@ -23,6 +23,7 @@ public class Wallet {
     CloudCoin cc;
     Object uiRef;
     int total;
+    Wallet parent;
     
     public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
@@ -31,6 +32,7 @@ public class Wallet {
         this.password = password;
         this.ltag += name;
         this.logger = logger;
+        this.parent = null;
         
         logger.debug(ltag, "wallet " + name + " e=" + email + " is="+isEncrypted+ " p="+password);
         lsep = System.getProperty("line.separator");
@@ -56,12 +58,17 @@ public class Wallet {
         return this.cc != null;
     }
     
-    public void setIDCoin(CloudCoin cc) {
+    public void setIDCoin(CloudCoin cc, Wallet parent) {
         this.cc = cc;
+        this.parent = parent;
     }
     
     public CloudCoin getIDCoin() {
         return this.cc;
+    }
+    
+    public Wallet getParent() {
+        return this.parent;
     }
     
     public boolean isEncrypted() {
@@ -84,13 +91,31 @@ public class Wallet {
         return this.email;
     }
     
-    public String[][] getTransactions() {
+    public String getTransactionsFileName() {
         String tfFileName = Config.TRANSACTION_FILENAME;
+        String rname;
         
-        if (isSkyWallet()) 
+        if (isSkyWallet()) {
             tfFileName += "-" + cc.sn;
+            rname = parent.getName();
+        } else {
+            rname = name;
+        }
         
-        String fileName = AppCore.getUserDir(tfFileName, name);
+        String fileName = AppCore.getUserDir(tfFileName, rname);
+        
+        return fileName;
+    }
+    
+    public void saveTransations(String dstPath) {
+        String fileName = getTransactionsFileName();
+        
+        AppCore.copyFile(fileName, dstPath);
+    }
+    
+    public String[][] getTransactions() {
+        String fileName = getTransactionsFileName();
+        
         String data = AppCore.loadFile(fileName);
         if (data == null)
             return null;
@@ -112,12 +137,7 @@ public class Wallet {
     }
     
     public void appendTransaction(String memo, int amount) {  
-        String tfFileName = Config.TRANSACTION_FILENAME;
-        
-        if (isSkyWallet()) 
-            tfFileName += "-" + cc.sn;
-        
-        String fileName = AppCore.getUserDir(tfFileName, name);
+        String fileName = getTransactionsFileName();
         
         String date = AppCore.getCurrentDate(); 
         String rMemo = memo.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll(",", " ");
@@ -134,7 +154,6 @@ public class Wallet {
             if (rest <= 0)
                 rest = 0;
             
-            System.out.println("rest="+rest);
         }
                 
         String result = rMemo + "," + date + ",";

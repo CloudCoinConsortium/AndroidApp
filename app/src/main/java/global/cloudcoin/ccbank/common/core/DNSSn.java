@@ -108,7 +108,7 @@ public class DNSSn {
             return false;
         }
         
-        String rq = "/ddns.php?sn=" + cc.sn + "&username=" + name + "&ticket=" + message + "&raida_number=" + raidaNum;
+        String rq = "/ddns.php?sn=" + cc.sn + "&username=" + name + "&ticket=" + message + "&raidanumber=" + raidaNum;
 
         DetectionAgent daFake = new DetectionAgent(RAIDA.TOTAL_RAIDA_CNT * 10000, Config.CONNECTION_TIMEOUT, logger);
         daFake.setExactFullUrl(Config.DDNSSN_SERVER);
@@ -119,7 +119,7 @@ public class DNSSn {
         }
         
         CommonResponse cr = (CommonResponse) sr.getServant("FrackFixer").parseResponse(result, CommonResponse.class);
-        if (cr.status.equals("success")) {
+        if (!cr.status.equals("success")) {
             logger.error(ltag, "Invalid response from DDNSSN Server");
             return false;
         }

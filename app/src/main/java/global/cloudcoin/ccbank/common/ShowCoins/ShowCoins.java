@@ -59,6 +59,11 @@ public class ShowCoins extends Servant {
         CloudCoin cc;
 
         File dirObj = new File(fullPath);
+        if (dirObj.listFiles() == null) {
+            logger.error(ltag, "No such dir " + fullPath);
+            return;
+        }
+        
         for (File file: dirObj.listFiles()) {
             if (file.isDirectory())
                 continue;

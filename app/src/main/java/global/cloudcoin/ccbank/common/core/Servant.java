@@ -87,7 +87,6 @@ public class Servant {
         
         this.user = user;
         this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
-        
         AppCore.createDirectoryPath(this.privateLogDir);
         
         configHT = new Hashtable<String, String>();

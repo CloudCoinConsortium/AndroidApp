@@ -68,9 +68,21 @@ public class ServantManager {
         return wallets.get(wallet);
     }
     
-    public void setActiveWallet(String wallet) {        
-        this.user = wallet;
-        sr.changeUser(wallet);   
+    public void setActiveWalletObj(Wallet wallet) {
+        logger.debug(ltag, "Set active wallet obj " + wallet.getName() + " isky "  + wallet.isSkyWallet());
+        this.user =  wallet.getName();
+        if (wallet.isSkyWallet()) {
+            sr.changeUser(wallet.getParent().getName());
+        } else {
+            sr.changeUser(this.user);
+        }  
+    }
+    
+    public void setActiveWallet(String walletName) {     
+        logger.debug(ltag, "Set active wallet obj " + walletName);
+        
+        this.user = walletName;
+        sr.changeUser(this.user);   
     }
     
     public void changeServantUser(String servant, String wallet) {
@@ -138,17 +150,21 @@ public class ServantManager {
                 continue;
             }
             
-            initCloudWallet(root, cc);
+            String wname = idCoins[i].substring(0, idCoins[i].lastIndexOf('.'));
+            
+            System.out.println("init wname " + wname);
+            initCloudWallet(root, cc, wname);
         }     
     }
     
-    public void initCloudWallet(String wallet, CloudCoin cc) {
+    public void initCloudWallet(String wallet, CloudCoin cc, String name) {
         Wallet parent = wallets.get(wallet);
         
-        String name = wallet + ":" + cc.sn;
+        //String name = wallet + ":" + cc.sn;
         
-        Wallet wobj = new Wallet(name, parent.getEmail(), parent.isEncrypted(), parent.getPassword(), logger);
-        wobj.setIDCoin(cc);
+        //Wallet wobj = new Wallet(name, parent.getEmail(), parent.isEncrypted(), parent.getPassword(), logger);
+        Wallet wobj = new Wallet(name, "", false, "", logger);
+        wobj.setIDCoin(cc, parent);
         
         wallets.put(name, wobj);   
     }

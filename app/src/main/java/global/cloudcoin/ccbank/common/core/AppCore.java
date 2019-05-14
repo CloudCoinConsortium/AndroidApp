@@ -284,6 +284,7 @@ public class AppCore {
         InputStream is = null;
         OutputStream os = null;
         
+        logger.debug(ltag, "Copy " + fsrc + " to " + fdst);
         try {
             is = new FileInputStream(source);
             os = new FileOutputStream(dest);
