@@ -492,4 +492,17 @@ public class ServantManager {
         
         return ws;
     }
+    
+    public Wallet getWalletByName(String walletName) {
+        Collection c = wallets.values();
+
+        Iterator itr = c.iterator();
+        while (itr.hasNext()) {
+            Wallet tw = (Wallet) itr.next();
+            if (tw.getName().equals(walletName)) 
+                return tw;
+        }
+        
+        return null;
+    }
 }
