@@ -14,6 +14,8 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.Executors;
@@ -271,7 +273,7 @@ public class AppCore {
                     os.close();
 
             } catch (IOException e) {
-
+                logger.error(ltag, "Failed to copy file: " + e.getMessage());
             }
         }
         
@@ -306,7 +308,7 @@ public class AppCore {
                     os.close();
 
             } catch (IOException e) {
-
+                logger.error(ltag, "Failed to finally copy file: " + e.getMessage());
             }
         }
 
@@ -317,23 +319,36 @@ public class AppCore {
         String jsonData = "";
         BufferedReader br = null;
         try {
+            /*
             String line;
+            StringBuilder sb = new StringBuilder();
             br = new BufferedReader(new FileReader(fileName));
+            System.out.println("loading2");
             while ((line = br.readLine()) != null) {
-                jsonData += line + "\n";
+                System.out.println("loading3 " + line);
+                //jsonData += line + "\n";
+                sb.append(line);
             }
+            System.out.println("loading4");
+            */
+            
+            byte[] encoded = Files.readAllBytes(Paths.get(fileName));
+            jsonData = new String(encoded);
+            
         } catch (IOException e) {
+            logger.error(ltag, "Failed to load file: " + e.getMessage());
             return null;
         } finally {
             try {
                 if (br != null)
                     br.close();
-            } catch (IOException ex) {
+            } catch (IOException e) {
+                logger.error(ltag, "Failed to finally load file: " + e.getMessage());
                 return null;
             }
         }
 
-        return jsonData;
+        return jsonData.toString();
     }
 
     static public byte[] loadFileToBytes(String path) {

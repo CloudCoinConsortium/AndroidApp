@@ -14,6 +14,8 @@ public class GraderResult {
     public int totalAuthenticValue;
 
     public int totalFrackedValue;
+    
+    public String receiptId;
 
     public GraderResult() {
         totalFracked = 0;

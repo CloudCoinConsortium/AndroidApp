@@ -73,13 +73,15 @@ public class ServantRegistry {
         Set<String> keys = servants.keySet();
         for (String k : keys) {
             Servant s = servants.get(k);
+            if (!s.isUserBound()) 
+                continue;
             
             if (isRunning(k))
                 s.cancel();
             
             while (isRunning(k)) {
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(500);
                 } catch (InterruptedException e) {
                 
                 }

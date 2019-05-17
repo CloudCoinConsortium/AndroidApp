@@ -24,6 +24,8 @@ import global.cloudcoin.ccbank.core.Servant;
 
 public class Unpacker extends Servant {
     String ltag = "Unpacker";
+    
+    UnpackerResult globalResult;
 
     public Unpacker(String rootDir, GLogger logger) {
         super("Unpacker", rootDir, logger);
@@ -32,6 +34,7 @@ public class Unpacker extends Servant {
     public void launch(CallbackInterface icb) {
         this.cb = icb;
 
+        globalResult = new UnpackerResult();
         launchThread(new Runnable() {
             @Override
             public void run() {
@@ -39,7 +42,7 @@ public class Unpacker extends Servant {
                 doUnpack();
 
                 if (cb != null)
-                    cb.callback(null);
+                    cb.callback(globalResult);
             }
         });
     }
@@ -55,13 +58,12 @@ public class Unpacker extends Servant {
                 continue;
 
             fileName = file.getName();
-
-
             index = fileName.lastIndexOf('.');
             if (index <= 0) {
                 logger.error(ltag, "Skipping filename " + fileName + ". No extension found");
                 AppCore.moveToTrash(file.toString(), user);
-                continue;
+                globalResult.status = UnpackerResult.STATUS_ERROR;
+                return;
             }
 
             extension = fileName.substring(index + 1).toLowerCase();
@@ -87,9 +89,13 @@ public class Unpacker extends Servant {
             if (!rv) {
                 logger.error(ltag, "Error processing file: " + fileName);
                 AppCore.moveToTrash(file.toString(), user);
+                globalResult.status = UnpackerResult.STATUS_ERROR;
+                return;
             }
         }
         //privateLogDir
+        
+        globalResult.status = UnpackerResult.STATUS_FINISHED;
     }
 
 

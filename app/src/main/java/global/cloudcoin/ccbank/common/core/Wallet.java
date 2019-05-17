@@ -24,13 +24,14 @@ public class Wallet {
     Object uiRef;
     int total;
     Wallet parent;
+    String passwordHash;
     
     public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
         this.email = email;
         this.isEncrypted = isEncrypted;
         this.password = password;
-        this.ltag += name;
+        this.ltag += " " + name;
         this.logger = logger;
         this.parent = null;
         
@@ -83,6 +84,14 @@ public class Wallet {
         this.password = password;
     }
     
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+    
+    public String getPasswordHash() {
+        return this.passwordHash;
+    }
+    
     public String getName() {
         return this.name;
     }
@@ -116,16 +125,20 @@ public class Wallet {
     public String[][] getTransactions() {
         String fileName = getTransactionsFileName();
         
+        System.out.println("file=" + fileName);
         String data = AppCore.loadFile(fileName);
+        System.out.println("fil2e=" + data);
         if (data == null)
             return null;
         
         String[] parts = data.split("\\r?\\n");
         String[][] rv = new String[parts.length][];
         
+        System.out.println("parts="+parts.length);
         for (int i = 0; i < parts.length; i++) {
             rv[i] = parts[i].split(",");
-            if (rv[i].length != 5) {
+            System.out.println("part2s="+rv[i].length);
+            if (rv[i].length != 6) {
                 logger.error(ltag, "Transaction parse error: " + parts[i]);
                 return null;
             }
@@ -136,7 +149,7 @@ public class Wallet {
         return rv;            
     }
     
-    public void appendTransaction(String memo, int amount) {  
+    public void appendTransaction(String memo, int amount, String receiptId) {  
         String fileName = getTransactionsFileName();
         
         String date = AppCore.getCurrentDate(); 
@@ -164,7 +177,8 @@ public class Wallet {
         }
         
         rest += amount;   
-        result += rest + lsep;
+        result += rest;
+        result += "," + receiptId + lsep;
         
         logger.debug(ltag, "Saving " + result);
         AppCore.saveFileAppend(fileName, result, true);              

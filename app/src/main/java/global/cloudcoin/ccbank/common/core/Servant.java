@@ -43,6 +43,8 @@ public class Servant {
     protected ArrayList<CloudCoin> coinsPicked;
 
     protected int[] valuesPicked;
+    
+    protected boolean isUserBound;
 
     public Servant(String name, String rootDir, GLogger logger) {
         this.name = name;
@@ -60,12 +62,20 @@ public class Servant {
         
         AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
 
-                
+        this.isUserBound = true;
         this.logDir = AppCore.getLogDir() + File.separator + name;
         
         logger.info(ltag, "Instantiated servant " + name + " for " + this.user); 
     }
 
+    public void noUserBound() {
+        isUserBound = false;
+    }
+    
+    public boolean isUserBound() {
+        return isUserBound;
+    }
+    
     public void cancel() {
         this.cancelRequest = true;
     }

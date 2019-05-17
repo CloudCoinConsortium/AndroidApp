@@ -24,6 +24,7 @@ import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.CloudCoin;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
+import global.cloudcoin.ccbank.core.Servant;
 import global.cloudcoin.ccbank.core.ServantRegistry;
 import global.cloudcoin.ccbank.core.Wallet;
 import java.io.File;
@@ -183,8 +184,15 @@ public class ServantManager {
         String encStatus = v.getConfigValue("status");
         if (encStatus == null)
             encStatus = "off";
-            
+        
+        String passwordHash = v.getConfigValue("password");
+        
+        System.out.println("xxx=" + wallet + " pass="+passwordHash);
+        
         Wallet wobj = new Wallet(wallet, email, encStatus.equals("on"), password, logger);
+        if (passwordHash != null)
+            wobj.setPasswordHash(passwordHash);
+        
         wallets.put(wallet, wobj);    
     }
     
@@ -205,8 +213,10 @@ public class ServantManager {
         if (!email.equals(""))
             sr.getServant("Authenticator").putConfigValue("email", email);
 
-        if (!password.equals(""))
+        if (!password.equals("")) {
             sr.getServant("Vaulter").putConfigValue("status", "on");
+            sr.getServant("Vaulter").putConfigValue("password", AppCore.getMD5(password));
+        }
         
         if (!writeConfig(wallet)) {
             logger.error(ltag, "Failed to write conifg");
@@ -217,6 +227,15 @@ public class ServantManager {
               
         return true;
     }
+    /*
+    public String getConfigValue(String servant, String rquser, String value) {
+        Servant s = sr.getServant(servant);
+        
+        s.changeUser(rquser);
+        sr.getServant(servant).getConfigValue("password");
+        s.changeUser(rquser);
+    }
+    */
     
     public boolean writeConfig(String user) {
         String config = "", ct;
@@ -257,10 +276,14 @@ public class ServantManager {
     }
     
     public void startUnpackerService(CallbackInterface cb) {
+        System.out.println("xxx is running unpacker");
         if (sr.isRunning("Unpacker"))
             return;
         
+        System.out.println("xxx is not running unpacker");
 	Unpacker up = (Unpacker) sr.getServant("Unpacker");
+        System.out.println(" unpacker launch ");
+        
 	up.launch(cb);
     }
      
@@ -268,6 +291,7 @@ public class ServantManager {
         if (sr.isRunning("Authenticator"))
             return;
         
+        System.out.println("Start authenticaltor");
 	Authenticator at = (Authenticator) sr.getServant("Authenticator");
 	at.launch(cb);
     }
@@ -330,6 +354,15 @@ public class ServantManager {
         
         return sn;
     }
+    
+    public void cancel(String servantName) {
+        Servant s = sr.getServant(servantName);
+        if (s == null)
+            return;
+        
+        s.cancel();
+    }
+    
     
     public boolean transferCoins(String srcWallet, String dstWallet, CloudCoin cc, int amount, 
             String memo, CallbackInterface scb, CallbackInterface rcb) {

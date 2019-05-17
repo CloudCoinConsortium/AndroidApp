@@ -26,9 +26,7 @@ public class Authenticator extends Servant {
     String email;
 
     public Authenticator(String rootDir, GLogger logger) {
-        super("Authenticator", rootDir, logger);
-        
-        
+        super("Authenticator", rootDir, logger);    
     }
 
     public void launch(CallbackInterface icb) {

@@ -18,6 +18,7 @@ public class Echoer extends Servant {
 
     public Echoer(String rootDir, GLogger logger) {
         super("Echoer", rootDir, logger);
+        noUserBound();
     }
 
     public void launch(CallbackInterface icb) {

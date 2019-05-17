@@ -108,6 +108,8 @@ public class Grader extends Servant {
         String fileName = AppCore.getUserDir(Config.DIR_RECEIPTS, user) + File.separator + receiptId + ".txt";
         if (!AppCore.saveFile(fileName, rsb.toString())) {
             logger.error(ltag, "Failed to save file " + fileName);
+        } else {
+            gr.receiptId = receiptId;
         }
     }
 
