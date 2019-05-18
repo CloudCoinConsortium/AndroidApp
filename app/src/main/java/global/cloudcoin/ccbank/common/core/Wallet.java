@@ -161,9 +161,14 @@ public class Wallet {
         if (tr != null) {
         
             String[] last = tr[tr.length - 1];
-            String rRest = last[last.length - 1];
+            String rRest = last[4];
             
-            rest = Integer.parseInt(rRest);
+            try {
+                rest = Integer.parseInt(rRest);
+            } catch (NumberFormatException e) {
+                System.out.println("exc=" + rRest);
+                rest = 0;
+            }
             if (rest <= 0)
                 rest = 0;
             

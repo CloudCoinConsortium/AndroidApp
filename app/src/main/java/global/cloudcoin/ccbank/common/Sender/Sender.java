@@ -63,7 +63,8 @@ public class Sender extends Servant {
         
         String dstPath = AppCore.getUserDir(Config.DIR_BANK, dstUser);
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
-        if (!pickCoinsAmountInDir(fullBankPath, amount)) {
+        String fullFrackedPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
+        if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
             logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
             sr.status = SenderResult.STATUS_ERROR;
             return;
@@ -72,7 +73,24 @@ public class Sender extends Servant {
         for (CloudCoin cc : coinsPicked) {
             String ccFile = cc.originalFile;
         
-            if (!AppCore.moveToFolder(cc.originalFile, Config.DIR_BANK, dstUser)) {
+            File cf = new File(ccFile);
+            File parentCf = cf.getParentFile();
+            
+            if (parentCf == null) {
+                logger.error(ltag, "Can't find coins folder");
+                sr.status = SenderResult.STATUS_ERROR;
+                continue;
+            }
+            
+            String coinFolder = cf.getParentFile().getName();
+            
+            if (!coinFolder.equals(Config.DIR_BANK) && !coinFolder.equals(Config.DIR_FRACKED)) {
+                logger.error(ltag, "Coin was in the invalid folder: " + coinFolder);
+                sr.status = SenderResult.STATUS_ERROR;
+                continue;
+            }
+            
+            if (!AppCore.moveToFolder(cc.originalFile, coinFolder, dstUser)) {
                 logger.error(ltag, "Failed to move coin " + cc.originalFile);
                 sr.status = SenderResult.STATUS_ERROR;
                 continue;
@@ -84,7 +102,7 @@ public class Sender extends Servant {
         if (sr.status != SenderResult.STATUS_ERROR)
             sr.status = SenderResult.STATUS_FINISHED;
         
-        System.out.println("ss="+dstUser+ " dstpath="+dstPath);
+        System.out.println("ss="+dstUser+ " dstpath="+dstPath + " am=" +sr.amount + " st="+sr.status);
     }
     
     public void doSend(int tosn, int[] values, int amount, String envelope) {
@@ -115,7 +133,7 @@ public class Sender extends Servant {
                 }
             }
         } else {
-            if (!pickCoinsAmountInDir(fullBankPath, amount)) {
+            if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
                 logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
                 sr.status = SenderResult.STATUS_ERROR;
                 return;

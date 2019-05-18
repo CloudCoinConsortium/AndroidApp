@@ -502,7 +502,7 @@ public class Servant {
 
         for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             //urls[i] = "https://s" + i + "." + Config.SENDER_DOMAIN;
-            urls[i] = "https://raida" + i + ".cloudcoin.global";
+           // urls[i] = "https://raida" + i + ".cloudcoin.global";
         }
 
         raida.setExactUrls(urls);
@@ -608,7 +608,6 @@ public class Servant {
 
         return totals;
     }
-
 
     public boolean pickCoinsAmountInDir(String dir, int amount) {
         int[] totals;
@@ -723,7 +722,144 @@ public class Servant {
 
         return true;
     }
-
     
+    
+    public boolean pickCoinsAmountInDirs(String dir0, String dir1, int amount) {
+        int[] totals, totals0, totals1;
+        int denomination;
+        CloudCoin cc;
+
+        totals0 = countCoins(dir0);
+        totals1 = countCoins(dir1);
+        
+        totals = new int[6];
+        
+        totals[Config.IDX_TOTAL] = totals0[Config.IDX_TOTAL] + totals1[Config.IDX_TOTAL];
+        totals[Config.IDX_1] = totals0[Config.IDX_1] + totals1[Config.IDX_1];
+        totals[Config.IDX_5] = totals0[Config.IDX_5] + totals1[Config.IDX_5];
+        totals[Config.IDX_25] = totals0[Config.IDX_25] + totals1[Config.IDX_25];
+        totals[Config.IDX_100] = totals0[Config.IDX_100] + totals1[Config.IDX_100];
+        totals[Config.IDX_250] = totals0[Config.IDX_250] + totals1[Config.IDX_250];
+        
+        if (amount > totals[Config.IDX_TOTAL]) {
+            logger.error(ltag, "Not enough coins");
+            return false;
+        }
+
+        if (amount < 0)
+            return false;
+
+        int exp_1 = 0;
+        int exp_5 = 0;
+        int exp_25 = 0;
+        int exp_100 = 0;
+        int exp_250 = 0;
+
+        for (int i = 0; i < totals.length; i++)
+            logger.debug(ltag, "v=" + totals[i]);
+
+        if (amount >= 250 && totals[Config.IDX_250] > 0) {
+            exp_250 = ((amount / 250) < (totals[Config.IDX_250])) ? (amount / 250) : (totals[Config.IDX_250]);
+            amount -= (exp_250 * 250);
+        }
+
+        if (amount >= 100 && totals[Config.IDX_100] > 0) {
+            exp_100 = ((amount / 100) < (totals[Config.IDX_100])) ? (amount / 100) : (totals[Config.IDX_100]);
+            amount -= (exp_100 * 100);
+        }
+
+        if (amount >= 25 && totals[Config.IDX_25] > 0) {
+            exp_25 = ((amount / 25) < (totals[Config.IDX_25])) ? (amount / 25) : (totals[Config.IDX_25]);
+            amount -= (exp_25 * 25);
+        }
+
+        if (amount >= 5 && totals[Config.IDX_5] > 0) {
+            logger.debug(ltag, "a=" +amount+ " tot="+totals[Config.IDX_5] + " s="+ (amount/5));
+            exp_5 = ((amount / 5) < (totals[Config.IDX_5])) ? (amount / 5) : (totals[Config.IDX_5]);
+            amount -= (exp_5 * 5);
+        }
+
+        if (amount >= 1 && totals[Config.IDX_1] > 0) {
+            exp_1 = (amount < (totals[Config.IDX_1])) ? amount : (totals[Config.IDX_1]);
+            amount -= (exp_1);
+        }
+
+        if (amount != 0) {
+            logger.error(ltag, "Can't collect needed amount of coins. rest: " + amount);
+            return false;
+        }
+
+        logger.debug(ltag, "Denom: " + exp_1 + "/" + exp_5 + "/" + exp_25 + "/" + exp_100 + "/" + exp_250);
+        logger.debug(ltag, "Looking into dir: " + dir0 + " and " + dir1 + " for " + amount + " coins: " + totals[5]);
+
+        ArrayList<File> files = new ArrayList<File>();
+        
+        File dirObj = new File(dir0);
+        for (File file : dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
+            
+            files.add(file);
+        }
+        
+        dirObj = new File(dir1);
+        for (File file : dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
+            
+            files.add(file);
+        }
+        
+        for (File file : files) {
+            try {
+                cc = new CloudCoin(file.toString());
+            } catch (JSONException e) {
+                logger.error(ltag, "Failed to parse coin: " + file.toString() +
+                        " error: " + e.getMessage());
+
+                continue;
+            }
+
+            denomination = cc.getDenomination();
+            if (denomination == 1) {
+                if (exp_1-- > 0) {
+                    logger.info(ltag, "Adding 1: " + cc.sn);
+                    coinsPicked.add(cc);
+                } else {
+                    exp_1 = 0;
+                }
+            } else if (denomination == 5) {
+                if (exp_5-- > 0) {
+                    logger.info(ltag, "Adding 5: " + cc.sn);
+                    coinsPicked.add(cc);
+                } else {
+                    exp_5 = 0;
+                }
+            } else if (denomination == 25) {
+                if (exp_25-- > 0) {
+                    logger.info(ltag, "Adding 25: " + cc.sn);
+                    coinsPicked.add(cc);
+                } else {
+                    exp_25 = 0;
+                }
+            } else if (denomination == 100) {
+                if (exp_100-- > 0) {
+                    logger.info(ltag, "Adding 100: " + cc.sn);
+                    coinsPicked.add(cc);
+                } else {
+                    exp_100 = 0;
+                }
+            } else if (denomination == 250) {
+                if (exp_250-- > 0) {
+                    logger.info(ltag, "Adding 250: " + cc.sn);
+                    coinsPicked.add(cc);
+                } else {
+                    exp_250 = 0;
+                }
+            }
+        }
+
+        return true;
+    }
 
 }

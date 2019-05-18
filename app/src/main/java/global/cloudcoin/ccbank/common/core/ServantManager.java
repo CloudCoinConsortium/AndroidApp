@@ -15,6 +15,7 @@ import global.cloudcoin.ccbank.Grader.Grader;
 import global.cloudcoin.ccbank.LossFixer.LossFixer;
 import global.cloudcoin.ccbank.Receiver.Receiver;
 import global.cloudcoin.ccbank.Sender.Sender;
+import global.cloudcoin.ccbank.Sender.SenderResult;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.Vaulter.Vaulter;
@@ -407,10 +408,12 @@ public class ServantManager {
         } else {
             if (srcWalletObj.isEncrypted()) {
                 logger.debug(ltag, "Src wallet is encrypted");
+                System.out.println("ppp="+srcWalletObj.getPassword() + " w=" + srcWalletObj.getName());
                 Vaulter v = (Vaulter) sr.getServant("Vaulter");
                 v.unvault(srcWalletObj.getPassword(), amount, null, 
                         new rVaulterCb(sn, dstWallet, amount, memo, scb));
-                
+             
+                return true;
             }
             
             logger.debug(ltag, "send to sn " + sn + " dstWallet " + dstWallet);
@@ -429,6 +432,13 @@ public class ServantManager {
 	Vaulter v = (Vaulter) sr.getServant("Vaulter");
 	v.vault(password, 0, null, cb);
     }
+    
+    public void startVaulterService(CallbackInterface cb, String password) {
+        logger.debug(ltag, "Vaulter password " + password);
+	Vaulter v = (Vaulter) sr.getServant("Vaulter");
+	v.vault(password, 0, null, cb);
+    }
+    
     
     public void startExporterService(int exportType, int amount, String tag, CallbackInterface cb) {
         if (sr.isRunning("Exporter"))
@@ -490,6 +500,12 @@ public class ServantManager {
             
             if (vresult.status == VaulterResult.STATUS_ERROR) {
                 logger.error(ltag, "Error on Vaulter");
+                if (cb != null)  {
+                    SenderResult sr = new SenderResult();
+                    sr.status = SenderResult.STATUS_ERROR;
+                    cb.callback(sr);
+                }
+                
                 return;
             }
             

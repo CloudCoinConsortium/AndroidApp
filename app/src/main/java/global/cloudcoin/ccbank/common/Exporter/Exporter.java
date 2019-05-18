@@ -107,7 +107,7 @@ public class Exporter extends Servant {
                 }
             }
         } else {
-            if (!pickCoinsAmountInDir(fullBankPath, amount)) {
+            if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
                 logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
                 er.status = ExporterResult.STATUS_ERROR;
                     if (cb != null)
