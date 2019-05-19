@@ -630,7 +630,7 @@ public class Servant {
         int exp_250 = 0;
 
         for (int i = 0; i < totals.length; i++)
-            logger.debug(ltag, "v=" + totals[i]);
+            logger.debug(ltag, "total coins idx=" + i + " total=" + totals[i]);
 
 
         if (amount >= 250 && totals[Config.IDX_250] > 0) {
@@ -665,7 +665,7 @@ public class Servant {
         }
 
         logger.debug(ltag, "Denom: " + exp_1 + "/" + exp_5 + "/" + exp_25 + "/" + exp_100 + "/" + exp_250);
-        logger.debug(ltag, "Looking into dir: " + dir + " for " + amount + " coins: " + totals[5]);
+        logger.debug(ltag, "Looking into dir: " + dir + " total coins: " + totals[5]);
 
         File dirObj = new File(dir);
         for (File file : dirObj.listFiles()) {

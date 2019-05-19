@@ -125,19 +125,15 @@ public class Wallet {
     public String[][] getTransactions() {
         String fileName = getTransactionsFileName();
         
-        System.out.println("file=" + fileName);
         String data = AppCore.loadFile(fileName);
-        System.out.println("fil2e=" + data);
         if (data == null)
             return null;
         
         String[] parts = data.split("\\r?\\n");
         String[][] rv = new String[parts.length][];
         
-        System.out.println("parts="+parts.length);
         for (int i = 0; i < parts.length; i++) {
             rv[i] = parts[i].split(",");
-            System.out.println("part2s="+rv[i].length);
             if (rv[i].length != 6) {
                 logger.error(ltag, "Transaction parse error: " + parts[i]);
                 return null;
@@ -166,7 +162,6 @@ public class Wallet {
             try {
                 rest = Integer.parseInt(rRest);
             } catch (NumberFormatException e) {
-                System.out.println("exc=" + rRest);
                 rest = 0;
             }
             if (rest <= 0)

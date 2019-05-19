@@ -27,33 +27,35 @@ public class ShowEnvelopeCoins extends Servant {
 
         result = new ShowEnvelopeCoinsResult();
         result.coins = new int[0];
+        
 
     }
 
-    public void launch(String user, int sn, String envelope, CallbackInterface icb) {
+    public void launch(int sn, String envelope, CallbackInterface icb) {
         this.cb = icb;
 
-        final String fuser = user;
         final int fsn = sn;
         final String fenvelope = envelope;
 
+        result.counters = new int[Config.IDX_FOLDER_LAST][5];
         launchThread(new Runnable() {
             @Override
             public void run() {
                 logger.info(ltag, "RUN ShowEnvelopeCoins");
-                doShowEnvelopeCoins(fuser, fsn, fenvelope);
 
+                doShowSkyCoins(fsn);
 
                 if (cb != null)
                     cb.callback(result);
             }
         });
     }
-
-    public void doShowEnvelopeCoins(String user, int sn, String envelope) {
+    
+    
+    public void doShowSkyCoins(int sn) {
         CloudCoin cc;
         String[] results;
-        Object o;
+        Object[] o;
         CommonResponse errorResponse;
         ShowEnvelopeCoinsResponse srs;
 
@@ -66,7 +68,7 @@ public class ShowEnvelopeCoins extends Servant {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("show_coins_in_envelope?nn=");
+        sb.append("show?nn=");
         sb.append(cc.nn);
         sb.append("&sn=");
         sb.append(cc.sn);
@@ -76,8 +78,6 @@ public class ShowEnvelopeCoins extends Servant {
         sb.append(cc.ans[Config.RAIDANUM_TO_QUERY_BY_DEFAULT]);
         sb.append("&denomination=");
         sb.append(cc.getDenomination());
-        sb.append("&envelope_name=");
-        sb.append(URLEncoder.encode(envelope));
 
         results = raida.query(new String[] { sb.toString() }, null, null, new int[] {Config.RAIDANUM_TO_QUERY_BY_DEFAULT});
         if (results == null) {
@@ -92,63 +92,69 @@ public class ShowEnvelopeCoins extends Servant {
             result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
             return;
         }
-
-        o = parseResponse(resultMain, ShowEnvelopeCoinsResponse.class);
+            
+        CommonResponse cr;
+        cr = (CommonResponse) parseResponse(resultMain, CommonResponse.class);
+        if (cr == null) {
+            result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
+            logger.error(ltag, "Failed to show env coins. Invalid response");       
+            return;
+        }
+        
+        if (!cr.status.equals(Config.REQUEST_STATUS_PASS)) {
+            result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
+            logger.error(ltag, "Failed to show env coins. Result: " + cr.message);       
+            return;
+        }
+        
+        o = parseArrayResponse(cr.message, ShowEnvelopeCoinsResponse.class);
         if (o == null) {
             result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
-            errorResponse = (CommonResponse) parseResponse(resultMain, CommonResponse.class);
-            if (errorResponse == null) {
-                logger.error(ltag, "Failed to get error");
-                return;
-            }
-
-            logger.error(ltag, "Error: " + errorResponse.status);
+            logger.error(ltag, "Failed to parse message: " + cr.message);       
             return;
         }
+        
+        logger.debug(ltag, "Returned length " + o.length);
+        
+        ShowEnvelopeCoinsResponse[] er;
+        
+        er = new ShowEnvelopeCoinsResponse[o.length];
+        for (int j = 0; j < o.length; j++) {
+            String tag;
+            int rsn;
+            int ts;
+            CloudCoin rcc;
+ 
+            er[j] = (ShowEnvelopeCoinsResponse) o[j];
+            tag = er[j].tag;
+            rsn = er[j].sn;
+            ts = er[j].created;
 
-        srs = (ShowEnvelopeCoinsResponse) o;
-        if (!srs.status.equals("success")) {
-            result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
-            logger.error(ltag, "Error status: " + srs.status);
-            return;
+            rcc = new CloudCoin(cc.nn, rsn);
+            
+            int idx = Config.IDX_FOLDER_BANK;
+            switch (rcc.getDenomination()) {
+                case 1:
+                    result.counters[idx][Config.IDX_1]++;
+                    break;
+                case 5:
+                    result.counters[idx][Config.IDX_5]++;
+                    break;
+                case 25:
+                    result.counters[idx][Config.IDX_25]++;
+                    break;
+                case 100:
+                    result.counters[idx][Config.IDX_100]++;
+                    break;
+                case 250:
+                    result.counters[idx][Config.IDX_250]++;
+                    break;
+            }    
         }
 
-        if (srs.owned_coins == null) {
-            result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;
-            logger.error(ltag, "No owned coins");
-            return;
-        }
-
-        result.coins = srs.owned_coins;
-
-        createResultFile(envelope, sn, result.coins);
         result.status = ShowEnvelopeCoinsResult.STATUS_FINISHED;
 
-        logger.info(ltag, "us=" + user + " sn=" +sn + " e="+envelope + " r="+results[0]);
+        logger.info(ltag, "us=" + user + " sn=" +sn + " r="+results[0]);
     }
-
-    public void createResultFile(String envelopeName, int sn, int[] sns) {
-        String fileName = AppCore.getMD5(envelopeName) + "_" + sn + "_coins.txt";
-        String path = privateLogDir + File.separator + fileName;
-
-        logger.info(ltag, "Saving " + path);
-        File file = new File(path);
-        if (file.exists())
-            file.delete();
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < sns.length; i++) {
-            sb.append(sns[i]);
-            sb.append("\n");
-        }
-
-        if (!AppCore.saveFile(path, sb.toString())) {
-            logger.error(ltag, "Failed to save file: " + path);
-            return;
-        }
-
-    }
-
-
 
 }

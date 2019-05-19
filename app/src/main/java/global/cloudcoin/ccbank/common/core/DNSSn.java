@@ -46,6 +46,8 @@ public class DNSSn {
     public boolean setRecord(String path, ServantRegistry sr) {
         CloudCoin cc;
 
+        logger.debug(ltag, "Setting record " + path);
+        
         File f = new File(path);
         if (!f.exists()) {
             logger.error(ltag, "File " + path + " does not exist");
@@ -98,7 +100,6 @@ public class DNSSn {
         
         logger.debug(ltag, " message " + g.message);
         if (!g.status.equals("ticket")) {
-            System.out.println("Wrong ticket");
             logger.error(ltag, "Failed to get ticket for coin id " + cc.sn);
             return false;
         }

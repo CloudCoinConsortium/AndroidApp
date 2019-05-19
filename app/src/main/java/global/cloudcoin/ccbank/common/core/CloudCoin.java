@@ -38,48 +38,48 @@ public class CloudCoin {
 	}
 
 	public CloudCoin(String fileName) throws JSONException {
-		String data = AppCore.loadFile(fileName);
+            String data = AppCore.loadFile(fileName);
 
-		if (data == null)
-			throw(new JSONException("Failed to open file"));
+            if (data == null)
+                throw(new JSONException("Failed to open file"));
 
-		JSONObject o = new JSONObject(data);
-		JSONArray incomeJsonArray = o.getJSONArray("cloudcoin");
+            JSONObject o = new JSONObject(data);
+            JSONArray incomeJsonArray = o.getJSONArray("cloudcoin");
 
-		JSONObject childJSONObject = incomeJsonArray.getJSONObject(0);
+            JSONObject childJSONObject = incomeJsonArray.getJSONObject(0);
 
-		nn = childJSONObject.getInt("nn");
-		sn = childJSONObject.getInt("sn");
+            nn = childJSONObject.getInt("nn");
+            sn = childJSONObject.getInt("sn");
 
-		if (sn < 0 || sn > 16777217)
-            throw(new JSONException("Invalid SN number: " + sn));
+            if (sn < 0 || sn > 16777217)
+                throw(new JSONException("Invalid SN number: " + sn));
 
-		if (nn < 0 || nn > 65535)
-            throw(new JSONException("Invalid NN number: " + nn));
+            if (nn < 0 || nn > 65535)
+                throw(new JSONException("Invalid NN number: " + nn));
 
-		JSONArray an = childJSONObject.getJSONArray("an");
+            JSONArray an = childJSONObject.getJSONArray("an");
 
-		ed = childJSONObject.optString("ed");
-		aoid = childJSONObject.optString("aoid");
+            ed = childJSONObject.optString("ed");
+            aoid = childJSONObject.optString("aoid");
 
-		ans = toStringArray(an);
-		if (ans.length != RAIDA.TOTAL_RAIDA_COUNT)
-		    throw(new JSONException("Wrong an count"));
+            ans = toStringArray(an);
+            if (ans.length != RAIDA.TOTAL_RAIDA_COUNT)
+                throw(new JSONException("Wrong an count"));
 
-		pownString = childJSONObject.optString("pown");
-		originalFile = fileName;
+            pownString = childJSONObject.optString("pown");
+            originalFile = fileName;
 
-		initCommon();
-		if (pownString != null && !pownString.isEmpty())
-			setDetectStatusFromPownString();
+            initCommon();
+            if (pownString != null && !pownString.isEmpty())
+            	setDetectStatusFromPownString();
 
-		JSONArray pan = childJSONObject.optJSONArray("pan");
-		if (pan != null) {
-			pans = toStringArray(pan);
-			if (pans.length != RAIDA.TOTAL_RAIDA_COUNT)
-				throw(new JSONException("Wrong pan count"));
-		}
-	}
+            JSONArray pan = childJSONObject.optJSONArray("pan");
+            if (pan != null) {
+		pans = toStringArray(pan);
+		if (pans.length != RAIDA.TOTAL_RAIDA_COUNT)
+                	throw(new JSONException("Wrong pan count"));
+            }
+        }
 
 	public CloudCoin(int nn, int sn) {
 		this.nn = nn;

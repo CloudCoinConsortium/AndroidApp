@@ -17,6 +17,7 @@ import global.cloudcoin.ccbank.Receiver.Receiver;
 import global.cloudcoin.ccbank.Sender.Sender;
 import global.cloudcoin.ccbank.Sender.SenderResult;
 import global.cloudcoin.ccbank.ShowCoins.ShowCoins;
+import global.cloudcoin.ccbank.ShowEnvelopeCoins.ShowEnvelopeCoins;
 import global.cloudcoin.ccbank.Unpacker.Unpacker;
 import global.cloudcoin.ccbank.Vaulter.Vaulter;
 import global.cloudcoin.ccbank.Vaulter.VaulterResult;
@@ -128,6 +129,13 @@ public class ServantManager {
         }, AppCore.getRootPath() + File.separator + user, logger);
    
 
+        initWallets();
+        
+        //setActiveWallet(user);  
+        return true;
+    }
+    
+    public void initWallets() {
         String[] wallets = AppCore.getDirs();
         for (int i = 0; i < wallets.length; i++) {
             setActiveWallet(wallets[i]);
@@ -135,10 +143,8 @@ public class ServantManager {
             
             checkIDCoins(wallets[i]);
         }
-        
-        //setActiveWallet(user);  
-        return true;
     }
+    
     
     public void checkIDCoins(String root) {
         String[] idCoins = AppCore.getFilesInDir(Config.DIR_ID, root);
@@ -153,8 +159,7 @@ public class ServantManager {
             }
             
             String wname = idCoins[i].substring(0, idCoins[i].lastIndexOf('.'));
-            
-            System.out.println("init wname " + wname);
+
             initCloudWallet(root, cc, wname);
         }     
     }
@@ -187,9 +192,6 @@ public class ServantManager {
             encStatus = "off";
         
         String passwordHash = v.getConfigValue("password");
-        
-        System.out.println("xxx=" + wallet + " pass="+passwordHash);
-        
         Wallet wobj = new Wallet(wallet, email, encStatus.equals("on"), password, logger);
         if (passwordHash != null)
             wobj.setPasswordHash(passwordHash);
@@ -277,22 +279,17 @@ public class ServantManager {
     }
     
     public void startUnpackerService(CallbackInterface cb) {
-        System.out.println("xxx is running unpacker");
         if (sr.isRunning("Unpacker"))
             return;
         
-        System.out.println("xxx is not running unpacker");
 	Unpacker up = (Unpacker) sr.getServant("Unpacker");
-        System.out.println(" unpacker launch ");
-        
 	up.launch(cb);
     }
      
     public void startAuthenticatorService(CallbackInterface cb) {
         if (sr.isRunning("Authenticator"))
             return;
-        
-        System.out.println("Start authenticaltor");
+
 	Authenticator at = (Authenticator) sr.getServant("Authenticator");
 	at.launch(cb);
     }
@@ -304,6 +301,16 @@ public class ServantManager {
 	Grader gd = (Grader) sr.getServant("Grader");
 	gd.launch(cb);
     }
+    
+    
+    public void startShowSkyCoinsService(CallbackInterface cb, int sn) {
+        if (sr.isRunning("ShowEnvelopeCoins"))
+            return;
+
+	ShowEnvelopeCoins sc = (ShowEnvelopeCoins) sr.getServant("ShowEnvelopeCoins");
+	sc.launch(sn, "sky", cb);
+    }
+    
     
     public void startShowCoinsService(CallbackInterface cb) {
         if (sr.isRunning("ShowCoins"))
@@ -408,12 +415,17 @@ public class ServantManager {
         } else {
             if (srcWalletObj.isEncrypted()) {
                 logger.debug(ltag, "Src wallet is encrypted");
-                System.out.println("ppp="+srcWalletObj.getPassword() + " w=" + srcWalletObj.getName());
                 Vaulter v = (Vaulter) sr.getServant("Vaulter");
                 v.unvault(srcWalletObj.getPassword(), amount, null, 
                         new rVaulterCb(sn, dstWallet, amount, memo, scb));
              
                 return true;
+            }
+            
+            if (dstWalletObj.isSkyWallet()) {
+                logger.debug(ltag, "Dst wallet is sky");
+                sn = dstWalletObj.getIDCoin().sn;
+                dstWallet = null;
             }
             
             logger.debug(ltag, "send to sn " + sn + " dstWallet " + dstWallet);

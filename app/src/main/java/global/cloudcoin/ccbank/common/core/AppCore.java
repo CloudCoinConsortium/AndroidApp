@@ -30,7 +30,9 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 public class AppCore {
 
@@ -635,6 +637,77 @@ public class AppCore {
         return true;
     }
     
+    
+    public static String getReceiptHtml(String hash, String user) {
+        String receiptsFile = AppCore.getUserDir(Config.DIR_RECEIPTS, user);
+        receiptsFile += File.separator + hash + ".txt";
+                
+        String data = AppCore.loadFile(receiptsFile);
+        if (data == null) {
+            logger.error(ltag, "File " + receiptsFile + " failed to open");
+            return null;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        try {
+            JSONObject o = new JSONObject(data);
+                    
+            String rId = o.getString("receipt_id");
+            String time = o.getString("time");
+            
+            int total_authentic = o.optInt("total_authentic");
+            int total_fracked = o.optInt("total_fracked");
+            int total_counterfeit = o.optInt("total_counterfeit");
+            int total_lost = o.optInt("total_lost");
+            int total_unchecked = o.optInt("total_unchecked");
+            
+            
+            
+            sb.append("<p>Receipt <b>#");
+            sb.append(rId);
+            sb.append("</b></p><br><br><p>");
+            sb.append(time);
+            sb.append("</p><br><br>");
+            sb.append("<p>Total Authentic: <b>");
+            sb.append(total_authentic);
+            sb.append("</b></p><p>Total Fracked: <b>");
+            sb.append(total_fracked);
+            sb.append("</b></p><p>Total Counterfeit: <b>");
+            sb.append(total_counterfeit);
+            sb.append("</b></p><p>Total Lost: <b>");
+            sb.append(total_lost);
+            sb.append("</b></p><p>Total Unchecked: <b>");
+            sb.append(total_unchecked);
+            sb.append("</b></p><br><br><p>Details:</p><br>");
+            
+            JSONArray a = o.getJSONArray("receipt_detail");
+            
+            for (int i = 0; i < a.length(); i++) {
+                JSONObject io = a.getJSONObject(i);
+                
+                String nnsn = io.getString("nn.sn");
+                String status = io.getString("status");
+                String pown = io.getString("pown");
+                String note = io.getString("note");
+
+                sb.append("<p>nn.sn: ");
+                sb.append(nnsn);
+                sb.append("</p><p>status: ");
+                sb.append(status);
+                sb.append("</p><p>pown: ");
+                sb.append(pown);
+                sb.append("</p><p>note: ");
+                sb.append(note);
+                sb.append("</p><br>");                
+            }
+                  
+        } catch (JSONException e) {
+            logger.error(ltag, "Failed to parse receipt: " + e.getMessage());
+            return null;
+        }
+        
+        return sb.toString();
+    }
     
     
 }

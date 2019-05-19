@@ -59,7 +59,7 @@ public class Sender extends Servant {
     }
 
     public void doSendLocal(int amount, String dstUser) {
-        logger.debug(ltag, "Sending " + amount + " to " + dstUser);
+        logger.debug(ltag, "Sending locally " + amount + " to " + dstUser);
         
         String dstPath = AppCore.getUserDir(Config.DIR_BANK, dstUser);
         String fullBankPath = AppCore.getUserDir(Config.DIR_BANK, user);
@@ -101,11 +101,11 @@ public class Sender extends Servant {
         
         if (sr.status != SenderResult.STATUS_ERROR)
             sr.status = SenderResult.STATUS_FINISHED;
-        
-        System.out.println("ss="+dstUser+ " dstpath="+dstPath + " am=" +sr.amount + " st="+sr.status);
+
     }
     
     public void doSend(int tosn, int[] values, int amount, String envelope) {
+        logger.debug(ltag, "Sending remotely " + amount + " to " + tosn + " memo=" + envelope);
         /*
         if (!updateRAIDAStatus()) {
             sr.status = SenderResult.STATUS_ERROR;
