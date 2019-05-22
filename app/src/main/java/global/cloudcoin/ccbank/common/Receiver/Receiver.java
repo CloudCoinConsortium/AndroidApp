@@ -20,14 +20,13 @@ public class Receiver extends Servant {
         super("Receiver", rootDir, logger);
     }
 
-    public void launch(String user, int tosn, int[] nns, int[] sns, String envelope, CallbackInterface icb) {
+    //public void launch(String user, int tosn, int[] nns, int[] sns, String envelope, CallbackInterface icb) {
+    public void launch(int fromsn, int[] sns, String dstFolder, int amount, CallbackInterface icb) {
         this.cb = icb;
 
-        final int ftosn = tosn;
-        final String fuser = user;
+        final int ffromsn = fromsn;
         final int[] fsns = sns;
-        final int[] fnns = nns;
-        final String fenvelope = envelope;
+        final String fdstFolder = dstFolder;
 
         rr = new ReceiverResult();
 
@@ -35,7 +34,7 @@ public class Receiver extends Servant {
             @Override
             public void run() {
                 logger.info(ltag, "RUN Receiver");
-                doReceive(fuser, ftosn, fnns, fsns, fenvelope);
+                doReceive(ffromsn, fsns, fdstFolder, amount);
 
 
                 if (cb != null)
@@ -44,7 +43,7 @@ public class Receiver extends Servant {
         });
     }
 
-    public void doReceive(String user, int sn, int[] nns, int[] sns, String envelope) {
+    public void doReceive(int sn, int[] sns, String fdstFolder, int amount) {
         CloudCoin cc;
         String[] results;
         Object[] o;
@@ -56,19 +55,11 @@ public class Receiver extends Servant {
         int i;
         CloudCoin[] ccs;
 
-        if (nns.length != sns.length) {
-            logger.error(ltag, "Invalid parameters");
-            rr.status = ReceiverResult.STATUS_ERROR;
-            return;
-        }
-
-
-        /*
         if (!updateRAIDAStatus()) {
             logger.error(ltag, "Can't proceed. RAIDA is unavailable");
             rr.status = ReceiverResult.STATUS_ERROR;
             return;
-        }*/
+        }
 
         setSenderRAIDA();
         cc = getIDcc(user, sn);
@@ -86,7 +77,9 @@ public class Receiver extends Servant {
             requests[i] = "receive";
 
             sbs[i] = new StringBuilder();
-            sbs[i].append("sn=");
+            sbs[i].append("nn=");
+            sbs[i].append(Config.DEFAULT_NN);
+            sbs[i].append("&sn=");
             sbs[i].append(cc.sn);
             sbs[i].append("&an=");
             sbs[i].append(cc.ans[i]);
@@ -94,11 +87,10 @@ public class Receiver extends Servant {
             sbs[i].append(cc.ans[i]);
             sbs[i].append("&denomination=");
             sbs[i].append(cc.getDenomination());
-            sbs[i].append("&envelope_name=");
-            sbs[i].append(URLEncoder.encode(envelope));
+
             for (int j = 0; j < sns.length; j++) {
-                sbs[i].append("&nns[]=");
-                sbs[i].append(nns[j]);
+            //    sbs[i].append("&nns[]=");
+            //    sbs[i].append(nns[j]);
                 sbs[i].append("&sns[]=");
                 sbs[i].append(sns[j]);
             }

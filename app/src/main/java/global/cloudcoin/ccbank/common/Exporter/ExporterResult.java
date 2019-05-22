@@ -11,6 +11,8 @@ public class ExporterResult {
 
     public ArrayList<String> exportedFileNames;
     public int totalExported;
+    
+    public String receiptId;
 
     public ExporterResult() {
         status = STATUS_PROCESSING;

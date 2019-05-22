@@ -25,6 +25,7 @@ public class Wallet {
     int total;
     Wallet parent;
     String passwordHash;
+    int[] sns;
     
     public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
@@ -37,6 +38,14 @@ public class Wallet {
         
         logger.debug(ltag, "wallet " + name + " e=" + email + " is="+isEncrypted+ " p="+password);
         lsep = System.getProperty("line.separator");
+    }
+    
+    public int[] getSNs() {
+        return this.sns;
+    }
+    
+    public void setSNs(int[] sns) {
+        this.sns = sns;
     }
     
     public void setTotal(int total) {
@@ -145,7 +154,9 @@ public class Wallet {
         return rv;            
     }
     
-    public void appendTransaction(String memo, int amount, String receiptId) {  
+    public void appendTransaction(String memo, int amount, String receiptId) { 
+        logger.debug(ltag, "Append transaction " + receiptId + " amount " + amount + " wallet " + getName());
+        
         String fileName = getTransactionsFileName();
         
         String date = AppCore.getCurrentDate(); 

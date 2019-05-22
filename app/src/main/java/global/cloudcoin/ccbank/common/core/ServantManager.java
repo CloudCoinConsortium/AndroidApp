@@ -340,13 +340,13 @@ public class ServantManager {
 	s.launch(sn, dstFolder, null, amount, memo, cb);
     }
      
-    /*
-    public void startReceiverService(int sn, String dstFolder, int amount, String memo, CallbackInterface cb) {
+    
+    public void startReceiverService(int sn, int sns[], 
+            String dstFolder, int amount, String memo, CallbackInterface cb) {
 	Receiver r = (Receiver) sr.getServant("Receiver");
-	r.launch(, new int[]{1,1}, new int[] {7050330, 7050331}, memo, cb);
-        r.launch(sn, dstFolder, amount, memo, cb);
+	//r.launch(, new int[]{1,1}, new int[] {7050330, 7050331}, memo, cb);
+        r.launch(sn, sns, dstFolder, amount, cb);
     }
-    */
     
     public int getRemoteSn(String dstWallet) {
         int sn;
@@ -372,7 +372,7 @@ public class ServantManager {
     }
     
     
-    public boolean transferCoins(String srcWallet, String dstWallet, CloudCoin cc, int amount, 
+    public boolean transferCoins(String srcWallet, String dstWallet, int amount, 
             String memo, CallbackInterface scb, CallbackInterface rcb) {
         
         logger.debug(ltag, "Transferring " + amount + " from " + srcWallet + " to " + dstWallet);
@@ -403,34 +403,36 @@ public class ServantManager {
             dstWallet = null;
         } else {
             if (srcWalletObj.isSkyWallet()) {
-                dstWallet = null;
-                sn = cc.sn;
+                logger.debug(ltag, "Receiving from SkyWallet");
+                setActiveWallet(dstWallet);
+                sn = srcWalletObj.getIDCoin().sn;
+                int[] sns = srcWalletObj.getSNs();
+                logger.debug(ltag, "Got SN " + sn);
+                System.out.println("got sn "  + sn);
+                startReceiverService(sn, sns, dstWalletObj.getName(), amount, memo, rcb);
+                return true;
             }
         }
                 
-        if (srcWalletObj.isSkyWallet()) {
-            logger.debug(ltag, "Receiving from SkyWallet");
-            setActiveWallet(dstWallet);
-            //startReceiverService(cc.sn, dstWalletObj.getName(), amount, memo, rcb);
-        } else {
-            if (srcWalletObj.isEncrypted()) {
-                logger.debug(ltag, "Src wallet is encrypted");
-                Vaulter v = (Vaulter) sr.getServant("Vaulter");
-                v.unvault(srcWalletObj.getPassword(), amount, null, 
-                        new rVaulterCb(sn, dstWallet, amount, memo, scb));
+
+        if (srcWalletObj.isEncrypted()) {
+            logger.debug(ltag, "Src wallet is encrypted");
+            Vaulter v = (Vaulter) sr.getServant("Vaulter");
+            v.unvault(srcWalletObj.getPassword(), amount, null, 
+               new rVaulterCb(sn, dstWallet, amount, memo, scb));
              
-                return true;
-            }
-            
-            if (dstWalletObj.isSkyWallet()) {
-                logger.debug(ltag, "Dst wallet is sky");
-                sn = dstWalletObj.getIDCoin().sn;
-                dstWallet = null;
-            }
-            
-            logger.debug(ltag, "send to sn " + sn + " dstWallet " + dstWallet);
-            startSenderService(sn, dstWallet, amount, memo, scb);
+            return true;
         }
+            
+        if (dstWalletObj != null && dstWalletObj.isSkyWallet()) {
+            logger.debug(ltag, "Dst wallet is sky");
+            sn = dstWalletObj.getIDCoin().sn;
+            dstWallet = null;
+        }
+            
+
+        logger.debug(ltag, "send to sn " + sn + " dstWallet " + dstWallet);
+        startSenderService(sn, dstWallet, amount, memo, scb);
         
         return true;
         
@@ -452,20 +454,20 @@ public class ServantManager {
     }
     
     
-    public void startExporterService(int exportType, int amount, String tag, CallbackInterface cb) {
+    public void startExporterService(int exportType, int amount, String tag, String dir, CallbackInterface cb) {
         if (sr.isRunning("Exporter"))
             return;
                 
         Exporter ex = (Exporter) sr.getServant("Exporter");
-	ex.launch(exportType, amount, tag, cb);
+	ex.launch(exportType, amount, tag, dir, cb);
     }
     
-    public void startSecureExporterService(int exportType, int amount, String tag, CallbackInterface cb) {
+    public void startSecureExporterService(int exportType, int amount, String tag, String dir, CallbackInterface cb) {
         String password = getActiveWallet().getPassword();
         
         logger.debug(ltag, "Vaulter password " + password);
 	Vaulter v = (Vaulter) sr.getServant("Vaulter");
-	v.unvault(password, amount, null, new eVaulterCb(exportType, amount, tag, cb));
+	v.unvault(password, amount, null, new eVaulterCb(exportType, amount, tag, dir, cb));
     }
     
     class eVaulterCb implements CallbackInterface {
@@ -473,20 +475,24 @@ public class ServantManager {
         int exportType;
         int amount;
         String tag;
+        String dir;
         
-        public eVaulterCb(int exportType, int amount, String tag, CallbackInterface cb) {
+        public eVaulterCb(int exportType, int amount, String tag, String dir, CallbackInterface cb) {
             this.cb = cb;
             this.amount = amount;
             this.tag = tag;
             this.exportType = exportType;
+            this.dir = dir;
         }
         
 	public void callback(final Object result) {
             final Object fresult = result;
             VaulterResult vresult = (VaulterResult) fresult;
+            
+            logger.debug(ltag, "Evaulter CB finished");
 
             Exporter ex = (Exporter) sr.getServant("Exporter");
-            ex.launch(exportType, amount, tag, cb);
+            ex.launch(exportType, amount, tag, dir, cb);
 	}
     }
     
@@ -509,6 +515,8 @@ public class ServantManager {
 	public void callback(final Object result) {
             final Object fresult = result;
             VaulterResult vresult = (VaulterResult) fresult;
+            
+            logger.debug(ltag, "rVaulter CB finished");
             
             if (vresult.status == VaulterResult.STATUS_ERROR) {
                 logger.error(ltag, "Error on Vaulter");

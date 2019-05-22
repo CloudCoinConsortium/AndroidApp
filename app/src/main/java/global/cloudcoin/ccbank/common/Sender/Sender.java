@@ -16,10 +16,13 @@ import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.Servant;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Sender extends Servant {
     String ltag = "Sender";
-    SenderResult sr;
+    SenderResult globalResult;
+    
 
     public Sender(String rootDir, GLogger logger) {
         super("Sender", rootDir, logger);
@@ -34,12 +37,16 @@ public class Sender extends Servant {
         final int famount = amount;
         final String fdstFolder = dstFolder;
 
-        sr = new SenderResult();
-        sr.memo = envelope;
-
         coinsPicked = new ArrayList<CloudCoin>();
         valuesPicked = new int[AppCore.getDenominations().length];
 
+        globalResult = new SenderResult();
+        globalResult.receiptId = receiptId;
+        globalResult.memo = envelope;
+        
+        csb = new StringBuilder();
+        receiptId = AppCore.generateHex();
+           
         launchThread(new Runnable() {
             @Override
             public void run() {
@@ -50,14 +57,19 @@ public class Sender extends Servant {
                 } else {
                     doSend(ftosn, null, famount, fenvelope);
                 }
-
-
-                if (cb != null)
-                    cb.callback(sr);
             }
         });
     }
-
+    
+    private void copyFromGlobalResult(SenderResult sResult) {
+        sResult.totalFilesProcessed = globalResult.totalFilesProcessed;
+        sResult.totalRAIDAProcessed = globalResult.totalRAIDAProcessed;
+        sResult.totalFiles = globalResult.totalFiles;
+        sResult.status = globalResult.status;
+        sResult.amount = globalResult.amount;
+    }
+    
+    
     public void doSendLocal(int amount, String dstUser) {
         logger.debug(ltag, "Sending locally " + amount + " to " + dstUser);
         
@@ -66,10 +78,18 @@ public class Sender extends Servant {
         String fullFrackedPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
         if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
             logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
-            sr.status = SenderResult.STATUS_ERROR;
+            globalResult.status = SenderResult.STATUS_ERROR;
+            SenderResult sr = new SenderResult();
+            copyFromGlobalResult(sr);
+            if (cb != null)
+                cb.callback(sr);
+            
             return;
         }
         
+        int a, e;
+        
+        a = e = 0;
         for (CloudCoin cc : coinsPicked) {
             String ccFile = cc.originalFile;
         
@@ -78,7 +98,9 @@ public class Sender extends Servant {
             
             if (parentCf == null) {
                 logger.error(ltag, "Can't find coins folder");
-                sr.status = SenderResult.STATUS_ERROR;
+                globalResult.status = SenderResult.STATUS_ERROR;
+                addCoinToReceipt(cc, "error", "None");
+                e++;
                 continue;
             }
             
@@ -86,32 +108,53 @@ public class Sender extends Servant {
             
             if (!coinFolder.equals(Config.DIR_BANK) && !coinFolder.equals(Config.DIR_FRACKED)) {
                 logger.error(ltag, "Coin was in the invalid folder: " + coinFolder);
-                sr.status = SenderResult.STATUS_ERROR;
+                addCoinToReceipt(cc, "error", "None");
+                globalResult.status = SenderResult.STATUS_ERROR;
+                e++;
                 continue;
             }
             
             if (!AppCore.moveToFolder(cc.originalFile, coinFolder, dstUser)) {
                 logger.error(ltag, "Failed to move coin " + cc.originalFile);
-                sr.status = SenderResult.STATUS_ERROR;
+                addCoinToReceipt(cc, "error", "None");
+                globalResult.status = SenderResult.STATUS_ERROR;
+                e++;
                 continue;
             }
             
-            sr.amount += cc.getDenomination();
+            a++;
+            addCoinToReceipt(cc, "authentic", Config.DIR_BANK);
+            
+            globalResult.amount += cc.getDenomination();
         }
         
-        if (sr.status != SenderResult.STATUS_ERROR)
-            sr.status = SenderResult.STATUS_FINISHED;
+
+        saveReceipt(user, a, 0, 0, 0, e);
+        saveReceipt(dstUser, a, 0, 0, 0, e);
+        
+        SenderResult sr = new SenderResult();
+        if (globalResult.status != SenderResult.STATUS_ERROR)
+            globalResult.status = SenderResult.STATUS_FINISHED;
+        copyFromGlobalResult(sr);
+        
+        if (cb != null)
+            cb.callback(sr);
 
     }
     
     public void doSend(int tosn, int[] values, int amount, String envelope) {
         logger.debug(ltag, "Sending remotely " + amount + " to " + tosn + " memo=" + envelope);
-        /*
+        
+        SenderResult sr = new SenderResult();
         if (!updateRAIDAStatus()) {
-            sr.status = SenderResult.STATUS_ERROR;
+            globalResult.status = SenderResult.STATUS_ERROR;
+            sr = new SenderResult();
             logger.error(ltag, "Can't proceed. RAIDA is unavailable");
+            copyFromGlobalResult(sr);
+            if (cb != null)
+                cb.callback(sr);
             return;
-        }*/
+        }
 
         String fullSentPath = AppCore.getUserDir(Config.DIR_SENT, user);
         String fullFrackedPath = AppCore.getUserDir(Config.DIR_FRACKED, user);
@@ -120,7 +163,11 @@ public class Sender extends Servant {
         if (values != null) {
             if (values.length != AppCore.getDenominations().length) {
                 logger.error(ltag, "Invalid params");
-                sr.status = SenderResult.STATUS_ERROR;
+                sr = new SenderResult();
+                globalResult.status = SenderResult.STATUS_ERROR;
+                copyFromGlobalResult(sr);
+                if (cb != null)
+                    cb.callback(sr);
                 return;
             }
 
@@ -128,27 +175,117 @@ public class Sender extends Servant {
                 logger.debug(ltag, "Not enough coins in the bank dir");
                 if (!pickCoinsInDir(fullFrackedPath, values)) {
                    logger.error(ltag, "Not enough coins in the Fracked dir");
-                   sr.status = SenderResult.STATUS_ERROR;
+                   sr = new SenderResult();
+                   globalResult.status = SenderResult.STATUS_ERROR;
+                   copyFromGlobalResult(sr);
+                   if (cb != null)
+                        cb.callback(sr);
+                   
                    return;
                 }
             }
         } else {
             if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
                 logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
-                sr.status = SenderResult.STATUS_ERROR;
+                sr = new SenderResult();
+                globalResult.status = SenderResult.STATUS_ERROR;
+                copyFromGlobalResult(sr);
+                if (cb != null)
+                    cb.callback(sr);
                 return;
             }
         }
 
         setSenderRAIDA();
+        
+        ArrayList<CloudCoin> ccs;
 
-        logger.debug(ltag, "Sending to SN " + tosn);
-        if (!processSend(coinsPicked, tosn, envelope)) {
-            sr.status = SenderResult.STATUS_ERROR;
-            return;
+        ccs = new ArrayList<CloudCoin>();
+        
+        int maxCoins = getIntConfigValue("max-coins-to-multi-detect");
+        if (maxCoins == -1)
+            maxCoins = Config.DEFAULT_MAX_COINS_MULTIDETECT;
+        
+        logger.debug(ltag, "Maxcoins: " + maxCoins);
+        globalResult.totalFiles = coinsPicked.size();
+        globalResult.totalRAIDAProcessed = 0;
+        globalResult.totalFilesProcessed += 0;
+        
+        sr = new SenderResult();
+        copyFromGlobalResult(sr);
+        if (cb != null)
+            cb.callback(sr);
+                
+        logger.info(ltag, "total files "+ globalResult.totalFiles);
+        
+        for (CloudCoin cc : coinsPicked) {
+            logger.debug(ltag, "Sending to SN " + tosn);
+            
+            if (isCancelled()) {
+                logger.info(ltag, "Cancelled");
+
+                resume();
+
+                sr = new SenderResult();
+                globalResult.status = SenderResult.STATUS_CANCELLED;
+                copyFromGlobalResult(sr);
+                if (cb != null)
+                    cb.callback(sr);
+
+                return;
+            }
+            
+            ccs.add(cc);
+            if (ccs.size() == maxCoins) {
+                logger.info(ltag, "Processing");
+                sr = new SenderResult();
+                
+                if (!processSend(ccs, tosn, envelope)) {
+                   sr = new SenderResult();
+                   globalResult.status = SenderResult.STATUS_ERROR;
+                   copyFromGlobalResult(sr);
+                   if (cb != null)
+                        cb.callback(sr);
+                
+                   return;
+                }
+                
+                
+                ccs.clear();
+
+                globalResult.totalRAIDAProcessed = 0;
+                globalResult.totalFilesProcessed += maxCoins;
+
+                copyFromGlobalResult(sr);
+                if (cb != null)
+                    cb.callback(sr);         
+            }
+            
+            
+            
+        }
+        
+        sr = new SenderResult();
+        if (ccs.size() > 0) {
+            logger.info(ltag, "adding + " + ccs.size());
+            if (!processSend(ccs, tosn, envelope)) {
+                sr = new SenderResult();
+                globalResult.status = SenderResult.STATUS_ERROR;
+                copyFromGlobalResult(sr);
+                if (cb != null)
+                    cb.callback(sr);
+            } else {
+                globalResult.status = SenderResult.STATUS_FINISHED;
+                globalResult.totalFilesProcessed += ccs.size();
+            }
+        } else {
+            globalResult.status = SenderResult.STATUS_FINISHED;
         }
 
-        sr.status = SenderResult.STATUS_FINISHED;
+        copyFromGlobalResult(sr);
+        if (cb != null)
+            cb.callback(sr);
+
     }
 
     private void setCoinStatus(ArrayList<CloudCoin> ccs, int idx, int status) {
@@ -160,6 +297,8 @@ public class Sender extends Servant {
     private void moveCoins(ArrayList<CloudCoin> ccs) {
         int passed, failed;
 
+        int a, c, f;
+        a = c = f = 0;
         for (CloudCoin cc : ccs) {
             String ccFile = cc.originalFile;
             passed = failed = 0;
@@ -173,18 +312,26 @@ public class Sender extends Servant {
             logger.info(ltag, "Doing " + cc.originalFile + " pass="+passed + " f="+failed);
             if (passed >= Config.PASS_THRESHOLD) {
                 logger.info(ltag, "Moving to Sent: " + cc.sn);
-                sr.amount += cc.getDenomination();
+                globalResult.amount += cc.getDenomination();
+                addCoinToReceipt(cc, "authentic", "Remote Wallet");
+                a++;
                 AppCore.moveToFolder(cc.originalFile, Config.DIR_SENT, user);
             } else if (failed > 0) {
                 if (failed >= RAIDA.TOTAL_RAIDA_COUNT - Config.PASS_THRESHOLD) {
                     logger.info(ltag, "Moving to Counterfeit: " + cc.sn);
+                    addCoinToReceipt(cc, "counterfeit", Config.DIR_COUNTERFEIT);
+                    c++;
                     AppCore.moveToFolder(cc.originalFile, Config.DIR_COUNTERFEIT, user);
                 } else {
                     logger.info(ltag, "Moving to Fracked: " + cc.sn);
+                    addCoinToReceipt(cc, "error", Config.DIR_COUNTERFEIT);
+                    f++;
                     AppCore.moveToFolder(cc.originalFile, Config.DIR_FRACKED, user);
                 }
             }
         }
+        
+        saveReceipt(user, a, c, f, 0, 0);
     }
 
 
@@ -207,6 +354,7 @@ public class Sender extends Servant {
 
         for (CloudCoin cc : ccs) {
             logger.debug(ltag, "Processing coin " + cc.sn);
+
             for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
                 if (!first) {
                     sbs[i].append("&");
@@ -244,12 +392,12 @@ public class Sender extends Servant {
 
             @Override
             public void callback(Object result) {
-                //globalResult.totalRAIDAProcessed++;
-                //if (myCb != null) {
-                //    AuthenticatorResult ar = new AuthenticatorResult();
-                //    copyFromGlobalResult(ar);
-                //    myCb.callback(ar);
-                //}
+                globalResult.totalRAIDAProcessed++;
+                if (myCb != null) {
+                    SenderResult srlocal = new SenderResult();
+                    copyFromGlobalResult(srlocal);
+                    myCb.callback(srlocal);
+                }
             }
         });
 
@@ -262,6 +410,7 @@ public class Sender extends Servant {
         SenderResponse[][] ar;
         Object[] o;
 
+        
         ar = new SenderResponse[RAIDA.TOTAL_RAIDA_COUNT][];
         for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
             logger.debug(ltag, "Parsing result from RAIDA" + i + " r: " + results[i]);
@@ -285,7 +434,7 @@ public class Sender extends Servant {
                 logger.error(ltag, "Failed to auth coin. Status: " + errorResponse.status);
                 continue;
             }
-
+   
             for (int j = 0; j < o.length; j++) {
                 String strStatus;
                 int status;
@@ -305,14 +454,17 @@ public class Sender extends Servant {
                 }
 
                 ccs.get(j).setDetectStatus(i, status);
+                
                 logger.info(ltag, "raida" + i + " v=" + ar[i][j].status + " m="+ar[i][j].message);
             }
         }
+
 
         moveCoins(ccs);
 
         return true;
     }
 
+    
 
 }

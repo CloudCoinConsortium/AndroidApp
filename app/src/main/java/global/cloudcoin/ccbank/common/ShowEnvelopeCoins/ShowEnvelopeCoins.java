@@ -116,8 +116,9 @@ public class ShowEnvelopeCoins extends Servant {
         
         logger.debug(ltag, "Returned length " + o.length);
         
-        ShowEnvelopeCoinsResponse[] er;
+        result.coins = new int[o.length];
         
+        ShowEnvelopeCoinsResponse[] er;
         er = new ShowEnvelopeCoinsResponse[o.length];
         for (int j = 0; j < o.length; j++) {
             String tag;
@@ -150,6 +151,8 @@ public class ShowEnvelopeCoins extends Servant {
                     result.counters[idx][Config.IDX_250]++;
                     break;
             }    
+            
+            result.coins[j] = rsn;
         }
 
         result.status = ShowEnvelopeCoinsResult.STATUS_FINISHED;

@@ -7,6 +7,7 @@ package global.cloudcoin.ccbank.core;
 
 import global.cloudcoin.ccbank.FrackFixer.GetTicketResponse;
 import java.io.File;
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import org.json.JSONException;
@@ -41,6 +42,28 @@ public class DNSSn {
         }
         
         return true;
+    }
+    
+    public int getSN() {
+        String domain = name + "." + Config.DDNS_DOMAIN;
+        InetAddress address;
+        int sn = -1;
+        
+        try {
+            address = InetAddress.getByName(domain);
+            byte[] bytes = address.getAddress();
+       
+            logger.debug(ltag, "response " + address);
+            sn = (bytes[1] & 0xff)<< 16 | (bytes[2] & 0xff << 8) | bytes[3] & 0xff;
+            if (sn < 0)
+                return -1;
+                  
+        } catch (UnknownHostException e) {
+            logger.debug(ltag, "Host not found");
+            return -1;
+        }
+        
+        return sn;
     }
     
     public boolean setRecord(String path, ServantRegistry sr) {

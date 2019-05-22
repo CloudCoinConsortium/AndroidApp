@@ -11,7 +11,9 @@ import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Set;
 
@@ -45,6 +47,10 @@ public class Servant {
     protected int[] valuesPicked;
     
     protected boolean isUserBound;
+    
+    protected StringBuilder csb;
+    
+    protected String receiptId;
 
     public Servant(String name, String rootDir, GLogger logger) {
         this.name = name;
@@ -59,6 +65,9 @@ public class Servant {
         File f = new File(rootDir);
         //changeUser(f.getName());
         this.user = f.getName();
+        
+        this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
+        AppCore.createDirectoryPath(this.privateLogDir);
         
         AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
 
@@ -97,7 +106,7 @@ public class Servant {
         
         this.user = user;
         this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
-        AppCore.createDirectoryPath(this.privateLogDir);
+//        AppCore.createDirectoryPath(this.privateLogDir);
         
         configHT = new Hashtable<String, String>();
         
@@ -862,4 +871,58 @@ public class Servant {
         return true;
     }
 
+    public void addCoinToReceipt(CloudCoin cc, String status, String dstFolder) {
+        if (!csb.toString().equals(""))
+            csb.append(",");
+
+        csb.append("{\"nn.sn\": \"");
+        csb.append(cc.nn);
+        csb.append(".");
+        csb.append(cc.sn);
+        csb.append("\", \"status\": \"");
+        csb.append(status);
+        csb.append("\", \"pown\": \"");
+        csb.append(cc.getPownString());
+        csb.append("\", \"note\": \"Moved to ");
+        csb.append(dstFolder);
+        csb.append("\"}");
+    }
+    
+    public void saveReceipt(String duser, int a, int c, int f, int l, int u) {
+        logger.debug(ltag, "Saving receipt " + duser + ": " + a + "," + c + "," + f + "," + l + "," + u);
+        
+        StringBuilder rsb = new StringBuilder();
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:a");
+        SimpleDateFormat formatterTz = new SimpleDateFormat("z");
+        Date date = new Date(System.currentTimeMillis());
+
+        String cdate = formatter.format(date);
+        String cdateFormat = formatterTz.format(date);
+
+        rsb.append("{\"receipt_id\": \"");
+        rsb.append(receiptId);
+        rsb.append("\", \"time\": \"");
+        rsb.append(cdate);
+        rsb.append("\", \"timezone\": \"");
+        rsb.append(cdateFormat);
+        rsb.append("\", \"total_authentic\": ");
+        rsb.append(a);
+        rsb.append(", \"total_fracked\": ");
+        rsb.append(f);
+        rsb.append(", \"total_counterfeit\": ");
+        rsb.append(c);
+        rsb.append(", \"total_lost\": ");
+        rsb.append(l);
+        rsb.append(", \"total_unchecked\": ");
+        rsb.append(u);
+        rsb.append(", \"receipt_detail\": [");
+        rsb.append(csb);
+        rsb.append("]}");
+
+        String fileName = AppCore.getUserDir(Config.DIR_RECEIPTS, duser) + File.separator + receiptId + ".txt";
+        if (!AppCore.saveFile(fileName, rsb.toString())) {
+            logger.error(ltag, "Failed to save file " + fileName);
+        } 
+    }
 }

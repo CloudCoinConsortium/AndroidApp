@@ -19,8 +19,6 @@ import global.cloudcoin.ccbank.core.Servant;
 public class Grader extends Servant {
     String ltag = "Grader";
     GraderResult gr;
-    StringBuilder sb;
-    String receiptId;
 
     public Grader(String rootDir, GLogger logger) {
         super("Grader", rootDir, logger);
@@ -30,9 +28,10 @@ public class Grader extends Servant {
         this.cb = icb;
 
         gr = new GraderResult();
-        sb = new StringBuilder();
+        csb = new StringBuilder();
 
         receiptId = AppCore.generateHex();
+        gr.receiptId = receiptId;
 
         launchThread(new Runnable() {
             @Override
@@ -57,7 +56,6 @@ public class Grader extends Servant {
                 continue;
 
             graded = true;
-
             try {
                 cc = new CloudCoin(file.toString());
             } catch (JSONException e) {
@@ -71,63 +69,10 @@ public class Grader extends Servant {
             gradeCC(cc);
         }
 
-        if (graded)
-            saveReceipt();
-    }
-
-    public void saveReceipt() {
-        StringBuilder rsb = new StringBuilder();
-
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:a");
-        SimpleDateFormat formatterTz = new SimpleDateFormat("z");
-        Date date = new Date(System.currentTimeMillis());
-
-        String cdate = formatter.format(date);
-        String cdateFormat = formatterTz.format(date);
-
-        rsb.append("{\"receipt_id\": \"");
-        rsb.append(receiptId);
-        rsb.append("\", \"time\": \"");
-        rsb.append(cdate);
-        rsb.append("\", \"timezone\": \"");
-        rsb.append(cdateFormat);
-        rsb.append("\", \"total_authentic\": ");
-        rsb.append(gr.totalAuthentic);
-        rsb.append(", \"total_fracked\": ");
-        rsb.append(gr.totalFracked);
-        rsb.append(", \"total_counterfeit\": ");
-        rsb.append(gr.totalCounterfeit);
-        rsb.append(", \"total_lost\": ");
-        rsb.append(gr.totalLost);
-        rsb.append(", \"total_unchecked\": ");
-        rsb.append(gr.totalUnchecked);
-        rsb.append(", \"receipt_detail\": [");
-        rsb.append(sb);
-        rsb.append("]}");
-
-        String fileName = AppCore.getUserDir(Config.DIR_RECEIPTS, user) + File.separator + receiptId + ".txt";
-        if (!AppCore.saveFile(fileName, rsb.toString())) {
-            logger.error(ltag, "Failed to save file " + fileName);
-        } else {
-            gr.receiptId = receiptId;
+        if (graded) {
+            saveReceipt(user, gr.totalAuthentic, gr.totalFracked, gr.totalCounterfeit,
+                gr.totalLost, gr.totalUnchecked);
         }
-    }
-
-    public void addCoinToReceipt(CloudCoin cc, String status, String dstFolder) {
-        if (!sb.toString().equals(""))
-            sb.append(",");
-
-        sb.append("{\"nn.sn\": \"");
-        sb.append(cc.nn);
-        sb.append(".");
-        sb.append(cc.sn);
-        sb.append("\", \"status\": \"");
-        sb.append(status);
-        sb.append("\", \"pown\": \"");
-        sb.append(cc.getPownString());
-        sb.append("\", \"note\": \"Moved to ");
-        sb.append(dstFolder);
-        sb.append("\"}");
     }
 
     public void gradeCC(CloudCoin cc) {
@@ -156,7 +101,8 @@ public class Grader extends Servant {
         String ccFile;
 
         if (passed >= Config.PASS_THRESHOLD) {
-            if (passed != RAIDA.TOTAL_RAIDA_COUNT) {
+            //if (passed != RAIDA.TOTAL_RAIDA_COUNT) {
+            if (counterfeit != 0) {
                 logger.debug(ltag, "Coin " + cc.sn + " is fracked");
 
                 gr.totalFracked++;
