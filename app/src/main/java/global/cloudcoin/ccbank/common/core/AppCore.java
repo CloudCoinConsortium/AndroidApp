@@ -158,7 +158,6 @@ public class AppCore {
        File f;
 
        f = new File(rootPath, Config.DIR_ACCOUNTS);
-       System.out.println("f-="+f + "u="+user);
        f = new File(f, user);
        f = new File(f, Config.DIR_LOGS);
 

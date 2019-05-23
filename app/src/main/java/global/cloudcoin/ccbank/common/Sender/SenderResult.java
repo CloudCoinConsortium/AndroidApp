@@ -3,7 +3,6 @@ package global.cloudcoin.ccbank.Sender;
 public class SenderResult {
     public int totalFilesProcessed;
     public int totalFiles;
-
     public int totalRAIDAProcessed;
     
     public static int STATUS_PROCESSING = 1;
@@ -16,7 +15,8 @@ public class SenderResult {
     public int amount;
     public String memo;
     
-    public String receiptId;
+    public String receiptId;   
+    public String errText;
     
     public SenderResult() {
         memo = "Send";
@@ -24,5 +24,6 @@ public class SenderResult {
         totalFilesProcessed = totalRAIDAProcessed = 0;
         totalFiles = 0;
         status = STATUS_PROCESSING;
+        errText = "";
     }
 }

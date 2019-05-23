@@ -413,7 +413,12 @@ public class ServantManager {
                 return true;
             }
         }
-                
+                 
+        if (dstWalletObj != null && dstWalletObj.isSkyWallet()) {
+            logger.debug(ltag, "Dst wallet is sky");
+            sn = dstWalletObj.getIDCoin().sn;
+            dstWallet = null;
+        }           
 
         if (srcWalletObj.isEncrypted()) {
             logger.debug(ltag, "Src wallet is encrypted");
@@ -423,13 +428,6 @@ public class ServantManager {
              
             return true;
         }
-            
-        if (dstWalletObj != null && dstWalletObj.isSkyWallet()) {
-            logger.debug(ltag, "Dst wallet is sky");
-            sn = dstWalletObj.getIDCoin().sn;
-            dstWallet = null;
-        }
-            
 
         logger.debug(ltag, "send to sn " + sn + " dstWallet " + dstWallet);
         startSenderService(sn, dstWallet, amount, memo, scb);

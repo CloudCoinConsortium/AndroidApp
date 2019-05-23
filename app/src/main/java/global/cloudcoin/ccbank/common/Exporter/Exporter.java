@@ -112,6 +112,7 @@ public class Exporter extends Servant {
                 if (!pickCoinsInDir(fullFrackedPath, values)) {
                     logger.error(ltag, "Not enough coins in the Fracked dir");
                     er.status = ExporterResult.STATUS_ERROR;
+                    er.errText = "Can't collect required amount";
                     if (cb != null)
                         cb.callback(er);
 
@@ -122,6 +123,7 @@ public class Exporter extends Servant {
             if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
                 logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
                 er.status = ExporterResult.STATUS_ERROR;
+                er.errText = "Can't collect required amount";
                 if (cb != null)
                     cb.callback(er);
                     

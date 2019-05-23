@@ -7,5 +7,6 @@ public class ReceiverResponse extends CommonResponse {
 
     public int sn;
 
-    public String an;
+    
+    
 }

@@ -60,7 +60,7 @@ public class ShowEnvelopeCoins extends Servant {
         ShowEnvelopeCoinsResponse srs;
 
         setSenderRAIDA();
-        cc = getIDcc(user, sn);
+        cc = getIDcc(sn);
         if (cc == null) {
             logger.error(ltag, "NO ID Coin found for SN: " + sn);
             result.status = ShowEnvelopeCoinsResult.STATUS_ERROR;

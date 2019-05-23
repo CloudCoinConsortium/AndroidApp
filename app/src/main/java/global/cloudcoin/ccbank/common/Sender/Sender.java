@@ -6,7 +6,6 @@ import java.io.File;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
-import global.cloudcoin.ccbank.Authenticator.AuthenticatorResponse;
 import global.cloudcoin.ccbank.Sender.SenderResult;
 import global.cloudcoin.ccbank.core.AppCore;
 import global.cloudcoin.ccbank.core.CallbackInterface;
@@ -23,6 +22,7 @@ public class Sender extends Servant {
     String ltag = "Sender";
     SenderResult globalResult;
     
+    int a, c, e, f;
 
     public Sender(String rootDir, GLogger logger) {
         super("Sender", rootDir, logger);
@@ -41,12 +41,13 @@ public class Sender extends Servant {
         valuesPicked = new int[AppCore.getDenominations().length];
 
         globalResult = new SenderResult();
-        globalResult.receiptId = receiptId;
         globalResult.memo = envelope;
         
         csb = new StringBuilder();
         receiptId = AppCore.generateHex();
+        globalResult.receiptId = receiptId;
            
+        a = c = e = f = 0;
         launchThread(new Runnable() {
             @Override
             public void run() {
@@ -67,6 +68,8 @@ public class Sender extends Servant {
         sResult.totalFiles = globalResult.totalFiles;
         sResult.status = globalResult.status;
         sResult.amount = globalResult.amount;
+        sResult.errText = globalResult.errText;
+        sResult.receiptId = globalResult.receiptId;
     }
     
     
@@ -79,6 +82,7 @@ public class Sender extends Servant {
         if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
             logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
             globalResult.status = SenderResult.STATUS_ERROR;
+            globalResult.errText = "Can't collect required amount";
             SenderResult sr = new SenderResult();
             copyFromGlobalResult(sr);
             if (cb != null)
@@ -86,10 +90,7 @@ public class Sender extends Servant {
             
             return;
         }
-        
-        int a, e;
-        
-        a = e = 0;
+
         for (CloudCoin cc : coinsPicked) {
             String ccFile = cc.originalFile;
         
@@ -177,6 +178,7 @@ public class Sender extends Servant {
                    logger.error(ltag, "Not enough coins in the Fracked dir");
                    sr = new SenderResult();
                    globalResult.status = SenderResult.STATUS_ERROR;
+                   globalResult.errText = "Can't collect required amount";
                    copyFromGlobalResult(sr);
                    if (cb != null)
                         cb.callback(sr);
@@ -189,6 +191,7 @@ public class Sender extends Servant {
                 logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
                 sr = new SenderResult();
                 globalResult.status = SenderResult.STATUS_ERROR;
+                globalResult.errText = "Can't collect required amount";
                 copyFromGlobalResult(sr);
                 if (cb != null)
                     cb.callback(sr);
@@ -199,7 +202,6 @@ public class Sender extends Servant {
         setSenderRAIDA();
         
         ArrayList<CloudCoin> ccs;
-
         ccs = new ArrayList<CloudCoin>();
         
         int maxCoins = getIntConfigValue("max-coins-to-multi-detect");
@@ -209,7 +211,7 @@ public class Sender extends Servant {
         logger.debug(ltag, "Maxcoins: " + maxCoins);
         globalResult.totalFiles = coinsPicked.size();
         globalResult.totalRAIDAProcessed = 0;
-        globalResult.totalFilesProcessed += 0;
+        globalResult.totalFilesProcessed = 0;
         
         sr = new SenderResult();
         copyFromGlobalResult(sr);
@@ -259,10 +261,7 @@ public class Sender extends Servant {
                 copyFromGlobalResult(sr);
                 if (cb != null)
                     cb.callback(sr);         
-            }
-            
-            
-            
+            }  
         }
         
         sr = new SenderResult();
@@ -282,10 +281,11 @@ public class Sender extends Servant {
             globalResult.status = SenderResult.STATUS_FINISHED;
         }
 
+        saveReceipt(user, a, c, f, 0, 0);
+        
         copyFromGlobalResult(sr);
         if (cb != null)
             cb.callback(sr);
-
     }
 
     private void setCoinStatus(ArrayList<CloudCoin> ccs, int idx, int status) {
@@ -297,8 +297,6 @@ public class Sender extends Servant {
     private void moveCoins(ArrayList<CloudCoin> ccs) {
         int passed, failed;
 
-        int a, c, f;
-        a = c = f = 0;
         for (CloudCoin cc : ccs) {
             String ccFile = cc.originalFile;
             passed = failed = 0;
@@ -331,7 +329,7 @@ public class Sender extends Servant {
             }
         }
         
-        saveReceipt(user, a, c, f, 0, 0);
+
     }
 
 

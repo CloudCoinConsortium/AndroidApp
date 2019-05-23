@@ -13,9 +13,12 @@ public class ExporterResult {
     public int totalExported;
     
     public String receiptId;
+    
+    public String errText;
 
     public ExporterResult() {
         status = STATUS_PROCESSING;
         exportedFileNames = new ArrayList<String>();
+        errText = "";
     }
 }

@@ -137,9 +137,7 @@ public class Vaulter extends Servant {
                 
                 logger.info(ltag, "cc=" + tcc.sn + " was AN" + i + ":" + tcc.ans[i]);
                 tcc.ans[i] = builder.toString().toLowerCase();
-                logger.info(ltag, "cc=" + tcc.sn + " is AN" + i + ":" + tcc.ans[i] + " move " + tcc.originalFile + " d=" + Config.DIR_VAULT);
-
-
+                logger.info(ltag, "cc=" + tcc.sn + " is AN" + i + ":" + tcc.ans[i]);
             }
 
             String vpath = fullVaultPath + File.separator + tcc.getFileName();
@@ -151,6 +149,7 @@ public class Vaulter extends Servant {
                 return;
             }
 
+            logger.debug(ltag, "File has been successfully encrypted. Moving the original file to Trash");
             AppCore.moveToFolder(tcc.originalFile, Config.DIR_TRASH, user);
         }
 
@@ -253,6 +252,7 @@ public class Vaulter extends Servant {
                 return;
             }
 
+            logger.debug(ltag, "File has been successfully decrypted. Moving the original file to Trash");
             AppCore.moveToFolder(tcc.originalFile, Config.DIR_TRASH, user);
         }
         
