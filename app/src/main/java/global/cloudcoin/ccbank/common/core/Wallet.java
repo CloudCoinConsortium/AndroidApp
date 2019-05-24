@@ -35,6 +35,7 @@ public class Wallet {
         this.ltag += " " + name;
         this.logger = logger;
         this.parent = null;
+        this.sns = new int[0];
         
         logger.debug(ltag, "wallet " + name + " e=" + email + " is="+isEncrypted+ " p="+password);
         lsep = System.getProperty("line.separator");
@@ -195,5 +196,21 @@ public class Wallet {
         AppCore.saveFileAppend(fileName, result, true);              
     }
     
-    
+    public void saveSerials(String fileName) {
+        
+        logger.debug(ltag, "Saving serials to " + fileName);
+        
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("Serial,Denomination\r\n");
+        for (int sn : sns) {
+            CloudCoin cc = new CloudCoin(Config.DEFAULT_NN, sn);
+            sb.append("" + sn);
+            sb.append(",");
+            sb.append("" + cc.getDenomination());
+            sb.append("\r\n");
+        }
+
+        AppCore.saveFile(fileName, sb.toString());
+    }   
 }

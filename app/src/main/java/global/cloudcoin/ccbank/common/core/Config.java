@@ -129,4 +129,6 @@ public class Config {
     final public static String DDNS_DOMAIN = "skywallet.cc";
     
     final public static String DDNSSN_SERVER = "https://cloudcoin.global";
+    
+    final public static String MAIN_LOG_FILENAME = "main.log";
 }

@@ -13,6 +13,7 @@ import java.util.Date;
 public abstract class GLogger implements GLoggerInterface {
 
     PrintWriter channel;
+    String fileName;
 
     public void info(String tag, String message) {
         onLog(GLoggerInterface.GL_INFO, tag, message);
@@ -34,6 +35,7 @@ public abstract class GLogger implements GLoggerInterface {
         File f = new File(file);
         BufferedWriter br;
         FileWriter fr;
+        
 
         if (f.exists()) {
             double bytes = f.length();
@@ -41,6 +43,7 @@ public abstract class GLogger implements GLoggerInterface {
                 f.delete();
         }
 
+        fileName = file;
         try {
             fr = new FileWriter(file, true);
             br = new BufferedWriter(fr);
@@ -54,7 +57,7 @@ public abstract class GLogger implements GLoggerInterface {
 
     public synchronized void logCommon(String text) {
         if (channel == null) {
-            if (!openCommonFile(AppCore.getLogDir() +  File.separator + "main.log"))
+            if (!openCommonFile(AppCore.getLogDir() +  File.separator + Config.MAIN_LOG_FILENAME))
                 return;
         }
 
@@ -68,4 +71,29 @@ public abstract class GLogger implements GLoggerInterface {
         channel.flush();
     }
 
+    public void killMe() {
+        if (channel == null)
+            return;
+        
+        channel.close();
+        
+        File f = new File(fileName);
+        if (f.exists())
+            f.delete();        
+        
+        channel = null;
+    }
+    
+    public boolean copyMe() {
+        channel.flush();
+        
+        File f = new File(fileName);
+        if (!f.exists())
+            return false;
+        
+        String dfileName = AppCore.getCurrentBackupDir(AppCore.getBackupDir(), Config.DIR_DEFAULT_USER);
+        dfileName += File.separator + f.getName();
+        
+        return AppCore.copyFile(f.getAbsolutePath(), dfileName);
+    }
 }

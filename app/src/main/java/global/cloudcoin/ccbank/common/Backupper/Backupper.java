@@ -50,10 +50,8 @@ public class Backupper extends Servant {
             return;
         }
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-d h-mma", Locale.US);
-        Date date = new Date();
-        String bdir = destDir + File.separator + user + File.separator + "CloudCoinBackup-" + dateFormat.format(date);
-
+        String bdir = AppCore.getCurrentBackupDir(destDir, user);
+        
         logger.info(ltag, "Creating backup dir " + bdir);
 
         f = new File(bdir);

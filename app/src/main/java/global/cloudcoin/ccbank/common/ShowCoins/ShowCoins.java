@@ -11,16 +11,19 @@ import global.cloudcoin.ccbank.core.CloudCoin;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.Servant;
+import java.util.ArrayList;
 
 public class ShowCoins extends Servant {
     String ltag = "ShowCoins";
 
     ShowCoinsResult result;
+    ArrayList<CloudCoin> ccs;
 
     public ShowCoins(String rootDir, GLogger logger) {
         super("ShowCoins", rootDir, logger);
 
         result = new ShowCoinsResult();
+        ccs = new ArrayList<CloudCoin>();
 
     }
 
@@ -48,9 +51,15 @@ public class ShowCoins extends Servant {
 
         showCoinsInFolder(Config.IDX_FOLDER_BANK, Config.DIR_BANK);
         showCoinsInFolder(Config.IDX_FOLDER_FRACKED, Config.DIR_FRACKED);
-        showCoinsInFolder(Config.IDX_FOLDER_LOST, Config.DIR_LOST);
+        //showCoinsInFolder(Config.IDX_FOLDER_LOST, Config.DIR_LOST);
         showCoinsInFolder(Config.IDX_FOLDER_VAULT, Config.DIR_VAULT);
-     
+        
+        result.coins = new int[ccs.size()];
+        int i = 0;
+        for (CloudCoin tcc : ccs) {
+            result.coins[i] = tcc.sn;
+            i++;
+        }
     }
 
     public void showCoinsInFolder(int idx, String folder) {
@@ -63,6 +72,7 @@ public class ShowCoins extends Servant {
             logger.error(ltag, "No such dir " + fullPath);
             return;
         }
+        
         
         for (File file: dirObj.listFiles()) {
             if (file.isDirectory())
@@ -94,7 +104,11 @@ public class ShowCoins extends Servant {
                     result.counters[idx][Config.IDX_250]++;
                     break;
             }
+            
+            ccs.add(cc);
         }
+
+        logger.debug(ltag, "Total coins in " + folder + ": " + ccs.size());
 
         createStatFile(folder, result.counters[idx]);
     }

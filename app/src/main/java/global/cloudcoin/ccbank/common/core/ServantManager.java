@@ -325,9 +325,9 @@ public class ServantManager {
 	l.launch(cb);
     }
     
-    public void startEraserService(CallbackInterface cb) {
+    public void startEraserService(CallbackInterface cb, boolean needBackup) {
 	Eraser e = (Eraser) sr.getServant("Eraser");
-	e.launch(cb);
+	e.launch(cb, needBackup);
     }
     
     public void startBackupperService(String dstDir, CallbackInterface cb) {

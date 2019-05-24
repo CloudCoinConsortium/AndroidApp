@@ -78,7 +78,7 @@ public class AppCore {
 
         createDirectory(Config.DIR_ACCOUNTS);
         createDirectory(Config.DIR_MAIN_LOGS);
-        createDirectory("Receipts");
+        createDirectory("Backups");
         createDirectory("Commands");
     }
    
@@ -134,6 +134,12 @@ public class AppCore {
        return f.toString();
    }
 
+   static public String getBackupDir() {
+       File f = new File(rootPath, "Backups");
+       
+       return f.toString();
+   }
+    
    static public void initPool() {
        service = Executors.newFixedThreadPool(Config.THREAD_POOL_SIZE);
    }
@@ -174,6 +180,15 @@ public class AppCore {
         return f.toString();
    }
 
+   static public String getRootUserDir(String user) {
+       File f;
+
+       f = new File(rootPath, Config.DIR_ACCOUNTS);
+       f = new File(f, user);
+        
+       return f.toString();
+   }
+   
    static public String formatNumber(int number) {
        NumberFormat nf = NumberFormat.getNumberInstance(Locale.US);
        DecimalFormat formatter = (DecimalFormat) nf;
@@ -508,7 +523,7 @@ public class AppCore {
     }
     
     public static String[] getFilesInDir(String dir, String user) {
-        String path = AppCore.getUserDir(Config.DIR_ID, user);
+        String path = AppCore.getUserDir(dir, user);
         
         String[] rv;
         int c = 0;
@@ -625,6 +640,17 @@ public class AppCore {
         return dateFormat.format(date);
     }
     
+    public static String getCurrentBackupDir(String broot, String user) {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-d h-mma", Locale.US);
+        Date date = new Date();
+        
+        String dsuffix = dateFormat.format(date);
+        
+        String bdir = broot + File.separator + user + File.separator + "CloudCoinBackup-" + dsuffix;
+        
+        return bdir;
+    }
+    
     
     public static boolean isCoinOk(String path) {
         try {
@@ -709,5 +735,6 @@ public class AppCore {
         return sb.toString();
     }
     
+
     
 }
