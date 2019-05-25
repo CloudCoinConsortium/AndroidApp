@@ -452,20 +452,20 @@ public class ServantManager {
     }
     
     
-    public void startExporterService(int exportType, int amount, String tag, String dir, CallbackInterface cb) {
+    public void startExporterService(int exportType, int amount, String tag, String dir, boolean keepSrc, CallbackInterface cb) {
         if (sr.isRunning("Exporter"))
             return;
                 
         Exporter ex = (Exporter) sr.getServant("Exporter");
-	ex.launch(exportType, amount, tag, dir, cb);
+	ex.launch(exportType, amount, tag, dir, keepSrc, cb);
     }
     
-    public void startSecureExporterService(int exportType, int amount, String tag, String dir, CallbackInterface cb) {
+    public void startSecureExporterService(int exportType, int amount, String tag, String dir, boolean keepSrc, CallbackInterface cb) {
         String password = getActiveWallet().getPassword();
         
         logger.debug(ltag, "Vaulter password " + password);
 	Vaulter v = (Vaulter) sr.getServant("Vaulter");
-	v.unvault(password, amount, null, new eVaulterCb(exportType, amount, tag, dir, cb));
+	v.unvault(password, amount, null, new eVaulterCb(exportType, amount, tag, dir, keepSrc, cb));
     }
     
     class eVaulterCb implements CallbackInterface {
@@ -474,13 +474,15 @@ public class ServantManager {
         int amount;
         String tag;
         String dir;
+        boolean keepSrc;
         
-        public eVaulterCb(int exportType, int amount, String tag, String dir, CallbackInterface cb) {
+        public eVaulterCb(int exportType, int amount, String tag, String dir, boolean keepSrc, CallbackInterface cb) {
             this.cb = cb;
             this.amount = amount;
             this.tag = tag;
             this.exportType = exportType;
             this.dir = dir;
+            this.keepSrc = keepSrc;
         }
         
 	public void callback(final Object result) {
@@ -490,7 +492,7 @@ public class ServantManager {
             logger.debug(ltag, "Evaulter CB finished");
 
             Exporter ex = (Exporter) sr.getServant("Exporter");
-            ex.launch(exportType, amount, tag, dir, cb);
+            ex.launch(exportType, amount, tag, dir, keepSrc, cb);
 	}
     }
     

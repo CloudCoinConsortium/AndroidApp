@@ -27,13 +27,14 @@ public class Exporter extends Servant {
         this.cb = icb;
     }
 
-    public void launch(int type, int amount, String tag, String dir, CallbackInterface icb) {
+    public void launch(int type, int amount, String tag, String dir, boolean keepSrc, CallbackInterface icb) {
         this.cb = icb;
 
         final int ftype = type;
         final int famount = amount;
         final String ftag = tag;
         final String fdir = dir;
+        final boolean fkeepSrc = keepSrc;
 
         er = new ExporterResult();
         receiptId = er.receiptId = AppCore.generateHex();
@@ -45,18 +46,19 @@ public class Exporter extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Exporter");
 
-                doExport(ftype, null, famount, fdir, ftag);
+                doExport(ftype, null, famount, fdir, fkeepSrc, ftag);
             }
         });
     }
     
-    public void launch(int type, int[] values, String tag, String dir, CallbackInterface icb) {
+    public void launch(int type, int[] values, String tag, String dir, boolean keepSrc, CallbackInterface icb) {
         this.cb = icb;
 
         final int ftype = type;
         final int[] fvalues = values;
         final String ftag = tag;
         final String fdir = dir;
+        final boolean fkeepSrc = keepSrc;
 
         er = new ExporterResult();
         coinsPicked = new ArrayList<CloudCoin>();
@@ -70,16 +72,16 @@ public class Exporter extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Exporter");
 
-                doExport(ftype, fvalues, 0, fdir, ftag);
+                doExport(ftype, fvalues, 0, fdir, fkeepSrc, ftag);
             }
         });
     }
 
-    public void doExport(int type, int[] values, int amount, String dir, String tag) {
+    public void doExport(int type, int[] values, int amount, String dir, boolean keepSrc, String tag) {
         if (tag.equals(""))
             tag = Config.DEFAULT_TAG;
 
-        logger.debug(ltag, "Export type " + type + " amount " + amount + " dir " + dir + " tag " + tag);
+        logger.debug(ltag, "Export type " + type + " amount " + amount + " dir " + dir + " tag " + tag + " user " + user);
 
         if (tag.indexOf('.') != -1 || tag.indexOf('/') != -1 || tag.indexOf('\\') != -1) {
             logger.error(ltag, "Invalid tag");
@@ -89,7 +91,7 @@ public class Exporter extends Servant {
             
             return;
         }
-
+      
         String fullExportPath = AppCore.getUserDir(Config.DIR_EXPORT, user);
         if (dir != null)
             fullExportPath = dir;
@@ -131,6 +133,8 @@ public class Exporter extends Servant {
             }
         }
 
+        logger.debug(ltag, "Export isbackup " + keepSrc + " type " + type + " amount " + amount);
+        
         if (type == Config.TYPE_STACK) {
             if (!exportStack(fullExportPath, tag)) {
                 er.status = ExporterResult.STATUS_ERROR;
@@ -155,12 +159,17 @@ public class Exporter extends Servant {
 
             return;
         }
-
-        for (CloudCoin cc: coinsPicked) {
-            addCoinToReceipt(cc, "authentic", Config.DIR_EXPORT);
+        
+        if (!keepSrc) {
+            logger.debug(ltag, "Deleting original files");
+            deletePickedCoins();
+            for (CloudCoin cc: coinsPicked) {
+                addCoinToReceipt(cc, "authentic", Config.DIR_EXPORT);
+            }
+        
+            saveReceipt(user, coinsPicked.size(), 0, 0, 0, 0);
         }
         
-        saveReceipt(user, coinsPicked.size(), 0, 0, 0, 0);
         er.status = ExporterResult.STATUS_FINISHED;
         if (cb != null)
             cb.callback(er);
@@ -246,7 +255,7 @@ public class Exporter extends Servant {
             er.exportedFileNames.add(fileName);
         }
 
-        deletePickedCoins();
+ 
 
         return true;
     }
@@ -281,7 +290,7 @@ public class Exporter extends Servant {
 
         er.exportedFileNames.add(fileName);
 
-        deletePickedCoins();
+
         
         er.totalExported = total;
 
