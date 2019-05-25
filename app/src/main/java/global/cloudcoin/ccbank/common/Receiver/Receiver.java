@@ -31,6 +31,7 @@ public class Receiver extends Servant {
         final int ffromsn = fromsn;
         final int[] fsns = sns;
         final String fdstFolder = dstFolder;
+        final int famount = amount;
 
         rr = new ReceiverResult();
         coinsPicked = new ArrayList<CloudCoin>();
@@ -47,7 +48,7 @@ public class Receiver extends Servant {
             @Override
             public void run() {
                 logger.info(ltag, "RUN Receiver");
-                doReceive(ffromsn, fsns, fdstFolder, amount);
+                doReceive(ffromsn, fsns, fdstFolder, famount);
             }
         });
     }

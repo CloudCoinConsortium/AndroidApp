@@ -20,13 +20,15 @@ public class Eraser extends Servant {
     public void launch(CallbackInterface icb, boolean needBackup) {
         this.cb = icb;
 
+        final boolean fneedBackup = needBackup;
+        
         er = new EraserResult();
         launchThread(new Runnable() {
             @Override
             public void run() {
                 logger.info(ltag, "RUN Eraser");
 
-                doErase(needBackup);
+                doErase(fneedBackup);
                 if (cb != null)
                     cb.callback(er);
             }

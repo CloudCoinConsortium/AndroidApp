@@ -45,7 +45,7 @@ public class Exporter extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Exporter");
 
-                doExport(ftype, null, famount, dir, ftag);
+                doExport(ftype, null, famount, fdir, ftag);
             }
         });
     }
@@ -70,7 +70,7 @@ public class Exporter extends Servant {
             public void run() {
                 logger.info(ltag, "RUN Exporter");
 
-                doExport(ftype, fvalues, 0, dir, ftag);
+                doExport(ftype, fvalues, 0, fdir, ftag);
             }
         });
     }

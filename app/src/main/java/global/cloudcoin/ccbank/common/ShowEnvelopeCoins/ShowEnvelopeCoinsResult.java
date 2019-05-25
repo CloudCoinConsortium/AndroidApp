@@ -1,5 +1,7 @@
 package global.cloudcoin.ccbank.ShowEnvelopeCoins;
 
+import java.util.Hashtable;
+
 public class ShowEnvelopeCoinsResult {
     public int[] coins;
     public static int STATUS_PROCESSING = 1;
@@ -8,4 +10,5 @@ public class ShowEnvelopeCoinsResult {
 
     public int status;
     public int[][] counters;
+    public Hashtable<String, String[]> envelopes;
 }

@@ -16,17 +16,21 @@ import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.Servant;
+import java.util.Hashtable;
 
 public class ShowEnvelopeCoins extends Servant {
     String ltag = "ShowEnvelopeCoins";
 
     ShowEnvelopeCoinsResult result;
+    
+    
 
     public ShowEnvelopeCoins(String rootDir, GLogger logger) {
         super("ShowEnvelopeCoins", rootDir, logger);
 
         result = new ShowEnvelopeCoinsResult();
         result.coins = new int[0];
+        result.envelopes = new Hashtable<String, String[]>();
         
 
     }
@@ -118,6 +122,7 @@ public class ShowEnvelopeCoins extends Servant {
         
         result.coins = new int[o.length];
         
+        String key;
         ShowEnvelopeCoinsResponse[] er;
         er = new ShowEnvelopeCoinsResponse[o.length];
         for (int j = 0; j < o.length; j++) {
@@ -153,6 +158,32 @@ public class ShowEnvelopeCoins extends Servant {
             }    
             
             result.coins[j] = rsn;
+            key = ts + "." + tag;
+            
+            String[] coinData = new String[3];
+            coinData[0] = tag;
+            coinData[1] = "" + rcc.getDenomination();
+            coinData[2] = AppCore.getDate("" + ts);
+            
+            if (!result.envelopes.containsKey(key)) {
+                result.envelopes.put(key, coinData);
+            } else {
+                String[] accum = result.envelopes.get(key);
+                
+                int wehave;
+                try {
+                    wehave = Integer.parseInt(accum[1]);
+                } catch (NumberFormatException e) {
+                    logger.error(ltag, "Failed to parse amount: " + accum[1]);
+                    continue;
+                }
+                
+                wehave += rcc.getDenomination();                
+                accum[1] = "" + wehave;
+            
+                result.envelopes.put(key, accum);
+            }
+            
         }
 
         result.status = ShowEnvelopeCoinsResult.STATUS_FINISHED;

@@ -651,6 +651,25 @@ public class AppCore {
         return bdir;
     }
     
+    public static String getDate(String ts) {
+        int lts;
+        
+        try {
+            lts = Integer.parseInt(ts);
+        } catch (NumberFormatException e) {
+            logger.error(ltag, "Failed to parse ts: " + ts);
+            return "";
+        }
+        
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-d h-mma");
+        Date date = new Date((long) lts * 1000);
+        
+        String dateTime = dateFormat.format(date);
+        
+      
+        return dateTime;
+    }
+    
     
     public static boolean isCoinOk(String path) {
         try {
