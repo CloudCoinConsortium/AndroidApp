@@ -3,7 +3,6 @@ package global.cloudcoin.ccbank.Authenticator;
 public class AuthenticatorResult {
     public int totalFilesProcessed;
     public int totalFiles;
-
     public int totalRAIDAProcessed;
 
     public int status;

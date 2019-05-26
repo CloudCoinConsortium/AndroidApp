@@ -2,10 +2,13 @@ package global.cloudcoin.ccbank.FrackFixer;
 
 public class FrackFixerResult {
     public int fixed;
-
     public int failed;
-
     public int status;
+    
+    public int totalFilesProcessed;
+    public int totalFiles;
+    public int totalRAIDAProcessed;
+    public int fixingRAIDA;
 
     public static int STATUS_PROCESSING = 1;
     public static int STATUS_FINISHED = 2;

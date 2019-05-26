@@ -63,11 +63,11 @@ public class Servant {
         this.raida = new RAIDA(logger);
 
         File f = new File(rootDir);
-        //changeUser(f.getName());
         this.user = f.getName();
-        
+        setLtag();
+                
         this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
-        AppCore.createDirectoryPath(this.privateLogDir);
+        //AppCore.createDirectoryPath(this.privateLogDir);
         
         AppCore.createDirectory(Config.DIR_MAIN_LOGS + File.separator + name);
 
@@ -77,6 +77,10 @@ public class Servant {
         logger.info(ltag, "Instantiated servant " + name + " for " + this.user); 
     }
 
+    public void setLtag() {
+        ltag = "Servant [" + getClass().getSimpleName() + "] " + this.user + ": ";
+    }
+    
     public void noUserBound() {
         isUserBound = false;
     }
@@ -106,10 +110,10 @@ public class Servant {
         
         this.user = user;
         this.privateLogDir = AppCore.getPrivateLogDir(this.user) + File.separator + name;
-//        AppCore.createDirectoryPath(this.privateLogDir);
         
         configHT = new Hashtable<String, String>();
         
+        setLtag();
         readConfig();
         setConfig();
     }

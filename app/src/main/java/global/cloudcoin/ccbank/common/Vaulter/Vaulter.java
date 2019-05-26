@@ -47,7 +47,6 @@ public class Vaulter extends Servant {
                 else
                     vr.status = VaulterResult.STATUS_ERROR;
 
-                System.out.println("vrstat2=" + vr.status);
                 if (cb != null)
                     cb.callback(vr);
             }
@@ -71,19 +70,15 @@ public class Vaulter extends Servant {
             vr.status = VaulterResult.STATUS_ERROR;
             return;
         }
-
-        
+      
         String hash = AppCore.getMD5(password);
         logger.debug(ltag, "password hash " + hash);
-        System.out.println("VAULTPASS=" + password);
-
         for (CloudCoin tcc : coinsPicked) {
             ArrayList<String> vans = new ArrayList<>();
 
             for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
                 String an = tcc.ans[i];
 
-                System.out.println("i=" + i + " an=" + an);
                 // Get decimals from AN
                 long octet = Long.parseLong(an.substring(8, 16), 16);
                 long decimal1 = Long.parseLong(Long.toString(octet, 10));
@@ -125,10 +120,8 @@ public class Vaulter extends Servant {
                 
                 try {
                     builder.append(an, 24, 32);
-                    System.out.println("b1=" + builder.toString());
                 } catch (Exception e) {
                     logger.error(ltag, "Exception in vault: " + e.getMessage());
-                    System.out.println("fdfd=" + e.getMessage());
                     vr.status = VaulterResult.STATUS_ERROR;
                     return;
                 }
@@ -145,7 +138,6 @@ public class Vaulter extends Servant {
             if (!AppCore.saveFile(fullVaultPath + File.separator + tcc.getFileName(), tcc.getJson(false))) {
                 logger.error(ltag, "Failed to save file: " + vpath);
                 vr.status = VaulterResult.STATUS_ERROR;
-                 System.out.println("fdfd2222=ds");
                 return;
             }
 
@@ -153,9 +145,7 @@ public class Vaulter extends Servant {
             AppCore.moveToFolder(tcc.originalFile, Config.DIR_TRASH, user);
         }
 
-        System.out.println("vrstat1=" + vr.status);
         vr.status = VaulterResult.STATUS_FINISHED;
-
     }
 
     public void doUnvault(String password, int amount, CloudCoin cc) {
@@ -170,7 +160,6 @@ public class Vaulter extends Servant {
 
         String hash = AppCore.getMD5(password);
         logger.debug(ltag, "password hash " + hash);
-         System.out.println("UNVAULTPASS=" + password);
         for (CloudCoin tcc : coinsPicked) {
             ArrayList<String> ans = new ArrayList<>();
 

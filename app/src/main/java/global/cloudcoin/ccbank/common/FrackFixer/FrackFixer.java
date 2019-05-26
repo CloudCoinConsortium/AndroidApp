@@ -103,6 +103,10 @@ public class FrackFixer extends Servant {
         nfr.failed = fr.failed;
         nfr.fixed = fr.fixed;
         nfr.status = fr.status;
+        nfr.totalFilesProcessed = fr.totalFilesProcessed;
+        nfr.totalFiles = fr.totalFiles;
+        nfr.totalRAIDAProcessed = fr.totalRAIDAProcessed;
+        nfr.fixingRAIDA = fr.fixingRAIDA;
     }
 
     
@@ -124,11 +128,8 @@ public class FrackFixer extends Servant {
                 fr.fixed++;
             } else {
                 logger.debug(ltag, "Failed to fix. Only passed:" + cnt);
-                fr.failed++;
             }
-        }
-
-       
+        }   
     }
     
     public void doFrackFix() {
@@ -154,7 +155,15 @@ public class FrackFixer extends Servant {
         ArrayList<CloudCoin> ccall = new ArrayList<CloudCoin>();
 
         File dirObj = new File(fullPath);
-        for (File file : dirObj.listFiles()) {
+        File[] listOfFiles = dirObj.listFiles();
+        if (listOfFiles == null) {
+            logger.error(ltag, "Can't proceed. Fracked dir does not exist");
+            fr.status = FrackFixerResult.STATUS_ERROR;
+            if (cb != null)
+                cb.callback(fr);
+        }
+        
+        for (File file : listOfFiles) {
             if (file.isDirectory())
                 continue;
 
@@ -169,9 +178,14 @@ public class FrackFixer extends Servant {
             }
 
             ccall.add(cc);
-
         }
 
+        fr.totalFiles = AppCore.getFilesCount(Config.DIR_FRACKED, user);
+        FrackFixerResult nfr = new FrackFixerResult();
+        copyFromMainFr(nfr);
+        if (cb != null)
+            cb.callback(nfr);
+        
         int maxCoins = getIntConfigValue("max-coins-to-multi-detect");
         if (maxCoins == -1)
             maxCoins = Config.DEFAULT_MAX_COINS_MULTIDETECT;
@@ -182,33 +196,42 @@ public class FrackFixer extends Servant {
         int corner, i, c;
 
         for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
-            c = 0;
+            fr.fixingRAIDA = i;
+            fr.totalFilesProcessed = 0;
+            fr.totalRAIDAProcessed = 0;
             for (CloudCoin tcc : ccall) {
                 if (tcc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
                     continue;
-
-                ccactive.add(tcc);
-                c++;
-                if (c == maxCoins) {
-                    logger.info(ltag, "Doing fix. maxCoins " + maxCoins);
-                    doRealFix(i, ccactive);
-                    doMove(ccactive);
-                    ccactive.clear();
-                    c = 0;
-                }
                 
                 if (isCancelled()) {
                     logger.info(ltag, "Cancelled");
 
                     resume();
 
-                    FrackFixerResult nfr = new FrackFixerResult();
+                    nfr = new FrackFixerResult();
                     fr.status = FrackFixerResult.STATUS_CANCELLED;
                     copyFromMainFr(nfr);
                     if (cb != null)
                         cb.callback(nfr);
 
                     return;
+                }
+                
+
+                ccactive.add(tcc);
+                if (ccactive.size() == maxCoins) {
+                    logger.info(ltag, "Doing fix. maxCoins " + maxCoins);
+                    doRealFix(i, ccactive);
+                    doMove(ccactive);
+                    ccactive.clear();
+                                        
+                    nfr = new FrackFixerResult();
+                    fr.totalRAIDAProcessed = 0;
+                    fr.totalFilesProcessed += maxCoins;
+                    
+                    copyFromMainFr(nfr);
+                    if (cb != null)
+                        cb.callback(nfr);   
                 }
             }
 
@@ -217,9 +240,12 @@ public class FrackFixer extends Servant {
                 doMove(ccactive);
                 ccactive.clear();
             }
+            
+            
         }
 
-        FrackFixerResult nfr = new FrackFixerResult();
+        nfr = new FrackFixerResult();
+        fr.failed = AppCore.getFilesCount(Config.DIR_FRACKED, user);
         fr.status = FrackFixerResult.STATUS_FINISHED;
         copyFromMainFr(nfr);
         if (cb != null)
@@ -310,7 +336,21 @@ public class FrackFixer extends Servant {
             first = true;
         }
 
-        results = raida.query(requests, posts, null, triad);
+        results = raida.query(requests, posts, new CallbackInterface() {
+            final GLogger gl = logger;
+            final CallbackInterface myCb = cb;
+
+            @Override
+            public void callback(Object result) {
+                fr.totalRAIDAProcessed += 2;
+                if (myCb != null) {
+                    FrackFixerResult nfr = new FrackFixerResult();
+                    copyFromMainFr(nfr);
+                    myCb.callback(nfr);
+                }
+            }
+        }, triad);
+        
         if (results == null) {
             logger.error(ltag, "Failed to get tickets. Setting triad to failed");
             for (int i = 0; i < triadSize; i++)
@@ -480,60 +520,6 @@ public class FrackFixer extends Servant {
         }
 
         logger.info(ltag, "saved");
-    }
-
-    public void doFixCoin(CloudCoin cc) {
-        int corner, i;
-
-        logger.debug(ltag, "Round1 for cc " + cc.sn);
-        for (i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
-            if (cc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
-                continue;
-
-            logger.debug(ltag, "Fixing cc " + cc.sn + " on RAIDA" + i);
-            for (corner = 0; corner < 4; corner++) {
-                logger.debug(ltag, "corner=" + corner);
-
-                if (fixCoinInCorner(i, corner, cc)) {
-                    logger.debug(ltag, "Fixed successfully");
-                    syncCoin(i, cc);
-                    break;
-                }
-            }
-        }
-
-        logger.debug(ltag, "Round2 for cc " + cc.sn);
-        for (i = RAIDA.TOTAL_RAIDA_COUNT - 1; i >= 0; i--) {
-            if (cc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
-                continue;
-
-            logger.debug(ltag, "Fixing cc " + cc.sn + " on RAIDA" + i);
-            for (corner = 0; corner < 4; corner++) {
-                logger.debug(ltag, "corner=" + corner);
-
-                if (fixCoinInCorner(i, corner, cc)) {
-                    logger.debug(ltag, "Fixed successfully");
-                    syncCoin(i, cc);
-                    break;
-                }
-            }
-        }
-
-        int cnt = 0;
-        for (i = RAIDA.TOTAL_RAIDA_COUNT - 1; i >= 0; i--) {
-            if (cc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
-                cnt++;
-        }
-
-        if (cnt == RAIDA.TOTAL_RAIDA_COUNT) {
-            logger.info(ltag, "Coin " + cc.sn + " is fixed. Moving to bank");
-            AppCore.moveToBank(cc.originalFile, user);
-            fr.fixed++;
-            return;
-        }
-
-        fr.failed++;
-        return;
     }
 
     public boolean fixCoinInCorner(int raidaIdx, int corner, CloudCoin cc) {

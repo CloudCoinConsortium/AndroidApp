@@ -130,8 +130,7 @@ public class ServantManager {
    
 
         initWallets();
-        
-        //setActiveWallet(user);  
+
         return true;
     }
     
