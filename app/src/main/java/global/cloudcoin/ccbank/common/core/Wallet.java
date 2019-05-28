@@ -41,6 +41,10 @@ public class Wallet {
         lsep = System.getProperty("line.separator");
     }
     
+    public boolean isDefaultWallet() {
+        return name.equals(Config.DIR_DEFAULT_USER);
+    }
+    
     public int[] getSNs() {
         return this.sns;
     }

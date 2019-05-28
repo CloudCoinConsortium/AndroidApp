@@ -118,7 +118,7 @@ public class FrackFixer extends Servant {
             logger.debug(ltag, "Moving coin " + cc.sn);
             cnt = 0;
             for (int i = RAIDA.TOTAL_RAIDA_COUNT - 1; i >= 0; i--) {
-                if (cc.getDetectStatus(i) == CloudCoin.STATUS_PASS)
+                if (cc.getDetectStatus(i) != CloudCoin.STATUS_FAIL)
                     cnt++;
             }
 

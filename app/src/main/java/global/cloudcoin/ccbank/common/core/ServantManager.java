@@ -135,6 +135,8 @@ public class ServantManager {
     }
     
     public void initWallets() {
+        this.wallets = new Hashtable<String, Wallet>();
+        
         String[] wallets = AppCore.getDirs();
         for (int i = 0; i < wallets.length; i++) {
             setActiveWallet(wallets[i]);

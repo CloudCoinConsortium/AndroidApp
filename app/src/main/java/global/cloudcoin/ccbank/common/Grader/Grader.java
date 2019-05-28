@@ -70,7 +70,7 @@ public class Grader extends Servant {
         }
 
         if (graded) {
-            saveReceipt(user, gr.totalAuthentic, gr.totalFracked, gr.totalCounterfeit,
+            saveReceipt(user, gr.totalAuthentic, gr.totalCounterfeit, gr.totalFracked,
                 gr.totalLost, gr.totalUnchecked);
         }
     }

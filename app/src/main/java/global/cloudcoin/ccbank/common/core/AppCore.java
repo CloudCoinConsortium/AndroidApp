@@ -16,6 +16,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.Executors;
@@ -78,7 +79,8 @@ public class AppCore {
 
         createDirectory(Config.DIR_ACCOUNTS);
         createDirectory(Config.DIR_MAIN_LOGS);
-        createDirectory("Backups");
+        createDirectory(Config.DIR_MAIN_TRASH);
+        createDirectory(Config.DIR_BACKUPS);
         createDirectory("Commands");
     }
    
@@ -127,7 +129,7 @@ public class AppCore {
     static public String getUserConfigDir(String user) {
        File f;
 
-       f = new File(rootPath, "Accounts");
+       f = new File(rootPath, Config.DIR_ACCOUNTS);
        f = new File(f, user);
        f = new File(f, Config.DIR_CONFIG);
 
@@ -135,7 +137,13 @@ public class AppCore {
    }
 
    static public String getBackupDir() {
-       File f = new File(rootPath, "Backups");
+       File f = new File(rootPath, Config.DIR_BACKUPS);
+       
+       return f.toString();
+   }
+   
+   static public String getMainTrashDir() {
+       File f = new File(rootPath, Config.DIR_MAIN_TRASH);
        
        return f.toString();
    }
@@ -754,6 +762,33 @@ public class AppCore {
         return sb.toString();
     }
     
-
+    static public String getLogPath() {
+        return getLogDir() + File.separator + Config.MAIN_LOG_FILENAME;
+    }
+    
+    static public boolean moveFolderToTrash(String folder) {
+        String path = AppCore.getRootUserDir(folder);
+        
+        File fsrc = new File(path);
+        if (!fsrc.exists()) {
+            logger.error(ltag, "Path " + path + " doesn't exist");
+            return false;
+        }
+        
+        String mainTrashDir = AppCore.getMainTrashDir() + File.separator + 
+                folder + "-" + System.currentTimeMillis();
+        
+        File fdst = new File(mainTrashDir);
+        
+        System.out.println("Deleting dir " + path + " to " + mainTrashDir);
+        logger.debug(ltag, "Deleting dir " + path + " to " + mainTrashDir);
+        try {
+            Files.move(fsrc.toPath(), fdst.toPath(),  StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            logger.error(ltag, "Failed to move dir " + e.getMessage());
+            return false;
+        }
+        return true;
+    }
     
 }

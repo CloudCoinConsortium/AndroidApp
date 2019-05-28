@@ -175,7 +175,7 @@ public class Authenticator extends Servant {
                 }
 
                 ccs.get(j).setDetectStatus(i, status);
-                logger.info(ltag, "raida" + i + " v=" + ar[i][j].status + " m="+ar[i][j].message);
+                logger.info(ltag, "raida" + i + " v=" + ar[i][j].status + " m="+ar[i][j].message + " j= " + j + " st=" + status);
             }
         }
 
@@ -189,6 +189,7 @@ public class Authenticator extends Servant {
         String file;
 
         for (CloudCoin cc : ccs) {
+            logger.debug(ltag, "cc " + cc.sn + " pown " + cc.getPownString());
             if (!cc.originalFile.equals("")) {
                 file = dir + File.separator + cc.getFileName();
                 logger.info(ltag, "Saving coin to Lost " + file);
@@ -204,7 +205,9 @@ public class Authenticator extends Servant {
 
     private void moveCoins(ArrayList<CloudCoin> ccs) {
         for (CloudCoin cc : ccs) {
+            logger.debug(ltag, "pre cc " + cc.sn + " pown " + cc.getPownString());
             cc.setPownStringFromDetectStatus();
+            logger.debug(ltag, "post cc " + cc.sn + " pown " + cc.getPownString());
 
             String ccFile = AppCore.getUserDir(Config.DIR_DETECTED, user) +
                     File.separator + cc.getFileName();
