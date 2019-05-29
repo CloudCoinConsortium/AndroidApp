@@ -16,6 +16,8 @@ public class UnpackerResult {
     public static int STATUS_ERROR = 3;
     public static int STATUS_CANCELLED = 4;
     
+    public String errText;
+    
     public int status;
     
     public UnpackerResult() {

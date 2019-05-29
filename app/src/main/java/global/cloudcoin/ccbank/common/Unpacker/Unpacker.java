@@ -21,11 +21,13 @@ import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
 import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.Servant;
+import java.util.ArrayList;
 
 public class Unpacker extends Servant {
     String ltag = "Unpacker";
     
     UnpackerResult globalResult;
+    ArrayList<CloudCoin> rccs;
 
     public Unpacker(String rootDir, GLogger logger) {
         super("Unpacker", rootDir, logger);
@@ -35,6 +37,8 @@ public class Unpacker extends Servant {
         this.cb = icb;
 
         globalResult = new UnpackerResult();
+        rccs = new ArrayList<CloudCoin>();
+        
         launchThread(new Runnable() {
             @Override
             public void run() {
@@ -46,11 +50,56 @@ public class Unpacker extends Servant {
             }
         });
     }
+ 
+    
+    public int checkCoinsInFolder(String folder) {
+        String fullPath = AppCore.getUserDir(folder, user);
+        CloudCoin cc;
+    
+        File dirObj = new File(fullPath);
+        if (dirObj.listFiles() == null) {
+            logger.error(ltag, "No such dir " + fullPath);
+            return -1;
+        }
+        
+        
+        for (File file: dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
 
+            logger.debug(ltag, "Parsing " + file);
+
+            try {
+                cc = new CloudCoin(file.toString());
+            } catch (JSONException e) {
+                logger.error(ltag, "Failed to parse JSON: " + e.getMessage());
+                continue;
+            }
+            
+            for (CloudCoin tcc : rccs) {
+                if (tcc.sn == cc.sn) {
+                    logger.debug(ltag, "Duplicate sn " + tcc.sn + " in the " + folder);
+                    return tcc.sn;
+                }
+            }       
+        }
+        
+        return 0;
+    }
+    
+    public void addCoinToRccs(CloudCoin cc, String fileName) {
+        logger.debug(ltag, "Adding cc sn " + cc.sn + " file " + fileName);
+        
+        cc.originalFile = fileName;
+        rccs.add(cc);
+    }
+    
     public void doUnpack() {
         String importFolder = AppCore.getUserDir(Config.DIR_IMPORT, user);
         String fileName, extension;
         int index;
+        
+        
 
         File dirObj = new File(importFolder);
         for (File file: dirObj.listFiles()) {
@@ -90,8 +139,84 @@ public class Unpacker extends Servant {
                 logger.error(ltag, "Error processing file: " + fileName);
                 AppCore.moveToTrash(file.toString(), user);
                 globalResult.status = UnpackerResult.STATUS_ERROR;
+                globalResult.errText = "Failed to parse: " + fileName;
                 return;
             }
+        }
+        
+        int sn;
+        sn = checkCoinsInFolder(Config.DIR_BANK);
+        if (sn == -1) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            return;
+        }
+        
+        if (sn != 0) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            globalResult.errText = "Error. Coin " + sn + " exists in the Bank";
+            return;
+        }
+        
+        
+        sn = checkCoinsInFolder(Config.DIR_VAULT);
+        if (sn == -1) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            return;
+        }
+        
+        if (sn != 0) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            globalResult.errText = "Error. Coin " + sn + " exists in the Vault";
+            return;
+        }
+        
+        sn = checkCoinsInFolder(Config.DIR_FRACKED);
+        if (sn == -1) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            return;
+        }
+        
+        if (sn != 0) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            globalResult.errText = "Error. Coin " + sn + " exists in the Fracked";
+            return;
+        }
+        
+        sn = checkCoinsInFolder(Config.DIR_LOST);
+        if (sn == -1) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            return;
+        }
+        
+        if (sn != 0) {
+            globalResult.status = UnpackerResult.STATUS_ERROR;
+            globalResult.errText = "Error. Coin " + sn + " exists in the Lost";
+            return;
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        for (CloudCoin cc : rccs) {
+            if (!saveCoin(cc)) {
+                globalResult.status = UnpackerResult.STATUS_ERROR;
+                globalResult.errText = "Failed to save coin #" + cc.sn;
+                return;
+            }
+            
+            File f = new File(cc.originalFile);
+            if (!f.exists())
+                continue;
+            
+            AppCore.moveToImported(cc.originalFile, user);             
         }
         //privateLogDir
         
@@ -141,11 +266,13 @@ public class Unpacker extends Servant {
             return false;
         }
 
+        addCoinToRccs(cc, fileName);
+        /*
         if (!saveCoin(cc))
             return false;
 
         AppCore.moveToImported(fileName, user);
-
+*/
         return true;
     }
 
@@ -165,11 +292,10 @@ public class Unpacker extends Servant {
             return false;
 
         for (int i = 0; i < ccs.length; i++) {
-            if (!saveCoin(ccs[i]))
-                return false;
+            addCoinToRccs(ccs[i], fileName);
         }
 
-        AppCore.moveToImported(fileName, user);
+        //AppCore.moveToImported(fileName, user);
 
         return true;
     }
@@ -191,11 +317,10 @@ public class Unpacker extends Servant {
             return false;
 
         for (int i = 0; i < ccs.length; i++) {
-            if (!saveCoin(ccs[i]))
-                return false;
+            addCoinToRccs(ccs[i], fileName);
         }
 
-        AppCore.moveToImported(fileName, user);
+        //AppCore.moveToImported(fileName, user);
 
         return true;
     }
