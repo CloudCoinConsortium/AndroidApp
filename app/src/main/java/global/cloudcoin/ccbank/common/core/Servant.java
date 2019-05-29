@@ -514,13 +514,10 @@ public class Servant {
     }
 
     protected void setSenderRAIDA() {
-        if (1==1)
-            return;
-        
         String[] urls = new String[RAIDA.TOTAL_RAIDA_COUNT];
 
         for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
-            //urls[i] = "https://s" + i + "." + Config.SENDER_DOMAIN;
+            urls[i] = "https://s" + i + "." + Config.SENDER_DOMAIN;
            // urls[i] = "https://raida" + i + ".cloudcoin.global";
         }
 
