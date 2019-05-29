@@ -68,7 +68,8 @@ public class RAIDA {
 	}
 
 	public void setFailed(int idx) {
-		agents[idx].setStatus(RAIDA.STATUS_FAILED);
+            logger.debug(ltag, "RAIDA " + idx + " is set failed");
+            agents[idx].setStatus(RAIDA.STATUS_FAILED);
 	}
 
 	public long[] getLastLatencies() {

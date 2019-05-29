@@ -9,6 +9,7 @@ public class FrackFixerResult {
     public int totalFiles;
     public int totalRAIDAProcessed;
     public int fixingRAIDA;
+    public int round;
 
     public static int STATUS_PROCESSING = 1;
     public static int STATUS_FINISHED = 2;

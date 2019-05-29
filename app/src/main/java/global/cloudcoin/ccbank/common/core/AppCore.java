@@ -257,6 +257,27 @@ public class AppCore {
         
         return true;
     }
+    
+    static public boolean moveToFolderNoTs(String fileName, String folder, String user) {
+        logger.info(ltag, "Moving no Ts to " + folder + " -> " + fileName);
+
+        try {
+            File fsource = new File(fileName);
+            String target = AppCore.getUserDir(folder, user) + File.separator + fsource.getName();
+
+            File ftarget = new File(target);
+            if (!fsource.renameTo(ftarget)) {
+                logger.error(ltag, "Failed to rename file " + fileName);
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error(ltag, "Failed to move file: " + e.getMessage());
+            return false;
+        }
+        
+        return true;
+    }
+    
 
     static public void moveToTrash(String fileName, String user) {
         moveToFolder(fileName, Config.DIR_TRASH, user);
@@ -267,7 +288,7 @@ public class AppCore {
     }
 
     static public void moveToBank(String fileName, String user) { 
-        moveToFolder(fileName, Config.DIR_BANK, user); 
+        moveToFolderNoTs(fileName, Config.DIR_BANK, user); 
     }
 
     static public void moveToImported(String fileName, String user) {
