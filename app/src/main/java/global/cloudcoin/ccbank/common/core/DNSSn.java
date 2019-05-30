@@ -18,24 +18,26 @@ import org.json.JSONException;
  */
 public class DNSSn {
     GLogger logger;
+    String domain;
     String name;
     String ltag = "DNSSn";
     String path;
     
-    public DNSSn(String name, GLogger logger) {
+    public DNSSn(String name, String domain, GLogger logger) {
         this.logger = logger;
         this.name = name;
+        this.domain = domain;
     }
     
         
     
     public boolean recordExists() {
-        String domain = name + "." + Config.DDNS_DOMAIN;
+        String rqdomain = name + "." + this.domain;
         
-        logger.debug(ltag, "Query " + domain);
+        logger.debug(ltag, "Query " + rqdomain);
         InetAddress address;
         try {
-            address = InetAddress.getByName(domain);
+            address = InetAddress.getByName(rqdomain);
         } catch (UnknownHostException e) {
             logger.debug(ltag, "Host not found");
             return false;
@@ -45,19 +47,33 @@ public class DNSSn {
     }
     
     public int getSN() {
-        String domain = name + "." + Config.DDNS_DOMAIN;
+        String rqdomain = name;
+        
+        logger.debug(ltag, "Domain " + name);
+        if (!rqdomain.endsWith("." + Config.DDNS_DOMAIN)) {          
+            rqdomain += "." + this.domain;
+        }
+
+        rqdomain = rqdomain.toLowerCase();
+        logger.debug(ltag, "Domain final " + rqdomain);
+        
         InetAddress address;
         int sn = -1;
         
+
+        logger.debug(ltag, "Get sn for domain " + rqdomain);
+
         try {
-            address = InetAddress.getByName(domain);
+            address = InetAddress.getByName(rqdomain);
             byte[] bytes = address.getAddress();
        
             logger.debug(ltag, "response " + address);
-            sn = (bytes[1] & 0xff)<< 16 | (bytes[2] & 0xff << 8) | bytes[3] & 0xff;
+                           
+            sn = (bytes[1] & 0xff)<< 16 | ((bytes[2] & 0xff) << 8) | bytes[3] & 0xff;
             if (sn < 0)
                 return -1;
-                  
+            
+            logger.debug(ltag, "get SN " + sn);               
         } catch (UnknownHostException e) {
             logger.debug(ltag, "Host not found");
             return -1;

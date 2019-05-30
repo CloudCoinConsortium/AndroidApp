@@ -78,6 +78,11 @@ public class Vaulter extends Servant {
 
             for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
                 String an = tcc.ans[i];
+                
+                if (an.length() != 32) {
+                    logger.error(ltag, "Invalid an for coin " + tcc.sn + ". Skip it " + an);
+                    continue;
+                }
 
                 // Get decimals from AN
                 long octet = Long.parseLong(an.substring(8, 16), 16);
@@ -165,6 +170,13 @@ public class Vaulter extends Servant {
 
             for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
                 String van = tcc.ans[i];
+                
+                                
+                if (van.length() < 32) {
+                    logger.error(ltag, "Invalid van for coin " + tcc.sn + ". Skip it " + van);
+                    continue;
+                }
+                
               
                 int index1 = 8, index2 = 16;
                 int lastByte = 32;

@@ -30,6 +30,8 @@ public class CloudCoin {
 	final public static int STATUS_FAIL = 2;
 	final public static int STATUS_ERROR = 3;
 	final public static int STATUS_UNTRIED = 4;
+        
+        String ls = System.getProperty("line.separator");
 
 	public void initCommon() {
 		pans = new String[RAIDA.TOTAL_RAIDA_COUNT];
@@ -161,19 +163,29 @@ public class CloudCoin {
 
 		json = "{\"cloudcoin\":[{\"nn\":" + nn + ",\"sn\":" + sn + ",\"an\":[\"";
 		for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
-			json += ans[i];
-			if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
-				json += "\",\"";
-			}
+                    String an = ans[i];
+                    
+                    if (an == null)
+                        an = "00000000000000000000000000000000";
+                    
+                    json += an;
+                    if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
+			json += "\",\"";
+                    }
 		}
 
 		if (includePans) {
 			json += "\"], \"pan\":[\"";
 			for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
-				json += pans[i];
-				if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
-					json += "\",\"";
-				}
+                            String pan = pans[i];
+                            
+                            if (pan == null)
+                                pan = "00000000000000000000000000000000";
+                            
+                            json += pan;
+                            if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
+				json += "\",\"";
+                            }
 			}
 		}
 
@@ -186,15 +198,21 @@ public class CloudCoin {
 	public String getSimpleJson() {
 		String json;
 
-		json = "{\"nn\":" + nn + ",\"sn\":" + sn + ",\"an\":[\"";
+		json = "{" + ls + "\"nn\":" + nn + "," + ls + "\"sn\":" + sn + "," + ls + "\"an\":[\"";
 		for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
-			json += ans[i];
-			if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
-				json += "\",\"";
-			}
+                    String an = ans[i];
+                    
+                    if (an == null)
+                        an = "00000000000000000000000000000000";
+                    
+                    json += an;
+                    if (i != RAIDA.TOTAL_RAIDA_COUNT - 1) {
+			json += "\",\"";
+                    }
 		}
 
-		json += "\"]}";
+		json += "\"]," + ls;
+                json += "\"pown\":\"" + getPownString() + "\"" + ls + "}";
 
 		return json;
 	}

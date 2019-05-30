@@ -251,8 +251,6 @@ public class Receiver extends Servant {
                 }
             }
 
-            System.out.println("results=" + results[i]);
-            
             o = parseArrayResponse(results[i], ReceiverResponse.class);
             if (o == null) {
                 errorResponse = (CommonResponse) parseResponse(results[i], CommonResponse.class);

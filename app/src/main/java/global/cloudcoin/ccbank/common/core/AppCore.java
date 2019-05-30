@@ -266,6 +266,11 @@ public class AppCore {
             String target = AppCore.getUserDir(folder, user) + File.separator + fsource.getName();
 
             File ftarget = new File(target);
+            if (ftarget.exists()) {
+                logger.error(ltag, "File exists. Leaving " + fileName);
+                return false;
+            }
+
             if (!fsource.renameTo(ftarget)) {
                 logger.error(ltag, "Failed to rename file " + fileName);
                 return false;

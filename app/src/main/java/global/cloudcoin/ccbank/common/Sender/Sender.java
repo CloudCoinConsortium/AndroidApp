@@ -23,6 +23,8 @@ public class Sender extends Servant {
     SenderResult globalResult;
     
     int a, c, e, f;
+    
+    int av, fv;
 
     public Sender(String rootDir, GLogger logger) {
         super("Sender", rootDir, logger);
@@ -47,6 +49,10 @@ public class Sender extends Servant {
         receiptId = AppCore.generateHex();
         globalResult.receiptId = receiptId;
            
+
+        
+        av = fv = 0;
+        
         a = c = e = f = 0;
         launchThread(new Runnable() {
             @Override
@@ -70,6 +76,14 @@ public class Sender extends Servant {
         sResult.amount = globalResult.amount;
         sResult.errText = globalResult.errText;
         sResult.receiptId = globalResult.receiptId;
+        
+        sResult.totalAuthentic = globalResult.totalAuthentic ;
+        sResult.totalCounterfeit = globalResult.totalCounterfeit;
+        sResult.totalUnchecked = globalResult.totalUnchecked;
+        sResult.totalFracked = globalResult.totalFracked;
+        
+        sResult.totalAuthenticValue = globalResult.totalAuthenticValue;
+        sResult.totalFrackedValue = globalResult.totalFrackedValue;
     }
     
     
@@ -115,7 +129,7 @@ public class Sender extends Servant {
                 continue;
             }
             
-            if (!AppCore.moveToFolder(cc.originalFile, coinFolder, dstUser)) {
+            if (!AppCore.moveToFolderNoTs(cc.originalFile, coinFolder, dstUser)) {
                 logger.error(ltag, "Failed to move coin " + cc.originalFile);
                 addCoinToReceipt(cc, "error", "None");
                 globalResult.status = SenderResult.STATUS_ERROR;
@@ -126,6 +140,9 @@ public class Sender extends Servant {
             a++;
             addCoinToReceipt(cc, "authentic", Config.DIR_BANK);
             
+            globalResult.totalAuthentic = a;
+            globalResult.totalCounterfeit = 0;
+            globalResult.totalUnchecked = e;
             globalResult.amount += cc.getDenomination();
         }
         
@@ -143,8 +160,32 @@ public class Sender extends Servant {
 
     }
     
+    public void pickCoinsFromSuspect() {
+        CloudCoin cc;
+        String fullPath = AppCore.getUserDir(Config.DIR_SUSPECT, user);
+        
+        File dirObj = new File(fullPath);
+        for (File file: dirObj.listFiles()) {
+            if (file.isDirectory())
+                continue;
+
+            try {
+                cc = new CloudCoin(file.toString());
+            } catch (JSONException e) {
+                logger.error(ltag, "Failed to parse coin: " + file.toString() +
+                        " error: " + e.getMessage());
+
+                AppCore.moveToTrash(file.toString(), user);
+                continue;
+            }
+            
+            coinsPicked.add(cc);
+        }
+    }
+    
     public void doSend(int tosn, int[] values, int amount, String envelope) {
-        logger.debug(ltag, "Sending remotely " + amount + " to " + tosn + " memo=" + envelope);
+        boolean isSuspect = false;
+        logger.debug(ltag, "Sending remotely " + amount + " to " + tosn + " memo=" + envelope + " values=" + values);
         
         SenderResult sr = new SenderResult();
         if (!updateRAIDAStatus()) {
@@ -187,15 +228,22 @@ public class Sender extends Servant {
                 }
             }
         } else {
-            if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
-                logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
-                sr = new SenderResult();
-                globalResult.status = SenderResult.STATUS_ERROR;
-                globalResult.errText = "Can't collect required amount";
-                copyFromGlobalResult(sr);
-                if (cb != null)
-                    cb.callback(sr);
-                return;
+            if (amount != 0) {
+                logger.debug(ltag, "Pick amount " + amount);
+                if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
+                    logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
+                    sr = new SenderResult();
+                    globalResult.status = SenderResult.STATUS_ERROR;
+                    globalResult.errText = "Can't collect required amount";
+                    copyFromGlobalResult(sr);
+                    if (cb != null)
+                        cb.callback(sr);
+                    return;
+                }
+            } else {
+                logger.debug(ltag, "Pick from suspect");
+                isSuspect = true;
+                pickCoinsFromSuspect();
             }
         }
 
@@ -281,6 +329,14 @@ public class Sender extends Servant {
             globalResult.status = SenderResult.STATUS_FINISHED;
         }
 
+        
+        globalResult.totalAuthentic = a;
+        globalResult.totalCounterfeit = c;
+        globalResult.totalUnchecked = e;
+        globalResult.totalFracked = f;
+        globalResult.totalAuthenticValue = av;
+        globalResult.totalFrackedValue = fv;
+        
         saveReceipt(user, a, c, f, 0, 0);
         
         copyFromGlobalResult(sr);
@@ -313,17 +369,20 @@ public class Sender extends Servant {
                 globalResult.amount += cc.getDenomination();
                 addCoinToReceipt(cc, "authentic", "Remote Wallet");
                 a++;
+                av += cc.getDenomination();
                 AppCore.moveToFolder(cc.originalFile, Config.DIR_SENT, user);
             } else if (failed > 0) {
                 if (failed >= RAIDA.TOTAL_RAIDA_COUNT - Config.PASS_THRESHOLD) {
                     logger.info(ltag, "Moving to Counterfeit: " + cc.sn);
                     addCoinToReceipt(cc, "counterfeit", Config.DIR_COUNTERFEIT);
                     c++;
+                    
                     AppCore.moveToFolder(cc.originalFile, Config.DIR_COUNTERFEIT, user);
                 } else {
                     logger.info(ltag, "Moving to Fracked: " + cc.sn);
                     addCoinToReceipt(cc, "error", Config.DIR_COUNTERFEIT);
                     f++;
+                    fv += cc.getDenomination();
                     AppCore.moveToFolder(cc.originalFile, Config.DIR_FRACKED, user);
                 }
             }

@@ -4,7 +4,6 @@ public class GraderResult {
     public int totalFracked;
 
     public int totalAuthentic;
-
     public int totalCounterfeit;
 
     public int totalLost;

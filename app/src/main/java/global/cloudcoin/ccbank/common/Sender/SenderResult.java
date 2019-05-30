@@ -18,6 +18,15 @@ public class SenderResult {
     public String receiptId;   
     public String errText;
     
+    public int totalAuthentic;
+    public int totalCounterfeit;
+    public int totalUnchecked;
+    public int totalFracked;
+    
+    public int totalAuthenticValue;
+
+    public int totalFrackedValue;
+    
     public SenderResult() {
         memo = "Send";
         amount = 0;

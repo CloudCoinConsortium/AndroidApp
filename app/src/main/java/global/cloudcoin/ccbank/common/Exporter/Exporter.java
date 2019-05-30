@@ -17,6 +17,7 @@ import global.cloudcoin.ccbank.core.Servant;
 public class Exporter extends Servant {
     String ltag = "Exporter";
     ExporterResult er;
+    String ls;
 
 
     public Exporter(String rootDir, GLogger logger) {
@@ -39,6 +40,8 @@ public class Exporter extends Servant {
         er = new ExporterResult();
         receiptId = er.receiptId = AppCore.generateHex();
         csb = new StringBuilder();
+        
+        ls = System.getProperty("line.separator");
     
         coinsPicked = new ArrayList<CloudCoin>();
         launchThread(new Runnable() {
@@ -242,7 +245,7 @@ public class Exporter extends Servant {
                 bytes[offset + j] = ccArray[j];
             }
 
-            fileName = cc.getDenomination() + ".CloudCoin." + System.currentTimeMillis() + "." + tag + ".jpeg";
+            fileName = cc.getDenomination() + ".CloudCoin." + tag + ".jpeg";
             fileName = dir + File.separator + fileName;
 
             logger.info(ltag, "saving bytes " + bytes.length);
@@ -267,7 +270,7 @@ public class Exporter extends Servant {
         int total = 0;
         String fileName;
 
-        sb.append("{\"cloudcoin\": [");
+        sb.append("{" + ls + "\"cloudcoin\": [" + ls);
         for (CloudCoin cc : coinsPicked) {
             if (!first)
                 sb.append(",");
@@ -278,9 +281,9 @@ public class Exporter extends Servant {
             total += cc.getDenomination();
         }
 
-        sb.append("]}");
+        sb.append(ls + "]" + ls + "}");
 
-        fileName = total + ".CloudCoin." + System.currentTimeMillis() + "." + tag + ".stack";
+        fileName = total + ".CloudCoin." + tag + ".stack";
         fileName = dir + File.separator + fileName;
 
         if (!AppCore.saveFile(fileName, sb.toString())) {
@@ -289,9 +292,6 @@ public class Exporter extends Servant {
         }
 
         er.exportedFileNames.add(fileName);
-
-
-        
         er.totalExported = total;
 
         return true;
