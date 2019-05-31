@@ -705,15 +705,16 @@ public class AppCore {
     }
     
     
-    public static boolean isCoinOk(String path) {
+    public static CloudCoin getCoin(String path) {
+        CloudCoin cc;
         try {
-            CloudCoin cc = new CloudCoin(path);
+            cc = new CloudCoin(path);
         } catch (JSONException e) {
             logger.error(ltag, "Failed to parse coin: " + path + " error: " + e.getMessage());
-            return false;
+            return null;
         }
         
-        return true;
+        return cc;
     }
     
     

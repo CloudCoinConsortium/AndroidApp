@@ -409,7 +409,6 @@ public class ServantManager {
                 sn = srcWalletObj.getIDCoin().sn;
                 int[] sns = srcWalletObj.getSNs();
                 logger.debug(ltag, "Got SN " + sn);
-                System.out.println("got sn "  + sn);
                 startReceiverService(sn, sns, dstWalletObj.getName(), amount, memo, rcb);
                 return true;
             }
@@ -571,6 +570,13 @@ public class ServantManager {
             Wallet tw = (Wallet) itr.next();
             if (tw.getName().equals(walletName)) 
                 return tw;
+            
+            if (tw.isSkyWallet()) {
+                String name = tw.getName() + "." + Config.DDNS_DOMAIN;
+                if (name.equals(walletName))
+                    return tw;
+            }
+                
         }
         
         return null;

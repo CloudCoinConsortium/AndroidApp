@@ -34,8 +34,8 @@ class DetectionAgent {
 
         this.RAIDANumber = RAIDANumber;
 
-        // TODO: remove +2 seconds. Now it is a workaround for slow RAIDAs
-        this.readTimeout = timeout + 2000;
+        // TODO: remove +5 seconds. Now it is a workaround for slow RAIDAs
+        this.readTimeout = timeout + 5000;
         this.connectionTimeout = timeout;
         this.ltag += "" + this.RAIDANumber;
 

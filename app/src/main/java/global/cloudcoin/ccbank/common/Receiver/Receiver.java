@@ -290,6 +290,7 @@ public class Receiver extends Servant {
 
                         if (sccs[k].sn == rsn) {
                             sccs[k].ans[i] = ran;
+                            sccs[k].setDetectStatus(i, CloudCoin.STATUS_PASS);
                             found = true;
                             break;
                         }
@@ -301,6 +302,7 @@ public class Receiver extends Servant {
                                 found = true;
                                 sccs[k] = new CloudCoin(rnn, rsn);
                                 sccs[k].ans[i] = ran;
+                                sccs[k].setDetectStatus(i, CloudCoin.STATUS_PASS);
                                 break;
                             }
                         }
@@ -313,7 +315,9 @@ public class Receiver extends Servant {
 
                     
                     logger.info(ltag, " sn=" + rsn + " nn=" + rnn + " an=" + ran);
-                } else {     
+                } else if (strStatus.equals(Config.REQUEST_STATUS_FAIL)) {     
+                    logger.error(ltag, "Counterfeit response from raida " + i);
+                } else {
                     logger.error(ltag, "Unknown coin status from RAIDA" + i + ": " + strStatus);
                 }
 
@@ -330,6 +334,7 @@ public class Receiver extends Servant {
                 continue;
             }
 
+            sccs[i].setPownStringFromDetectStatus();
             file = dir + File.separator + sccs[i].getFileName();
             logger.info(ltag, "Saving coin " + file);
             if (!AppCore.saveFile(file, sccs[i].getJson(false))) {

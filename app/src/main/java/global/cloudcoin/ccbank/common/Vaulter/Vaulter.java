@@ -70,6 +70,12 @@ public class Vaulter extends Servant {
             vr.status = VaulterResult.STATUS_ERROR;
             return;
         }
+        
+        if (password.isEmpty()) {
+            logger.error(ltag, "Password is empty");
+            vr.status = VaulterResult.STATUS_ERROR;
+            return;
+        }
       
         String hash = AppCore.getMD5(password);
         logger.debug(ltag, "password hash " + hash);
