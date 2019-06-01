@@ -329,7 +329,7 @@ public class Receiver extends Servant {
         String file;
         for (i = 0; i < sccs.length; i++) {
             if (sccs[i] == null) {
-                addCoinToReceipt(sccs[i], "counterfeit", "None");
+            //    addCoinToReceipt(sccs[i], "counterfeit", "None");
                 c++;
                 continue;
             }
@@ -338,7 +338,7 @@ public class Receiver extends Servant {
             file = dir + File.separator + sccs[i].getFileName();
             logger.info(ltag, "Saving coin " + file);
             if (!AppCore.saveFile(file, sccs[i].getJson(false))) {
-                logger.error(ltag, "Failed to move coin to Import: " + sccs[i].getFileName());
+                logger.error(ltag, "Failed to move coin to Bank: " + sccs[i].getFileName());
                 addCoinToReceipt(sccs[i], "error", "None");
                 e++;
                 continue;

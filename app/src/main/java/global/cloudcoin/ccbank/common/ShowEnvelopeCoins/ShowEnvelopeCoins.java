@@ -27,12 +27,6 @@ public class ShowEnvelopeCoins extends Servant {
 
     public ShowEnvelopeCoins(String rootDir, GLogger logger) {
         super("ShowEnvelopeCoins", rootDir, logger);
-
-        result = new ShowEnvelopeCoinsResult();
-        result.coins = new int[0];
-        result.envelopes = new Hashtable<String, String[]>();
-        
-
     }
 
     public void launch(int sn, String envelope, CallbackInterface icb) {
@@ -41,7 +35,11 @@ public class ShowEnvelopeCoins extends Servant {
         final int fsn = sn;
         final String fenvelope = envelope;
 
+        result = new ShowEnvelopeCoinsResult();
+        result.coins = new int[0];
+        result.envelopes = new Hashtable<String, String[]>();
         result.counters = new int[Config.IDX_FOLDER_LAST][5];
+        
         launchThread(new Runnable() {
             @Override
             public void run() {
@@ -137,7 +135,6 @@ public class ShowEnvelopeCoins extends Servant {
             ts = er[j].created;
 
             rcc = new CloudCoin(cc.nn, rsn);
-            
             int idx = Config.IDX_FOLDER_BANK;
             switch (rcc.getDenomination()) {
                 case 1:

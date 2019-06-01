@@ -666,13 +666,21 @@ public class AppCore {
         }
     }
     
-    
+    /*
     public static String getCurrentDate() {
         DateFormat dateFormat = new SimpleDateFormat("MMM dd yyyy");
 	Date date = new Date();
         
         return dateFormat.format(date);
+    }*/
+    
+    public static String getCurrentDate() {
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-d h-mma");
+	Date date = new Date();
+        
+        return dateFormat.format(date);
     }
+    
     
     public static String getCurrentBackupDir(String broot, String user) {
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MMM-d h-mma", Locale.US);
@@ -817,5 +825,8 @@ public class AppCore {
         }
         return true;
     }
+    
+    
+    
     
 }

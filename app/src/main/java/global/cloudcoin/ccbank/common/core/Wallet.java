@@ -159,12 +159,14 @@ public class Wallet {
         return rv;            
     }
     
-    public void appendTransaction(String memo, int amount, String receiptId) { 
+    public void appendTransaction(String memo, int amount, String receiptId) {
+        appendTransaction(memo, amount, receiptId, AppCore.getCurrentDate());
+    }
+    
+    public void appendTransaction(String memo, int amount, String receiptId, String date) { 
         logger.debug(ltag, "Append transaction " + receiptId + " amount " + amount + " wallet " + getName());
         
         String fileName = getTransactionsFileName();
-        
-        String date = AppCore.getCurrentDate(); 
         String rMemo = memo.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll(",", " ");
         //String sAmount = Integer.toString(amount);
         
