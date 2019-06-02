@@ -96,6 +96,7 @@ public class Exporter extends Servant {
         }
       
         String fullExportPath = AppCore.getUserDir(Config.DIR_EXPORT, user);
+        
         if (dir != null)
             fullExportPath = dir;
         
@@ -283,8 +284,13 @@ public class Exporter extends Servant {
 
         sb.append(ls + "]" + ls + "}");
 
-        fileName = total + ".CloudCoin." + tag + ".stack";
-        fileName = dir + File.separator + fileName;
+        File sdir = new File(dir);
+        if (sdir.isDirectory()) {
+            fileName = total + ".CloudCoin." + tag + ".stack";
+            fileName = dir + File.separator + fileName;
+        } else {
+            fileName = dir;
+        }
 
         if (!AppCore.saveFile(fileName, sb.toString())) {
             logger.error(ltag, "Failed to save file " + fileName);

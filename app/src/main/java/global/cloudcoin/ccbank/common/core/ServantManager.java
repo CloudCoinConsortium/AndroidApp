@@ -26,6 +26,7 @@ import global.cloudcoin.ccbank.core.CallbackInterface;
 import global.cloudcoin.ccbank.core.CloudCoin;
 import global.cloudcoin.ccbank.core.Config;
 import global.cloudcoin.ccbank.core.GLogger;
+import global.cloudcoin.ccbank.core.RAIDA;
 import global.cloudcoin.ccbank.core.Servant;
 import global.cloudcoin.ccbank.core.ServantRegistry;
 import global.cloudcoin.ccbank.core.Wallet;
@@ -581,4 +582,24 @@ public class ServantManager {
         
         return null;
     }
+    
+    public String[] getRAIDAStatuses() {
+        Servant e = sr.getServant("Echoer");
+        
+        e.updateRAIDAStatus();
+        
+        String[] urls = e.getRAIDA().getRAIDAURLs();
+        int[] latencies = e.getRAIDA().getLatencies();
+        String[] rv = new String[RAIDA.TOTAL_RAIDA_COUNT];
+        
+        for (int i = 0; i < RAIDA.TOTAL_RAIDA_COUNT; i++) {
+            if (urls[i] == null)
+                rv[i] = null;
+            else
+                rv[i] = "" + latencies[i];
+        }
+        
+        return rv;
+    }
+    
 }

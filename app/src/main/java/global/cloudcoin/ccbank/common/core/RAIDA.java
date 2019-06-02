@@ -14,6 +14,8 @@ public class RAIDA {
         static int TOTAL_RAIDA_CNT;
 
 	public DetectionAgent[] agents;
+        
+        int[] latencies, intLatencies, totalLatencies;
 	ExecutorService service;
 
 	public GLogger logger;
@@ -23,6 +25,9 @@ public class RAIDA {
 
 	public RAIDA(GLogger logger) {
 		agents = new DetectionAgent[TOTAL_RAIDA_COUNT];
+                latencies = new int[TOTAL_RAIDA_COUNT];
+                intLatencies = new int[TOTAL_RAIDA_COUNT];
+                totalLatencies = new int[TOTAL_RAIDA_COUNT];
 		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {
 			agents[i] = new DetectionAgent(i, Config.CONNECTION_TIMEOUT, logger);
 		}
@@ -37,6 +42,16 @@ public class RAIDA {
 
 		return rv;
 	}
+        
+        public void setLatency(int raidaNumber, int latency, int intLatency) {
+            latencies[raidaNumber] = latency;
+            intLatencies[raidaNumber] = intLatency;
+            totalLatencies[raidaNumber] = latency + intLatency;
+        }
+        
+        public int[] getLatencies() {
+            return totalLatencies;
+        }
 
 	public void setExactUrls(String[] urls) {
 		for (int i = 0; i < TOTAL_RAIDA_COUNT; i++) {

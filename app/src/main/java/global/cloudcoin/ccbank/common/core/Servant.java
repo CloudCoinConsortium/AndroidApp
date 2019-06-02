@@ -77,6 +77,10 @@ public class Servant {
         logger.info(ltag, "Instantiated servant " + name + " for " + this.user); 
     }
 
+    public RAIDA getRAIDA() {
+        return raida;
+    }
+    
     public void setLtag() {
         ltag = "Servant [" + getClass().getSimpleName() + "] " + this.user + ": ";
     }
@@ -205,6 +209,8 @@ public class Servant {
 
                 urls[raidaNumber] = url;
                 cntValid++;
+                
+                raida.setLatency(raidaNumber, latency, intLatency);
             }
         }
 
