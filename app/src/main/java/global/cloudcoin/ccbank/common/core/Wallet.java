@@ -26,6 +26,7 @@ public class Wallet {
     Wallet parent;
     String passwordHash;
     int[] sns;
+    int[][] counters;
     
     public Wallet(String name, String email, boolean isEncrypted, String password, GLogger logger) {
         this.name = name;
@@ -36,6 +37,7 @@ public class Wallet {
         this.logger = logger;
         this.parent = null;
         this.sns = new int[0];
+        
         
         logger.debug(ltag, "wallet " + name + " e=" + email + " is="+isEncrypted+ " p="+password);
         lsep = System.getProperty("line.separator");
@@ -68,6 +70,15 @@ public class Wallet {
     public Object getuiRef() {
         return uiRef;
     }
+    
+    public void setCounters(int[][] counters) {
+        this.counters = counters;
+    }
+    
+    public int[][] getCounters() {
+        return this.counters;
+    }
+    
     
     public boolean isSkyWallet() {
         return this.cc != null;

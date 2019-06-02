@@ -96,7 +96,7 @@ public class Sender extends Servant {
         if (!pickCoinsAmountInDirs(fullBankPath, fullFrackedPath, amount)) {
             logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
             globalResult.status = SenderResult.STATUS_ERROR;
-            globalResult.errText = "Can't collect required amount";
+            globalResult.errText = Config.PICK_ERROR_MSG;
             SenderResult sr = new SenderResult();
             copyFromGlobalResult(sr);
             if (cb != null)
@@ -219,7 +219,7 @@ public class Sender extends Servant {
                    logger.error(ltag, "Not enough coins in the Fracked dir");
                    sr = new SenderResult();
                    globalResult.status = SenderResult.STATUS_ERROR;
-                   globalResult.errText = "Can't collect required amount";
+                   globalResult.errText = Config.PICK_ERROR_MSG;
                    copyFromGlobalResult(sr);
                    if (cb != null)
                         cb.callback(sr);
@@ -234,7 +234,7 @@ public class Sender extends Servant {
                     logger.debug(ltag, "Not enough coins in the bank dir for amount " + amount);
                     sr = new SenderResult();
                     globalResult.status = SenderResult.STATUS_ERROR;
-                    globalResult.errText = "Can't collect required amount";
+                    globalResult.errText = Config.PICK_ERROR_MSG;
                     copyFromGlobalResult(sr);
                     if (cb != null)
                         cb.callback(sr);
